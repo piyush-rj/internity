@@ -1,0 +1,42 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      - POSTGRES_USER=internshala
+      - POSTGRES_PASSWORD=internshala
+      - POSTGRES_DB=internshala_db
+    ports:
+      - "5440:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=internshala
+      - MINIO_ROOT_PASSWORD=internshala-secret
+    ports:
+      - "9000:9000" # S3 API
+      - "9001:9001" # console UI
+    volumes:
+      - minio_data:/data
+
+  # Creates the bucket on startup so the server doesn't have to.
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      sleep 3 &&
+      mc alias set local http://minio:9000 internshala internshala-secret &&
+      (mc mb local/internshala || true) &&
+      mc anonymous set download local/internshala
+      "
+
+volumes:
+  db_data:
+  minio_data:

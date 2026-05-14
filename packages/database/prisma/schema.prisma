@@ -1,0 +1,400 @@
+// Internshala clone — Prisma schema (MVP for 2-day build)
+// Auth: NextAuth v4 (Google OAuth, JWT strategy — no DB sessions)
+// Storage: MinIO (S3-compatible) for resumes and logos
+// Realtime: Socket.IO for recruiter ↔ applicant chat
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Users
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id    String  @id @default(cuid())
+  name  String
+  email String  @unique
+  image String?
+
+  googleId String? @unique
+
+  role     UserRole @default(STUDENT)
+  isBanned Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  studentProfile     StudentProfile?
+  employerProfile    EmployerProfile?
+  companyMemberships CompanyMember[]
+  listingsPosted     Listing[]        @relation("ListingPostedBy")
+  applications       Application[]
+  savedListings      SavedListing[]
+  messagesSent       Message[]        @relation("MessageSender")
+  messagesReceived   Message[]        @relation("MessageReceiver")
+  assets             Asset[]
+}
+
+// ─────────────────────────────────────────────────────────────
+// Student profile + resume sub-tables
+// ─────────────────────────────────────────────────────────────
+
+model StudentProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String
+  lastName  String?
+  phone     String?
+  city      String?
+  dob       DateTime?
+  gender    Gender?
+  bio       String?  @db.Text
+
+  resumeUrl String? // pointer to latest resume Asset.url
+
+  educations     Education[]
+  experiences    WorkExperience[]
+  projects       Project[]
+  skills         StudentSkill[]
+  certifications Certification[]
+  languages      Language[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([city])
+}
+
+model Education {
+  id        String         @id @default(cuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  institute    String
+  degree       String
+  fieldOfStudy String?
+  startYear    Int
+  endYear      Int?
+  grade        String?
+  current      Boolean @default(false)
+
+  @@index([studentId])
+}
+
+model WorkExperience {
+  id        String         @id @default(cuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  company     String
+  title       String
+  location    String?
+  startDate   DateTime
+  endDate     DateTime?
+  current     Boolean   @default(false)
+  description String?   @db.Text
+
+  @@index([studentId])
+}
+
+model Project {
+  id        String         @id @default(cuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  title       String
+  link        String?
+  description String?   @db.Text
+  startDate   DateTime?
+  endDate     DateTime?
+
+  @@index([studentId])
+}
+
+model Skill {
+  id   String @id @default(cuid())
+  name String @unique // normalised, lowercase
+
+  students      StudentSkill[]
+  listingSkills ListingSkill[]
+}
+
+model StudentSkill {
+  studentId String
+  skillId   String
+  level     Int? // 1..5
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  skill   Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, skillId])
+  @@index([skillId])
+}
+
+model Certification {
+  id        String         @id @default(cuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  name          String
+  issuer        String?
+  issueDate     DateTime?
+  credentialUrl String?
+
+  @@index([studentId])
+}
+
+model Language {
+  id        String         @id @default(cuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  name        String
+  proficiency Int? // 1..5
+
+  @@index([studentId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Employer + company
+// ─────────────────────────────────────────────────────────────
+
+model EmployerProfile {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  firstName String
+  lastName  String?
+  phone     String?
+  jobTitle  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Company {
+  id       String  @id @default(cuid())
+  name     String
+  slug     String  @unique
+  logoUrl  String?
+  website  String?
+  about    String? @db.Text
+  industry String?
+  size     String?
+  city     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members  CompanyMember[]
+  listings Listing[]
+}
+
+model CompanyMember {
+  companyId String
+  userId    String
+  role      CompanyRole @default(MEMBER)
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  joinedAt DateTime @default(now())
+
+  @@id([companyId, userId])
+  @@index([userId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Listings (Internship or Job)
+// ─────────────────────────────────────────────────────────────
+
+model Listing {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  postedById String
+  postedBy   User   @relation("ListingPostedBy", fields: [postedById], references: [id], onDelete: Cascade)
+
+  type        ListingType
+  title       String
+  mode        WorkMode
+  city        String?
+  description String      @db.Text
+
+  responsibilities String[]
+  perks            String[]
+  preferences      String[]
+  skillTagsRaw     String[] // free-text snapshot; normalised m2m below
+
+  stipendMin     Int?
+  stipendMax     Int?
+  currency       String?   @default("INR")
+  durationMonths Int?
+  startDate      DateTime?
+  applyBy        DateTime?
+  openings       Int?      @default(1)
+  partTime       Boolean   @default(false)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  closedAt  DateTime? // null = live, non-null = closed
+
+  skills       ListingSkill[]
+  applications Application[]
+  savedBy      SavedListing[]
+
+  @@index([type, createdAt])
+  @@index([companyId])
+  @@index([postedById])
+  @@index([city])
+  @@index([applyBy])
+  @@index([closedAt])
+}
+
+model ListingSkill {
+  listingId String
+  skillId   String
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@id([listingId, skillId])
+  @@index([skillId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Applications + chat (chat is scoped per application)
+// ─────────────────────────────────────────────────────────────
+
+model Application {
+  id        String  @id @default(cuid())
+  listingId String
+  listing   Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  studentId String
+  student   User   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  status      ApplicationStatus @default(APPLIED)
+  coverLetter String?           @db.Text
+  resumeUrl   String? // snapshot of resume at time of apply
+
+  appliedAt       DateTime @default(now())
+  statusUpdatedAt DateTime @default(now())
+
+  messages Message[]
+
+  @@unique([listingId, studentId])
+  @@index([studentId, status])
+  @@index([listingId, status])
+}
+
+model SavedListing {
+  userId    String
+  listingId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@id([userId, listingId])
+  @@index([listingId])
+}
+
+model Message {
+  id            String      @id @default(cuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  senderId   String
+  sender     User   @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiverId String
+  receiver   User   @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  text   String    @db.Text
+  readAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([applicationId, createdAt])
+  @@index([receiverId, readAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Uploads (MinIO)
+// ─────────────────────────────────────────────────────────────
+
+model Asset {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  kind        AssetKind
+  bucket      String
+  key         String    @unique
+  url         String?
+  contentType String?
+  sizeBytes   Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId, kind])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  STUDENT
+  EMPLOYER
+  ADMIN
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+  PREFER_NOT_TO_SAY
+}
+
+enum ListingType {
+  INTERNSHIP
+  JOB
+}
+
+enum WorkMode {
+  REMOTE
+  HYBRID
+  ONSITE
+}
+
+enum ApplicationStatus {
+  APPLIED
+  SHORTLISTED
+  INTERVIEW
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+enum CompanyRole {
+  OWNER
+  MEMBER
+}
+
+enum AssetKind {
+  RESUME
+  COMPANY_LOGO
+  PROFILE_IMAGE
+}
