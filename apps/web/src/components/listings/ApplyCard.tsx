@@ -5,23 +5,43 @@ import { Check, Info } from "lucide-react";
 import { listingApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Button } from "@/src/components/ui/button";
+import { useMe } from "@/src/hooks/useMe";
 import { cn } from "@/src/lib/utils";
 
 export function ApplyCard({
     listingId,
+    postedById,
     closed,
     applied,
     onApplied,
 }: {
     listingId: string;
+    postedById: string;
     closed: boolean;
     applied: boolean;
     onApplied: () => Promise<void> | void;
 }) {
-    const [open, setOpen] = useState(false);
-    const [coverLetter, setCoverLetter] = useState("");
-    const [submitting, setSubmitting] = useState(false);
+    const { me } = useMe();
+    const [open, setOpen] = useState<boolean>(false);
+    const [coverLetter, setCoverLetter] = useState<string>("");
+    const [submitting, setSubmitting] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
+
+    if (me && me.id === postedById) {
+        return (
+            <div className="rounded-lg border border-border bg-secondary/40 px-3 py-3 text-[13px] text-muted-foreground">
+                This is your listing.
+            </div>
+        );
+    }
+
+    if (me && me.role !== "STUDENT") {
+        return (
+            <div className="rounded-lg border border-border bg-secondary/40 px-3 py-3 text-[13px] text-muted-foreground">
+                Switch to a student account to apply.
+            </div>
+        );
+    }
 
     if (applied) {
         return (

@@ -19,7 +19,7 @@ const buttonVariants = cva(
                     "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
                 link: "text-primary underline-offset-4 hover:underline",
                 "exec-dark":
-                    "bg-zinc-900 text-white border-zinc-950 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_1px_2px_0_rgba(15,23,42,0.35)] [&_svg]:text-white/55 hover:[&_svg]:text-white/80 hover:[&_svg]:translate-x-0.5",
+                    "bg-zinc-900 text-white border-zinc-950 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.2),0_1px_2px_0_rgba(15,23,42,0.35)]",
                 "exec-light":
                     "bg-white text-zinc-900 border-zinc-200 shadow-[inset_0_1px_0_0_rgba(240,240,240,0.9),0_1px_2px_0_rgba(15,23,42,0.09)] [&_svg]:text-zinc-400 hover:[&_svg]:text-zinc-600",
             },

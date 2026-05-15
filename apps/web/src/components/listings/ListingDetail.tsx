@@ -76,6 +76,7 @@ export function ListingDetail({
                         <div className="border-t border-border pt-3">
                             <ApplyCard
                                 listingId={listing.id}
+                                postedById={listing.postedById}
                                 closed={closed}
                                 applied={applied}
                                 onApplied={onApplied}

@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -15,10 +14,9 @@ import { type AppNotification, type NotificationType } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
 
 export function NotificationPanel() {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState<boolean>(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
-    const { items, unread, loading, markRead, markAllRead } =
-        useNotifications();
+    const { items, unread, loading, markRead, markAllRead } = useNotifications();
 
     useEffect(() => {
         function onDocClick(e: MouseEvent) {
@@ -27,6 +25,7 @@ export function NotificationPanel() {
                 setOpen(false);
             }
         }
+
         document.addEventListener("mousedown", onDocClick);
         return () => document.removeEventListener("mousedown", onDocClick);
     }, []);
@@ -92,7 +91,7 @@ export function NotificationPanel() {
                             <p className="text-[13px] font-medium text-foreground">
                                 You’re all caught up
                             </p>
-                            <p className="mt-1 text-[12px] text-muted-foreground">
+                            <p className="pt-1 text-[12px] text-muted-foreground">
                                 New updates will show up here.
                             </p>
                         </div>

@@ -2,14 +2,14 @@ import axios, { AxiosError, type AxiosInstance } from "axios";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { ENV } from "@/src/config/config.env";
 
-type ApiSuccess<T> = {
+interface ApiSuccess<T> {
     success: true;
     data: T;
     message?: string;
     metadata: { timestamp: string };
 };
 
-type ApiError = {
+interface ApiError {
     success: false;
     error: { code: string; message: string };
     metadata: { timestamp: string };
