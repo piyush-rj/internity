@@ -89,6 +89,14 @@ export default class StudentProfileController {
             const profile = await prisma.studentProfile.findUnique({
                 where: { userId },
                 include: {
+                    user: {
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            image: true,
+                        },
+                    },
                     educations: true,
                     experiences: true,
                     projects: true,

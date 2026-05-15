@@ -6,24 +6,24 @@ import { useEffect, useRef, useState } from "react";
 import {
     BookmarkIcon,
     BriefcaseIcon,
-    FileTextIcon,
-    HelpCircleIcon,
     HomeIcon,
     LogOutIcon,
-    ShieldIcon,
     SlidersIcon,
+    UserIcon,
 } from "@/src/components/base/icons";
 import { cn } from "@/src/lib/utils";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
 const items = [
-    { Icon: HomeIcon, label: "Home", href: "/dashboard" },
-    { Icon: BriefcaseIcon, label: "My Applications", href: "/applications" },
-    { Icon: BookmarkIcon, label: "My Bookmarks", href: "/bookmarks" },
-    { Icon: FileTextIcon, label: "Edit Resume", href: "/resume" },
-    { Icon: SlidersIcon, label: "Edit Preferences", href: "/preferences" },
-    { Icon: ShieldIcon, label: "Safety Tips", href: "/safety" },
-    { Icon: HelpCircleIcon, label: "Help Center", href: "/help" },
+    { Icon: HomeIcon, label: "Dashboard", href: "/home/dashboard" },
+    {
+        Icon: BriefcaseIcon,
+        label: "My applications",
+        href: "/home/applications",
+    },
+    { Icon: BookmarkIcon, label: "Saved", href: "/home/saved" },
+    { Icon: UserIcon, label: "Profile", href: "/home/profile" },
+    { Icon: SlidersIcon, label: "Settings", href: "/home/settings" },
 ];
 
 export function UserMenu() {

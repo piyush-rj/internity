@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import z from "zod";
-import { prisma, ApplicationStatus } from "database";
+import { prisma, ApplicationStatus, NotificationType } from "database";
 import ResponseWriter from "../../class/response_writer";
+import { notify, notifyMany } from "../../services/service.notification";
 
 export default class ApplicationController {
     static apply_schema = z.object({
@@ -90,7 +91,32 @@ export default class ApplicationController {
                     coverLetter: data.coverLetter,
                     resumeUrl: profile.resumeUrl, // snapshot
                 },
+                include: {
+                    listing: {
+                        select: {
+                            title: true,
+                            company: { select: { name: true } },
+                        },
+                    },
+                    student: { select: { name: true } },
+                },
             });
+
+            // Notify every member of the company that owns this listing.
+            const members = await prisma.companyMember.findMany({
+                where: { companyId: listing.companyId },
+                select: { userId: true },
+            });
+            await notifyMany(
+                members.map((m) => m.userId),
+                {
+                    type: NotificationType.APPLICATION_RECEIVED,
+                    title: `${application.student.name} applied to ${application.listing.title}`,
+                    body: `New applicant for your ${application.listing.title} listing.`,
+                    link: `/home/applicants?listingId=${listingId}`,
+                },
+            );
+
             ResponseWriter.success(res, { application }, "Applied", 201);
         } catch (err: unknown) {
             if (
@@ -252,6 +278,7 @@ export default class ApplicationController {
                                 select: {
                                     firstName: true,
                                     lastName: true,
+                                    phone: true,
                                     city: true,
                                     bio: true,
                                 },
@@ -307,11 +334,46 @@ export default class ApplicationController {
             const application = await prisma.application.update({
                 where: { id },
                 data: { status: data.status, statusUpdatedAt: new Date() },
+                include: {
+                    listing: {
+                        select: {
+                            title: true,
+                            company: { select: { name: true } },
+                        },
+                    },
+                },
             });
+
+            // Notify the student about the new decision.
+            await notify({
+                userId: application.studentId,
+                type: NotificationType.APPLICATION_STATUS_CHANGED,
+                title: `${application.listing.company.name} marked you as ${formatStatus(application.status)}`,
+                body: `${application.listing.title} · ${formatStatus(application.status)}`,
+                link: `/home/applications`,
+            });
+
             ResponseWriter.success(res, { application });
         } catch (err) {
             console.error("application.update_status:", err);
             ResponseWriter.server_error(res);
         }
+    }
+}
+
+function formatStatus(s: ApplicationStatus): string {
+    switch (s) {
+        case "APPLIED":
+            return "Applied";
+        case "SHORTLISTED":
+            return "Shortlisted";
+        case "INTERVIEW":
+            return "Interview";
+        case "HIRED":
+            return "Hired";
+        case "REJECTED":
+            return "Rejected";
+        case "WITHDRAWN":
+            return "Withdrawn";
     }
 }

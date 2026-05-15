@@ -16,7 +16,7 @@ const containerVariants: Variants = {
 
 export function FeaturePillars() {
     return (
-        <section className="relative bg-background">
+        <section className="relative bg-neutral-50">
             <SectionFrame className="px-10 py-20 sm:py-24">
                 <SectionHeader
                     eyebrow={{

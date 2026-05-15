@@ -1,4 +1,3 @@
-import { BrandMark } from "@/src/components/base/icons";
 import { cn } from "@/src/lib/utils";
 
 export function Footer() {

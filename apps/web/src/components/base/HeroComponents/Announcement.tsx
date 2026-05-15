@@ -7,14 +7,17 @@ export function Announcement() {
         <a
             href="#"
             className={cn(
-                "group inline-flex items-center gap-1.5",
+                "group inline-flex items-center gap-1.5 group",
                 "rounded-full border border-black/10 bg-card",
                 "pl-4 pr-0.75 py-0.75",
                 "text-[12px] font-medium",
-                "hover:bg-secondary/60 transition-colors transform duration-200",
+                "hover:bg-secondary/60 transition-colors transform duration-250",
             )}
         >
-            <SiBuymeacoffee className="-rotate-5 size-4" />
+            <SiBuymeacoffee
+                style={{ willChange: "auto" }}
+                className="-rotate-5 size-4 group-hover:-rotate-10 transition-all transform duration-200"
+            />
             <span className="text-foreground">
                 Celebrating 50,000 placements on Internity
             </span>

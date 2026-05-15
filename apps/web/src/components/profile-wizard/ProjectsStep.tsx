@@ -1,0 +1,168 @@
+"use client";
+
+import { useState } from "react";
+import {
+    AddButton,
+    EntityCard,
+    Field,
+    InlineFormCard,
+    ProfileMissingNotice,
+    StepShell,
+    inputCls,
+} from "@/src/components/profile-wizard/utils";
+import {
+    studentApi,
+    type ProjectInput,
+    type StudentProfile,
+} from "@/src/lib/api";
+import { ApiClientError } from "@/src/lib/apiClient";
+
+const empty: ProjectInput = {
+    title: "",
+    link: "",
+    description: "",
+    startDate: "",
+    endDate: "",
+};
+
+export function ProjectsStep({
+    profile,
+    onSaved,
+    onBack,
+    onContinue,
+}: {
+    profile: StudentProfile | null;
+    onSaved: () => Promise<void>;
+    onBack: () => void;
+    onContinue: () => void;
+}) {
+    const items = profile?.projects ?? [];
+    const [open, setOpen] = useState(items.length === 0);
+    const [form, setForm] = useState<ProjectInput>(empty);
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    function set<K extends keyof ProjectInput>(key: K, value: ProjectInput[K]) {
+        setForm((f) => ({ ...f, [key]: value }));
+    }
+
+    async function handleAdd() {
+        if (!form.title.trim()) {
+            setError("Project title is required.");
+            return;
+        }
+        setSaving(true);
+        setError(null);
+        try {
+            await studentApi.add_project({
+                title: form.title.trim(),
+                link: form.link?.trim() || undefined,
+                description: form.description?.trim() || undefined,
+                startDate: form.startDate
+                    ? new Date(form.startDate).toISOString()
+                    : undefined,
+                endDate: form.endDate
+                    ? new Date(form.endDate).toISOString()
+                    : undefined,
+            });
+            setForm(empty);
+            setOpen(false);
+            await onSaved();
+        } catch (err) {
+            setError(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn’t save. Please try again.",
+            );
+        } finally {
+            setSaving(false);
+        }
+    }
+
+    async function handleRemove(id: string) {
+        try {
+            await studentApi.remove_project(id);
+            await onSaved();
+        } catch {
+            /* ignore */
+        }
+    }
+
+    return (
+        <StepShell
+            stepKey="projects"
+            title="Projects you’ve built"
+            description="Side projects, hackathons, course capstones — link the live demo or repo if you have one."
+            onBack={onBack}
+            onContinue={onContinue}
+        >
+            <div className="space-y-3">
+                {!profile && <ProfileMissingNotice />}
+
+                {items.map((it) => (
+                    <EntityCard
+                        key={it.id}
+                        title={it.title}
+                        subtitle={it.link ?? undefined}
+                        meta={it.description ?? undefined}
+                        onDelete={() => handleRemove(it.id)}
+                    />
+                ))}
+
+                {open ? (
+                    <InlineFormCard
+                        onCancel={() => {
+                            setOpen(false);
+                            setForm(empty);
+                            setError(null);
+                        }}
+                        onSave={handleAdd}
+                        saving={saving}
+                        error={error}
+                        saveLabel="Add project"
+                    >
+                        <Field label="Title" required>
+                            <input
+                                type="text"
+                                value={form.title}
+                                onChange={(e) => set("title", e.target.value)}
+                                placeholder="Real-time chess MMO"
+                                className={inputCls()}
+                            />
+                        </Field>
+                        <Field label="Link" hint="GitHub, Vercel, anywhere.">
+                            <input
+                                type="url"
+                                value={form.link ?? ""}
+                                onChange={(e) => set("link", e.target.value)}
+                                placeholder="https://github.com/you/project"
+                                className={inputCls()}
+                            />
+                        </Field>
+                        <Field
+                            label="What is it?"
+                            hint="One paragraph is plenty."
+                        >
+                            <textarea
+                                value={form.description ?? ""}
+                                onChange={(e) =>
+                                    set("description", e.target.value)
+                                }
+                                rows={3}
+                                placeholder="Multiplayer chess with custom ELO, built in Rust + WASM."
+                                className={`${inputCls()} min-h-24 resize-y py-2`}
+                            />
+                        </Field>
+                    </InlineFormCard>
+                ) : (
+                    profile && (
+                        <AddButton
+                            label={items.length ? "Add another" : "Add project"}
+                            onClick={() => setOpen(true)}
+                        />
+                    )
+                )}
+            </div>
+        </StepShell>
+    );
+}

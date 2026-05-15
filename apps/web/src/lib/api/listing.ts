@@ -6,8 +6,19 @@ import type {
     ListingType,
     ListingWithCompany,
     Paginated,
+    StudentProfile,
+    User,
     WorkMode,
 } from "./types";
+
+export type ApplicantWithStudent = Application & {
+    student: Pick<User, "id" | "name" | "email" | "image"> & {
+        studentProfile: Pick<
+            StudentProfile,
+            "firstName" | "lastName" | "phone" | "city" | "bio"
+        > | null;
+    };
+};
 
 export type ListingInput = {
     companyId: string;
@@ -74,7 +85,9 @@ export const listingApi = {
         ),
     // applicants list hangs off /listing/:id/applications
     list_applicants: (listingId: string) =>
-        api.get<{ items: unknown[] }>(`/listing/${listingId}/applications`),
+        api.get<{ items: ApplicantWithStudent[] }>(
+            `/listing/${listingId}/applications`,
+        ),
 };
 
 export const applicationApi = {

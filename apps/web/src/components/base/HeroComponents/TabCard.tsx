@@ -45,7 +45,7 @@ export function TabCard() {
                 </div>
             </div>
 
-            <div className="relative rounded-t-[28px] border border-b-0 border-border pt-14 pb-0 bg-neutral-50">
+            <div className="relative rounded-t-[28px] border border-b-0 border-border pt-14 pb-0 bg-neutral-200/50">
                 <div className="px-4 sm:px-8">
                     <WindowMock />
                 </div>

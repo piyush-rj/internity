@@ -1,5 +1,4 @@
 "use client";
-import { ArrowRight, FileTextIcon } from "@/src/components/base/icons";
 import { SectionFrame } from "@/src/components/base/SectionFrame";
 import { SectionHeader } from "@/src/components/base/SectionHeader";
 import { cn } from "@/src/lib/utils";
@@ -26,7 +25,7 @@ export function FinalCTA() {
                 />
                 <div className="-mt-4 flex items-center justify-center gap-3">
                     <Button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/home")}
                         variant={"exec-dark"}
                         className={cn("h-10 px-3.5! cursor-pointer")}
                     >
@@ -34,7 +33,7 @@ export function FinalCTA() {
                         Create free profile
                     </Button>
                     <Button
-                        onClick={() => router.push("/dashboard")}
+                        onClick={() => router.push("/home")}
                         variant={"exec-light"}
                         className={cn("h-10 px-3.5! cursor-pointer")}
                     >

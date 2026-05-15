@@ -37,9 +37,6 @@ export function ResumeMock() {
                 )}
             >
                 <div className="flex items-center gap-2 border-b border-border px-3 py-2 bg-card">
-                    <span className="h-2 w-2 rounded-full bg-[#ff5f57]" />
-                    <span className="h-2 w-2 rounded-full bg-[#febc2e]" />
-                    <span className="h-2 w-2 rounded-full bg-[#28c840]" />
                     <span className="ml-3 text-[10px] font-medium text-foreground">
                         Resume insights
                     </span>

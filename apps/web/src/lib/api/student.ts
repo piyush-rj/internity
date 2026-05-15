@@ -8,7 +8,12 @@ import type {
     Certification,
     Language,
     Gender,
+    User,
 } from "./types";
+
+export type PublicStudentProfile = StudentProfile & {
+    user: Pick<User, "id" | "name" | "email" | "image">;
+};
 
 export type StudentProfileInput = {
     firstName: string;
@@ -18,6 +23,7 @@ export type StudentProfileInput = {
     dob?: string; // ISO
     gender?: Gender;
     bio?: string;
+    resumeUrl?: string | null;
 };
 
 export type EducationInput = {
@@ -65,7 +71,7 @@ export const studentApi = {
     update: (input: Partial<StudentProfileInput>) =>
         api.patch<{ profile: StudentProfile }>("/student/me", input),
     get_public: (userId: string) =>
-        api.get<{ profile: StudentProfile }>(`/student/${userId}`),
+        api.get<{ profile: PublicStudentProfile }>(`/student/${userId}`),
 
     // education
     add_education: (input: EducationInput) =>

@@ -108,6 +108,15 @@ export function HomeIcon(props: SVGProps<SVGSVGElement>) {
     );
 }
 
+export function UserIcon(props: SVGProps<SVGSVGElement>) {
+    return (
+        <svg viewBox="0 0 16 16" {...props}>
+            <circle cx="8" cy="6" r="2.75" {...stroke} />
+            <path d="M3 13.5c0-2.5 2.25-4 5-4s5 1.5 5 4" {...stroke} />
+        </svg>
+    );
+}
+
 export function BriefcaseIcon(props: SVGProps<SVGSVGElement>) {
     return (
         <svg viewBox="0 0 16 16" {...props}>

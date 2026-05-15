@@ -1,107 +1,331 @@
-import {
-    BellIcon,
-    HelpIcon,
-    PlusIcon,
-    SearchIcon,
-} from "@/src/components/dashboard/icons";
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { PiArrowUUpLeft } from "react-icons/pi";
+import { PlusIcon, SearchIcon } from "@/src/components/dashboard/icons";
+import { NotificationPanel } from "@/src/components/dashboard/NotificationPanel";
+import { useListingSearch } from "@/src/hooks/useListingSearch";
 import { cn } from "@/src/lib/utils";
+import { ChevronRight } from "../base/HeroComponents/glyphs";
+import { UserMenu } from "@/src/components/navbar/UserMenu";
+import { useMeStore } from "@/src/store/useMeStore";
+
+type Crumb = {
+    label: string;
+    href: string;
+};
+
+/**
+ * Build crumbs from the URL. "Home" always anchors to /home/dashboard; the
+ * remaining segments mirror the path. /home and /home/dashboard collapse to
+ * just "Home".
+ */
+function buildCrumbs(pathname: string): Crumb[] {
+    const segments = pathname
+        .replace(/^\/home\/?/, "")
+        .split("/")
+        .filter(Boolean);
+
+    const crumbs: Crumb[] = [{ label: "Home", href: "/home/dashboard" }];
+
+    if (segments.length === 0 || segments[0] === "dashboard") {
+        return crumbs;
+    }
+
+    for (let i = 0; i < segments.length; i++) {
+        const href = "/home/" + segments.slice(0, i + 1).join("/");
+        crumbs.push({ label: prettify(segments[i]!), href });
+    }
+    return crumbs;
+}
+
+function prettify(segment: string): string {
+    return segment
+        .split(/[-_]/)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+}
 
 export function Topbar() {
-    return (
-        <header className="h-14 border-b border-border bg-background/80 nav-blur sticky top-0 z-30">
-            <div className="h-full flex items-center justify-between gap-4 px-6">
-                <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                    <span className="text-foreground font-medium">
-                        Dashboard
-                    </span>
-                </div>
+    const router = useRouter();
+    const pathname = usePathname() ?? "/home/dashboard";
+    const crumbs = buildCrumbs(pathname);
+    const role = useMeStore((s) => s.me?.role);
+    const [search, setSearch] = useState<string>("");
+    const [open, setOpen] = useState(false);
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
+    const { items: suggestions, loading: searching } = useListingSearch(search);
+    const [isMac, setIsMac] = useState(false);
 
-                <div className="hidden md:flex flex-1 max-w-md mx-4">
-                    <div
+    useEffect(() => {
+        if (typeof navigator !== "undefined") {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setIsMac(/Mac|iPod|iPhone|iPad/.test(navigator.platform));
+        }
+    }, []);
+
+    // Global ⌘K / Ctrl+K focuses the searchbar.
+    useEffect(() => {
+        function onKeyDown(e: KeyboardEvent) {
+            if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+                e.preventDefault();
+                inputRef.current?.focus();
+                inputRef.current?.select();
+                setOpen(true);
+            }
+        }
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, []);
+
+    // Reset suggestions when the route changes (after navigating from a click).
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setOpen(false);
+         
+        setSearch("");
+    }, [pathname]);
+
+    // Close dropdown when clicking outside the searchbar.
+    useEffect(() => {
+        function onDocClick(e: MouseEvent) {
+            if (!wrapperRef.current) return;
+            if (!wrapperRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", onDocClick);
+        return () => document.removeEventListener("mousedown", onDocClick);
+    }, []);
+
+    function handleSearch(e: React.FormEvent) {
+        e.preventDefault();
+        const q = search.trim();
+        setOpen(false);
+        router.push(
+            `/home/internships${q ? `?q=${encodeURIComponent(q)}` : ""}`,
+        );
+    }
+
+    const showDropdown =
+        open &&
+        search.trim().length >= 2 &&
+        (searching || suggestions.length > 0);
+
+    const primaryCta =
+        role === "EMPLOYER"
+            ? { label: "Post listing", href: "/home/manage-listings/new" }
+            : null;
+
+    return (
+        <header className="h-13 border-b border-border nav-blur sticky top-0 z-30 bg-neutral-50">
+            <div className="h-full flex items-center justify-between gap-4 px-6">
+                <nav
+                    aria-label="Breadcrumb"
+                    className="flex items-center gap-2 min-w-0"
+                >
+                    <button
+                        type="button"
+                        onClick={() => router.back()}
+                        aria-label="Go back"
                         className={cn(
-                            "flex w-full items-center gap-2 h-9 px-3",
-                            "rounded-md border border-input bg-card",
-                            "text-[13px]",
-                            "focus-within:ring-2 focus-within:ring-ring/50",
+                            "h-7 w-7 inline-flex items-center justify-center shrink-0",
+                            "rounded-md text-muted-foreground",
+                            "hover:bg-secondary hover:text-foreground transition-colors",
                         )}
                     >
-                        <SearchIcon className="text-muted-foreground h-4 w-4" />
-                        <input
-                            type="text"
-                            placeholder="Search internships, jobs, companies…"
-                            className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-                        />
-                        <kbd
+                        <PiArrowUUpLeft className="size-3" />
+                    </button>
+                    <ol className="flex items-center gap-1.5 min-w-0 -ml-2">
+                        {crumbs.map((crumb, i) => {
+                            const isLast = i === crumbs.length - 1;
+                            return (
+                                <li
+                                    key={crumb.href + i}
+                                    className="flex items-center gap-1.5 min-w-0"
+                                >
+                                    {isLast ? (
+                                        <span className="text-[13px] font-medium text-foreground truncate">
+                                            {crumb.label}
+                                        </span>
+                                    ) : (
+                                        <Link
+                                            href={crumb.href}
+                                            className="text-[13px] text-muted-foreground hover:text-foreground transition-colors truncate"
+                                        >
+                                            {crumb.label}
+                                        </Link>
+                                    )}
+                                    {!isLast && (
+                                        <ChevronRight
+                                            className="size-2.5 text-muted-foreground"
+                                            strokeWidth={1.5}
+                                        />
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ol>
+                </nav>
+
+                <div
+                    ref={wrapperRef}
+                    className="hidden md:block relative max-w-md w-full mr-2"
+                >
+                    <form onSubmit={handleSearch}>
+                        <div
                             className={cn(
-                                "hidden sm:inline",
-                                "rounded border border-border bg-muted",
-                                "px-1.5 py-0.5",
-                                "text-[10px] font-mono text-muted-foreground",
+                                "flex w-full items-center gap-2 h-9 px-3",
+                                "rounded-full border border-input bg-card",
+                                "text-[13px]",
+                                "",
                             )}
                         >
-                            ⌘K
-                        </kbd>
-                    </div>
-                </div>
+                            <SearchIcon className="text-muted-foreground h-4 w-4" />
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={search}
+                                onChange={(e) => {
+                                    setSearch(e.target.value);
+                                    setOpen(true);
+                                }}
+                                onFocus={() => setOpen(true)}
+                                onKeyDown={(e) => {
+                                    if (e.key === "Escape") {
+                                        setOpen(false);
+                                        inputRef.current?.blur();
+                                    }
+                                }}
+                                placeholder="Search role, company, or skill…"
+                                className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+                            />
+                            <kbd
+                                aria-hidden
+                                className={cn(
+                                    "inline-flex items-center gap-1 h-5 px-1.5 rounded",
+                                    "border border-border bg-secondary/60",
+                                    "text-[10px] font-medium text-muted-foreground",
+                                    "select-none",
+                                )}
+                            >
+                                <span className="text-[13px]">
+                                    {isMac ? "⌘" : "Ctrl"}
+                                </span>
+                                +<span>K</span>
+                            </kbd>
+                        </div>
+                    </form>
 
+                    {showDropdown && (
+                        <div
+                            className={cn(
+                                "absolute left-0 right-0 top-[calc(100%+6px)] z-40",
+                                "rounded-lg border border-border bg-card shadow-lg overflow-hidden",
+                            )}
+                        >
+                            {searching && suggestions.length === 0 ? (
+                                <div className="px-4 py-3 text-[12px] text-muted-foreground">
+                                    Searching…
+                                </div>
+                            ) : (
+                                <ul className="max-h-80 overflow-y-auto divide-y divide-border">
+                                    {suggestions.map((s) => (
+                                        <li key={s.id}>
+                                            <Link
+                                                href={`/home/listings/${s.id}`}
+                                                onClick={() => setOpen(false)}
+                                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 transition-colors"
+                                            >
+                                                <SuggestionAvatar
+                                                    name={s.company.name}
+                                                    logoUrl={s.company.logoUrl}
+                                                />
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="text-[13px] font-medium text-foreground truncate">
+                                                        {s.title}
+                                                    </div>
+                                                    <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
+                                                        {s.company.name}
+                                                        {s.city
+                                                            ? ` · ${s.city}`
+                                                            : ""}
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                            <button
+                                type="button"
+                                onMouseDown={(e) => e.preventDefault()}
+                                onClick={(e) => handleSearch(e)}
+                                className={cn(
+                                    "w-full px-3 py-2 text-left text-[12px] font-medium text-foreground",
+                                    "border-t border-border bg-secondary/40 hover:bg-secondary",
+                                    "transition-colors cursor-pointer",
+                                )}
+                            >
+                                See all results for “{search.trim()}”
+                            </button>
+                        </div>
+                    )}
+                </div>
                 <div className="flex items-center gap-1">
-                    <a
-                        href="#"
-                        className={cn(
-                            "hidden sm:inline-flex items-center gap-1.5 h-9 px-3",
-                            "rounded-md bg-brand hover:bg-brand/90",
-                            "text-[13px] font-medium text-white",
-                            "transition-colors",
-                        )}
-                    >
-                        <PlusIcon className="h-3.5 w-3.5" />
-                        New application
-                    </a>
-                    <IconBtn label="Help">
-                        <HelpIcon className="h-4 w-4" />
-                    </IconBtn>
-                    <IconBtn label="Notifications" dot>
-                        <BellIcon className="h-4 w-4" />
-                    </IconBtn>
-                    <span
-                        className={cn(
-                            "ml-1 h-8 w-8 rounded-full",
-                            "flex items-center justify-center",
-                            "bg-linear-to-br from-pink-400 to-violet-500",
-                            "text-white text-[12px] font-semibold",
-                        )}
-                    >
-                        P
-                    </span>
+                    {primaryCta && (
+                        <Link
+                            href={primaryCta.href}
+                            className={cn(
+                                "hidden sm:inline-flex items-center gap-1.5 h-8.5 px-2.5",
+                                "rounded-md bg-neutral-900",
+                                "text-[12px] font-medium text-white",
+                                "transition-colors",
+                                "inset-shadow-xs inset-shadow-white/50 shadow-xs shadow-black/10",
+                            )}
+                        >
+                            <PlusIcon className="size-3.5" />
+                            {primaryCta.label}
+                        </Link>
+                    )}
+                    <NotificationPanel />
+                    <div className="ml-1">
+                        <UserMenu />
+                    </div>
                 </div>
             </div>
         </header>
     );
 }
 
-function IconBtn({
-    children,
-    label,
-    dot,
+function SuggestionAvatar({
+    name,
+    logoUrl,
 }: {
-    children: React.ReactNode;
-    label: string;
-    dot?: boolean;
+    name: string;
+    logoUrl: string | null;
 }) {
+    if (logoUrl) {
+        return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+                src={logoUrl}
+                alt={`${name} logo`}
+                className="h-7 w-7 rounded-md object-cover bg-white ring-1 ring-border shrink-0"
+            />
+        );
+    }
     return (
-        <button
-            aria-label={label}
+        <span
             className={cn(
-                "relative h-9 w-9 inline-flex items-center justify-center",
-                "rounded-md",
-                "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                "transition-colors",
+                "h-7 w-7 rounded-md flex items-center justify-center shrink-0",
+                "bg-secondary text-foreground text-[11px] font-semibold ring-1 ring-border",
             )}
         >
-            {children}
-            {dot && (
-                <span className="absolute top-2 right-2 h-1.5 w-1.5 rounded-full bg-brand" />
-            )}
-        </button>
+            {name.charAt(0).toUpperCase()}
+        </span>
     );
 }

@@ -73,7 +73,20 @@ export default class ListingController {
             if (data.mode) where.mode = data.mode;
             if (data.city)
                 where.city = { contains: data.city, mode: "insensitive" };
-            if (data.q) where.title = { contains: data.q, mode: "insensitive" };
+            if (data.q) {
+                const q = data.q.trim();
+                if (q) {
+                    where.OR = [
+                        { title: { contains: q, mode: "insensitive" } },
+                        {
+                            company: {
+                                name: { contains: q, mode: "insensitive" },
+                            },
+                        },
+                        { skillTagsRaw: { has: q.toLowerCase() } },
+                    ];
+                }
+            }
             if (data.stipendMin !== undefined)
                 where.stipendMax = { gte: data.stipendMin };
             if (data.durationMax !== undefined)

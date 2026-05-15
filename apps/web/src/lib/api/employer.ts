@@ -4,6 +4,7 @@ import type {
     CompanyMember,
     CompanyRole,
     EmployerProfile,
+    Listing,
     User,
 } from "./types";
 
@@ -48,7 +49,7 @@ export const companyApi = {
             input,
         ),
     get_by_slug: (slug: string) =>
-        api.get<{ company: Company & { listings: unknown[] } }>(
+        api.get<{ company: Company & { listings: Listing[] } }>(
             `/company/${slug}`,
         ),
     update: (id: string, input: Partial<Omit<CompanyInput, "slug">>) =>

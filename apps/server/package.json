@@ -19,6 +19,7 @@
     "database": "*",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
+    "razorpay": "^2.9.6",
     "zod": "^4.4.3"
   },
   "scripts": {

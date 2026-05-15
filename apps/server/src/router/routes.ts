@@ -9,6 +9,8 @@ import savedRoutes from "./routes/routes.saved";
 import chatRoutes from "./routes/routes.chat";
 import uploadRoutes from "./routes/routes.upload";
 import skillRoutes from "./routes/routes.skill";
+import notificationRoutes from "./routes/routes.notification";
+import paymentRoutes from "./routes/routes.payment";
 
 const router = Router();
 
@@ -26,5 +28,7 @@ router.use("/saved", savedRoutes);
 router.use("/chat", chatRoutes);
 router.use("/upload", uploadRoutes);
 router.use("/skill", skillRoutes);
+router.use("/notification", notificationRoutes);
+router.use("/payment", paymentRoutes);
 
 export default router;

@@ -1,44 +1,172 @@
-import type { ComponentType, SVGProps } from "react";
+"use client";
+
+import { useState, type ComponentType } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { openCheckout } from "@/src/lib/razorpay";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
 import {
-    BookOpenIcon,
-    BookmarkIcon,
-    BriefcaseIcon,
-    BuildingIcon,
     ChevronRightIcon,
-    FileTextIcon,
-    HelpIcon,
-    HomeIcon,
-    SettingsIcon,
     SparklesIcon,
-    UserIcon,
 } from "@/src/components/dashboard/icons";
-import { GiTie } from 'react-icons/gi';
+import {
+    PiBookmarkSimple,
+    PiBookmarkSimpleFill,
+    PiBriefcase,
+    PiBriefcaseFill,
+    PiBuildings,
+    PiBuildingsFill,
+    PiFileText,
+    PiFileTextFill,
+    PiGear,
+    PiGearFill,
+    PiHouse,
+    PiHouseFill,
+    PiUser,
+    PiUserFill,
+    PiUsers,
+    PiUsersFill,
+} from "react-icons/pi";
+import { GiTie } from "react-icons/gi";
+import type { UserRole } from "@/src/lib/api";
+import { useMeStore } from "@/src/store/useMeStore";
+
+type IconComp = ComponentType<{ className?: string }>;
 
 type Item = {
+    key: string;
     label: string;
-    icon: ComponentType<SVGProps<SVGSVGElement>>;
+    icon: IconComp;
+    iconFilled: IconComp;
     href: string;
     badge?: string;
-    active?: boolean;
 };
 
-const workspace: Item[] = [
-    { label: "Dashboard", icon: HomeIcon, href: "/dashboard", active: true },
-    { label: "Internships", icon: BriefcaseIcon, href: "#", badge: "1.2k" },
-    { label: "Jobs", icon: BuildingIcon, href: "#" },
-    { label: "Trainings", icon: BookOpenIcon, href: "#" },
-    { label: "Applications", icon: FileTextIcon, href: "#", badge: "8" },
-    { label: "Saved", icon: BookmarkIcon, href: "#" },
-];
+type NavSet = { workspace: Item[]; profile: Item[] };
 
-const profile: Item[] = [
-    { label: "Resume", icon: FileTextIcon, href: "#" },
-    { label: "Profile", icon: UserIcon, href: "#" },
-    { label: "Settings", icon: SettingsIcon, href: "#" },
-];
+const studentNav: NavSet = {
+    workspace: [
+        {
+            key: "dashboard",
+            label: "Dashboard",
+            icon: PiHouse,
+            iconFilled: PiHouseFill,
+            href: "/home",
+        },
+        {
+            key: "internships",
+            label: "Internships",
+            icon: PiBriefcase,
+            iconFilled: PiBriefcaseFill,
+            href: "/home/internships",
+        },
+        {
+            key: "jobs",
+            label: "Jobs",
+            icon: PiBuildings,
+            iconFilled: PiBuildingsFill,
+            href: "/home/jobs",
+        },
+        {
+            key: "applications",
+            label: "Applications",
+            icon: PiFileText,
+            iconFilled: PiFileTextFill,
+            href: "/home/applications",
+        },
+        {
+            key: "saved",
+            label: "Saved",
+            icon: PiBookmarkSimple,
+            iconFilled: PiBookmarkSimpleFill,
+            href: "/home/saved",
+        },
+    ],
+    profile: [
+        {
+            key: "resume",
+            label: "Resume",
+            icon: PiFileText,
+            iconFilled: PiFileTextFill,
+            href: "/home/resume",
+        },
+        {
+            key: "profile",
+            label: "Profile",
+            icon: PiUser,
+            iconFilled: PiUserFill,
+            href: "/home/profile",
+        },
+        {
+            key: "settings",
+            label: "Settings",
+            icon: PiGear,
+            iconFilled: PiGearFill,
+            href: "/home/settings",
+        },
+    ],
+};
+
+const employerNav: NavSet = {
+    workspace: [
+        {
+            key: "dashboard",
+            label: "Dashboard",
+            icon: PiHouse,
+            iconFilled: PiHouseFill,
+            href: "/home",
+        },
+        {
+            key: "manage-listings",
+            label: "My listings",
+            icon: PiBriefcase,
+            iconFilled: PiBriefcaseFill,
+            href: "/home/manage-listings",
+        },
+        {
+            key: "applicants",
+            label: "Applicants",
+            icon: PiUsers,
+            iconFilled: PiUsersFill,
+            href: "/home/applicants",
+        },
+        {
+            key: "company",
+            label: "Company",
+            icon: PiBuildings,
+            iconFilled: PiBuildingsFill,
+            href: "/home/company",
+        },
+    ],
+    profile: [
+        {
+            key: "settings",
+            label: "Settings",
+            icon: PiGear,
+            iconFilled: PiGearFill,
+            href: "/home/settings",
+        },
+    ],
+};
+
+function pickNav(role: UserRole | null | undefined): NavSet {
+    return role === "EMPLOYER" ? employerNav : studentNav;
+}
+
+function resolveActiveKey(pathname: string, nav: NavSet): string {
+    const segment = pathname.split("/")[2] ?? "";
+    const all = [...nav.workspace, ...nav.profile];
+    const match = all.find((it) => it.key === segment);
+    return match?.key ?? "dashboard";
+}
 
 export function Sidebar() {
+    const pathname = usePathname() ?? "/home";
+    const role = useMeStore((s) => s.me?.role);
+    const nav = pickNav(role);
+    const activeKey = resolveActiveKey(pathname, nav);
+
     return (
         <aside
             className={cn(
@@ -47,78 +175,50 @@ export function Sidebar() {
                 "border-r border-sidebar-border bg-sidebar",
             )}
         >
-            <div className="flex items-center gap-2 px-5 h-14 border-b border-sidebar-border">
-                <div className="">
-                        <GiTie/>
+            <div className="flex items-center gap-2 px-5 h-13 border-b border-border">
+                <div
+                    className={cn(
+                        "h-7.5 w-7.5 flex justify-center items-center bg-linear-to-b from-neutral-700 to-neutral-900 rounded-sm ",
+                        "inset-shadow-xs inset-shadow-white/50 shadow-sm shadow-black/10",
+                    )}
+                >
+                    <GiTie className="size-5 text-white" />
                 </div>
-                <span className="text-[15px] font-semibold tracking-tight">
-                    Internity
-                </span>
+                <div className="h-7.5 flex flex-col justify-between">
+                    <span className="text-[15px] font-semibold tracking-tight leading-none">
+                        internity
+                    </span>
+                    <span className="text-[11px] text-black/50 leading-none">
+                        Caffeine to carrier
+                    </span>
+                </div>
             </div>
 
             <nav className="flex-1 overflow-y-auto px-3 py-4">
                 <SectionLabel>Workspace</SectionLabel>
                 <div className="space-y-0.5">
-                    {workspace.map((item) => (
-                        <NavItem key={item.label} item={item} />
+                    {nav.workspace.map((item) => (
+                        <NavItem
+                            key={item.key}
+                            item={item}
+                            active={item.key === activeKey}
+                        />
                     ))}
                 </div>
 
                 <SectionLabel className="mt-6">Profile</SectionLabel>
                 <div className="space-y-0.5">
-                    {profile.map((item) => (
-                        <NavItem key={item.label} item={item} />
+                    {nav.profile.map((item) => (
+                        <NavItem
+                            key={item.key}
+                            item={item}
+                            active={item.key === activeKey}
+                        />
                     ))}
-                </div>
-
-                <div className="mt-6 rounded-lg border border-border bg-card p-3">
-                    <div className="flex items-center gap-2 text-[12px] font-medium">
-                        <SparklesIcon className="text-brand h-3.5 w-3.5" />
-                        <span>Upgrade to Pro</span>
-                    </div>
-                    <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                        Unlimited applications, priority support, and 1:1 mentor
-                        sessions.
-                    </p>
-                    <a
-                        href="#"
-                        className="mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
-                    >
-                        See plans
-                        <ChevronRightIcon className="h-3 w-3" />
-                    </a>
                 </div>
             </nav>
 
-            <div className="border-t border-sidebar-border p-3">
-                <button
-                    className={cn(
-                        "flex w-full items-center gap-3 text-left",
-                        "px-2 py-2 rounded-md",
-                        "hover:bg-secondary transition-colors",
-                    )}
-                >
-                    <span
-                        className={cn(
-                            "h-8 w-8 rounded-full",
-                            "flex items-center justify-center",
-                            "bg-linear-to-br from-pink-400 to-violet-500",
-                            "text-white text-[12px] font-semibold",
-                        )}
-                    >
-                        P
-                    </span>
-                    <span className="flex-1 min-w-0">
-                        <span className="block text-[13px] font-medium truncate">
-                            Piyush Sharma
-                        </span>
-                        <span className="block text-[11px] text-muted-foreground truncate">
-                            B.Tech CSE · 2026
-                        </span>
-                    </span>
-                    <HelpIcon className="text-muted-foreground h-4 w-4" />
-                </button>
-            </div>
+            <UpgradeCard />
         </aside>
     );
 }
@@ -142,25 +242,89 @@ function SectionLabel({
     );
 }
 
-function NavItem({ item }: { item: Item }) {
-    const Icon = item.icon;
+function NavItem({ item, active }: { item: Item; active: boolean }) {
+    const Icon = active ? item.iconFilled : item.icon;
     return (
-        <a
+        <Link
             href={item.href}
             className={cn(
-                "flex items-center gap-3 rounded-md px-2 py-1.5 text-[13px] transition-colors",
-                item.active
-                    ? "bg-secondary text-foreground font-medium"
-                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
+                active
+                    ? "bg-white ring-1 ring-black/9 shadow-sm shadow-black/4"
+                    : "text-muted-foreground hover:text-foreground",
             )}
         >
-            <Icon className="h-4 w-4 shrink-0" />
+            <Icon
+                className={cn("h-4 w-4 shrink-0", active && "text-orange-500")}
+            />
             <span className="flex-1">{item.label}</span>
             {item.badge && (
                 <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
                     {item.badge}
                 </span>
             )}
-        </a>
+        </Link>
+    );
+}
+
+const PRO_PRICE_PAISE = 49900; // ₹499
+
+function UpgradeCard() {
+    const session = useUserSessionStore((s) => s.session);
+    const [busy, setBusy] = useState(false);
+    const [paid, setPaid] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    async function handleClick() {
+        if (busy) return;
+        setError(null);
+        setBusy(true);
+        try {
+            await openCheckout({
+                amountInPaise: PRO_PRICE_PAISE,
+                name: "Internity Pro",
+                description:
+                    "Unlimited applications, priority support, mentor sessions",
+                prefill: {
+                    name: session?.user?.name ?? undefined,
+                    email: session?.user?.email ?? undefined,
+                },
+                onSuccess: () => setPaid(true),
+                onDismiss: () => setBusy(false),
+            });
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "Payment failed");
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    return (
+        <div className="rounded-lg border border-border bg-card p-3 m-2">
+            <div className="flex items-center gap-2 text-[12px] font-medium">
+                <SparklesIcon className="text-orange-600 h-3.5 w-3.5" />
+                <span>{paid ? "You're on Pro" : "Upgrade to Pro"}</span>
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                {paid
+                    ? "Thanks for upgrading — enjoy unlimited applications, priority support, and mentor sessions."
+                    : "Unlimited applications, priority support, and 1:1 mentor sessions."}
+            </p>
+            {!paid && (
+                <button
+                    type="button"
+                    onClick={handleClick}
+                    disabled={busy}
+                    className={cn(
+                        "mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-orange-600",
+                        "hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+                    )}
+                >
+                    {busy ? "Opening…" : "Buy Plan · ₹499"}
+                    <ChevronRightIcon className="h-3 w-3" />
+                </button>
+            )}
+            {error && <p className="mt-2 text-[11px] text-rose-600">{error}</p>}
+        </div>
     );
 }

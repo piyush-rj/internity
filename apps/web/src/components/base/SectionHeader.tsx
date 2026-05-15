@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { cn } from "@/src/lib/utils";
+import { Button } from "../ui/button";
 
 export type IconTone =
     | "violet"
@@ -70,7 +71,7 @@ export function SectionHeader({
                 >
                     <span
                         className={cn(
-                            "h-6 w-6 inline-flex items-center justify-center rounded-md",
+                            "h-6 w-6 inline-flex items-center justify-center rounded-[5px]",
                             tones[eyebrow.tone ?? "violet"],
                         )}
                     >
@@ -105,19 +106,15 @@ export function SectionHeader({
 
             {cta && (
                 <div className={cn("mt-8", isCenter && "flex justify-center")}>
-                    <a
-                        href={cta.href ?? "#"}
+                    <Button
+                        // href={cta.href ?? "#"}
+                        variant={"exec-dark"}
                         className={cn(
                             "inline-flex items-center gap-2 h-10 px-5",
-                            "rounded-xl border border-zinc-200",
-                            "bg-white text-zinc-900",
-                            "text-[14px] font-medium",
-                            "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.6),0_1px_2px_0_rgba(15,23,42,0.05)]",
-                            "hover:bg-zinc-50 transition-colors",
                         )}
                     >
                         {cta.label}
-                    </a>
+                    </Button>
                 </div>
             )}
         </div>

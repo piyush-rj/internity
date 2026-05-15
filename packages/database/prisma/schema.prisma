@@ -12,10 +12,6 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─────────────────────────────────────────────────────────────
-// Users
-// ─────────────────────────────────────────────────────────────
-
 model User {
   id    String  @id @default(cuid())
   name  String
@@ -39,11 +35,8 @@ model User {
   messagesSent       Message[]        @relation("MessageSender")
   messagesReceived   Message[]        @relation("MessageReceiver")
   assets             Asset[]
+  notifications      Notification[]
 }
-
-// ─────────────────────────────────────────────────────────────
-// Student profile + resume sub-tables
-// ─────────────────────────────────────────────────────────────
 
 model StudentProfile {
   id     String @id @default(cuid())
@@ -163,10 +156,6 @@ model Language {
   @@index([studentId])
 }
 
-// ─────────────────────────────────────────────────────────────
-// Employer + company
-// ─────────────────────────────────────────────────────────────
-
 model EmployerProfile {
   id     String @id @default(cuid())
   userId String @unique
@@ -212,10 +201,6 @@ model CompanyMember {
   @@id([companyId, userId])
   @@index([userId])
 }
-
-// ─────────────────────────────────────────────────────────────
-// Listings (Internship or Job)
-// ─────────────────────────────────────────────────────────────
 
 model Listing {
   id        String  @id @default(cuid())
@@ -272,10 +257,6 @@ model ListingSkill {
   @@index([skillId])
 }
 
-// ─────────────────────────────────────────────────────────────
-// Applications + chat (chat is scoped per application)
-// ─────────────────────────────────────────────────────────────
-
 model Application {
   id        String  @id @default(cuid())
   listingId String
@@ -330,10 +311,6 @@ model Message {
   @@index([receiverId, readAt])
 }
 
-// ─────────────────────────────────────────────────────────────
-// Uploads (MinIO)
-// ─────────────────────────────────────────────────────────────
-
 model Asset {
   id     String @id @default(cuid())
   userId String
@@ -351,9 +328,22 @@ model Asset {
   @@index([userId, kind])
 }
 
-// ─────────────────────────────────────────────────────────────
-// Enums
-// ─────────────────────────────────────────────────────────────
+model Notification {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type  NotificationType
+  title String
+  body  String?          @db.Text
+  link  String?
+
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
 
 enum UserRole {
   STUDENT
@@ -397,4 +387,13 @@ enum AssetKind {
   RESUME
   COMPANY_LOGO
   PROFILE_IMAGE
+}
+
+enum NotificationType {
+  APPLICATION_RECEIVED
+  APPLICATION_STATUS_CHANGED
+  APPLICATION_WITHDRAWN
+  LISTING_CLOSED
+  COMPANY_MEMBER_ADDED
+  GENERIC
 }

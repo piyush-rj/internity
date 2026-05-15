@@ -1,17 +1,35 @@
 "use client";
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { Button } from "@/src/components/ui/button";
-import { ArrowRight, BrandMark } from "@/src/components/base/icons";
 import { UserMenu } from "@/src/components/navbar/UserMenu";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
-import { signIn } from "next-auth/react";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
-import Link from "next/link";
+import { cn } from "@/src/lib/utils";
 
-export function NavBar() {
+export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
     const session = useUserSessionStore((s) => s.session);
+    const [scrolled, setScrolled] = useState(false);
+
+    useEffect(() => {
+        if (!floatOnScroll) return;
+        let ticking = false;
+        function onScroll() {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                setScrolled(window.scrollY > 16);
+                ticking = false;
+            });
+        }
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
+        return () => window.removeEventListener("scroll", onScroll);
+    }, [floatOnScroll]);
 
     function handleSignin() {
-        signIn("google", { callbackUrl: "/" });
+        signIn("google", { callbackUrl: "/home/dashboard" });
     }
 
     const items = [
@@ -22,8 +40,25 @@ export function NavBar() {
         "For employers",
     ];
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 w-full bg-background border-x border-b border-border">
-            <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
+        <header
+            className={cn(
+                "fixed top-0 left-0 right-0 z-50 h-14",
+                "border-b",
+                "transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                scrolled
+                    ? "border-b-transparent bg-transparent"
+                    : "border-b-border bg-neutral-50",
+            )}
+        >
+            <div
+                className={cn(
+                    "mx-auto flex items-center justify-between px-6 border",
+                    "transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
+                    scrolled
+                        ? "mt-1.5 h-13 max-w-260 rounded-lg border-neutral-300/80 bg-card shadow-[0_4px_16px_-4px_rgba(15,23,42,0.12)]"
+                        : "h-full max-w-6xl rounded-none border-transparent bg-transparent shadow-none",
+                )}
+            >
                 <div className="flex items-center gap-8 justify-between">
                     <Link
                         href="/"
