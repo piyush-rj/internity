@@ -7,6 +7,9 @@
   "exports": {
     ".": "./index.ts"
   },
+  "scripts": {
+    "prisma:seed": "bun run seed.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest"
   },

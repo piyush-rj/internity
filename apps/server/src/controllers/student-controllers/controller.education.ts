@@ -21,6 +21,7 @@ export default class StudentEducation {
             where: { userId },
             select: { id: true },
         });
+
         return sp?.id ?? null;
     }
 
@@ -32,17 +33,21 @@ export default class StudentEducation {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const studentId = await StudentEducation.student_id_for(
                 req.user!.id,
             );
+
             if (!studentId) {
                 ResponseWriter.invalid_data(res, "Create your profile first");
                 return;
             }
+
             const row = await prisma.education.create({
                 data: { studentId, ...data },
             });
+
             ResponseWriter.success(res, { education: row }, "Created", 201);
         } catch (err) {
             console.error("education.add:", err);
@@ -56,6 +61,7 @@ export default class StudentEducation {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         const { data, success } = StudentEducation.update_schema.safeParse(
             req.body,
         );
@@ -63,6 +69,7 @@ export default class StudentEducation {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const studentId = await StudentEducation.student_id_for(
                 req.user!.id,
@@ -71,14 +78,17 @@ export default class StudentEducation {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             const result = await prisma.education.updateMany({
                 where: { id, studentId },
                 data,
             });
+
             if (result.count === 0) {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             ResponseWriter.success(res, { ok: true });
         } catch (err) {
             console.error("education.update:", err);
@@ -92,6 +102,7 @@ export default class StudentEducation {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const studentId = await StudentEducation.student_id_for(
                 req.user!.id,
@@ -100,6 +111,7 @@ export default class StudentEducation {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             const result = await prisma.education.deleteMany({
                 where: { id, studentId },
             });
@@ -107,6 +119,7 @@ export default class StudentEducation {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             ResponseWriter.success(res, { ok: true });
         } catch (err) {
             console.error("education.remove:", err);

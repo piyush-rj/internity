@@ -30,15 +30,18 @@ export default class StudentProject {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const studentId = await StudentProject.student_id_for(req.user!.id);
             if (!studentId) {
                 ResponseWriter.invalid_data(res, "Create your profile first");
                 return;
             }
+
             const row = await prisma.project.create({
                 data: { studentId, ...data },
             });
+
             ResponseWriter.success(res, { project: row }, "Created", 201);
         } catch (err) {
             console.error("project.add:", err);
@@ -52,6 +55,7 @@ export default class StudentProject {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         const { data, success } = StudentProject.update_schema.safeParse(
             req.body,
         );
@@ -59,12 +63,14 @@ export default class StudentProject {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const studentId = await StudentProject.student_id_for(req.user!.id);
             if (!studentId) {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             const result = await prisma.project.updateMany({
                 where: { id, studentId },
                 data,
@@ -73,6 +79,7 @@ export default class StudentProject {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             ResponseWriter.success(res, { ok: true });
         } catch (err) {
             console.error("project.update:", err);
@@ -86,12 +93,14 @@ export default class StudentProject {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const studentId = await StudentProject.student_id_for(req.user!.id);
             if (!studentId) {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             const result = await prisma.project.deleteMany({
                 where: { id, studentId },
             });
@@ -99,6 +108,7 @@ export default class StudentProject {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             ResponseWriter.success(res, { ok: true });
         } catch (err) {
             console.error("project.remove:", err);

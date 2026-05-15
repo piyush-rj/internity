@@ -27,6 +27,7 @@ export default class AuthMe {
                 email: user.email,
                 image: user.image,
                 role: user.role,
+                isPremium: user.isPremium,
                 hasStudentProfile: !!user.studentProfile,
                 hasEmployerProfile: !!user.employerProfile,
             });

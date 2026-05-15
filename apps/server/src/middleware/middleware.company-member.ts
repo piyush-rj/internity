@@ -13,11 +13,13 @@ export function require_company_member(
             ResponseWriter.unauthorized(res);
             return;
         }
+
         const companyId = req.params[paramKey];
         if (typeof companyId !== "string") {
             ResponseWriter.invalid_data(res, "Missing company id");
             return;
         }
+
         try {
             const member = await prisma.companyMember.findUnique({
                 where: { companyId_userId: { companyId, userId: req.user.id } },
@@ -30,10 +32,12 @@ export function require_company_member(
                 );
                 return;
             }
+
             if (ownerOnly && member.role !== CompanyRole.OWNER) {
                 ResponseWriter.unauthorized(res, "Owner-only action", 403);
                 return;
             }
+
             next();
         } catch (err) {
             console.error("company-member middleware error:", err);

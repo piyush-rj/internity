@@ -10,7 +10,7 @@ import StudentLanguage from "../../controllers/student-controllers/controller.la
 
 const studentRoutes = Router();
 
-// Profile
+// profile-routes
 studentRoutes.get(
     "/me",
     auth_middleware,
@@ -32,7 +32,7 @@ studentRoutes.get(
     StudentProfileController.get_public_profile,
 );
 
-// Education
+// eductaion routes
 studentRoutes.post("/me/educations", auth_middleware, StudentEducation.add);
 studentRoutes.patch(
     "/me/educations/:id",
@@ -45,7 +45,7 @@ studentRoutes.delete(
     StudentEducation.remove,
 );
 
-// Work experience
+// work-experience-routes
 studentRoutes.post("/me/experiences", auth_middleware, StudentExperience.add);
 studentRoutes.patch(
     "/me/experiences/:id",
@@ -58,7 +58,7 @@ studentRoutes.delete(
     StudentExperience.remove,
 );
 
-// Projects
+// projects-routes
 studentRoutes.post("/me/projects", auth_middleware, StudentProject.add);
 studentRoutes.patch("/me/projects/:id", auth_middleware, StudentProject.update);
 studentRoutes.delete(
@@ -67,7 +67,7 @@ studentRoutes.delete(
     StudentProject.remove,
 );
 
-// Skills
+// skills-routes
 studentRoutes.post("/me/skills", auth_middleware, StudentSkillController.add);
 studentRoutes.delete(
     "/me/skills/:skillId",
@@ -75,7 +75,7 @@ studentRoutes.delete(
     StudentSkillController.remove,
 );
 
-// Certifications
+// certifications-routes
 studentRoutes.post(
     "/me/certifications",
     auth_middleware,
@@ -92,7 +92,7 @@ studentRoutes.delete(
     StudentCertification.remove,
 );
 
-// Languages
+// languages-routes
 studentRoutes.post("/me/languages", auth_middleware, StudentLanguage.add);
 studentRoutes.patch(
     "/me/languages/:id",

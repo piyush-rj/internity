@@ -34,7 +34,7 @@ export default class ListingController {
         q: z.string().optional(),
         city: z.string().optional(),
         mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
-        skills: z.string().optional(), // comma-separated
+        skills: z.string().optional(),
         stipendMin: z.coerce.number().int().optional(),
         durationMax: z.coerce.number().int().optional(),
         partTime: z.enum(["true", "false"]).optional(),
@@ -58,7 +58,6 @@ export default class ListingController {
         return !!row;
     }
 
-    // GET /listing — public feed (closedAt = null)
     static async list(req: Request, res: Response) {
         const { data, success } = ListingController.list_query_schema.safeParse(
             req.query,
@@ -132,7 +131,6 @@ export default class ListingController {
         }
     }
 
-    // GET /listing/mine — listings under any company the caller belongs to
     static async list_mine(req: Request, res: Response) {
         try {
             const memberships = await prisma.companyMember.findMany({
@@ -166,7 +164,7 @@ export default class ListingController {
         }
     }
 
-    // GET /listing/:id — public detail
+    // get /listing/:id — public detail
     static async get(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -192,7 +190,7 @@ export default class ListingController {
         }
     }
 
-    // POST /listing — must be CompanyMember of body.companyId
+    // post /listing — must be company-member of body.companyId
     static async create(req: Request, res: Response) {
         const { data, success } = ListingController.create_schema.safeParse(
             req.body,
@@ -234,7 +232,7 @@ export default class ListingController {
         }
     }
 
-    // PATCH /listing/:id
+    // patch /listing/:id
     static async update(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -281,7 +279,7 @@ export default class ListingController {
         }
     }
 
-    // POST /listing/:id/close
+    // post /listing/:id/close
     static async close(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -313,7 +311,7 @@ export default class ListingController {
         }
     }
 
-    // POST /listing/:id/reopen
+    // post /listing/:id/reopen
     static async reopen(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -345,7 +343,7 @@ export default class ListingController {
         }
     }
 
-    // DELETE /listing/:id
+    // delete /listing/:id
     static async remove(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {

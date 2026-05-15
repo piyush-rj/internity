@@ -1,7 +1,6 @@
 // Internshala clone — Prisma schema (MVP for 2-day build)
 // Auth: NextAuth v4 (Google OAuth, JWT strategy — no DB sessions)
 // Storage: MinIO (S3-compatible) for resumes and logos
-// Realtime: Socket.IO for recruiter ↔ applicant chat
 
 generator client {
   provider = "prisma-client"
@@ -23,6 +22,9 @@ model User {
   role     UserRole @default(STUDENT)
   isBanned Boolean  @default(false)
 
+  isPremium    Boolean   @default(false)
+  premiumSince DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -32,10 +34,9 @@ model User {
   listingsPosted     Listing[]        @relation("ListingPostedBy")
   applications       Application[]
   savedListings      SavedListing[]
-  messagesSent       Message[]        @relation("MessageSender")
-  messagesReceived   Message[]        @relation("MessageReceiver")
   assets             Asset[]
   notifications      Notification[]
+  payments           Payment[]
 }
 
 model StudentProfile {
@@ -272,8 +273,6 @@ model Application {
   appliedAt       DateTime @default(now())
   statusUpdatedAt DateTime @default(now())
 
-  messages Message[]
-
   @@unique([listingId, studentId])
   @@index([studentId, status])
   @@index([listingId, status])
@@ -292,25 +291,6 @@ model SavedListing {
   @@index([listingId])
 }
 
-model Message {
-  id            String      @id @default(cuid())
-  applicationId String
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-
-  senderId   String
-  sender     User   @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
-  receiverId String
-  receiver   User   @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
-
-  text   String    @db.Text
-  readAt DateTime?
-
-  createdAt DateTime @default(now())
-
-  @@index([applicationId, createdAt])
-  @@index([receiverId, readAt])
-}
-
 model Asset {
   id     String @id @default(cuid())
   userId String
@@ -326,6 +306,28 @@ model Asset {
   createdAt DateTime @default(now())
 
   @@index([userId, kind])
+}
+
+model Payment {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  planCode String
+  amount   Int
+  currency String @default("INR")
+
+  razorpayOrderId   String  @unique
+  razorpayPaymentId String? @unique
+  razorpaySignature String?
+
+  status PaymentStatus @default(CREATED)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, createdAt])
 }
 
 model Notification {
@@ -395,5 +397,12 @@ enum NotificationType {
   APPLICATION_WITHDRAWN
   LISTING_CLOSED
   COMPANY_MEMBER_ADDED
+  SUBSCRIPTION_ACTIVATED
   GENERIC
+}
+
+enum PaymentStatus {
+  CREATED
+  SUCCESS
+  FAILED
 }

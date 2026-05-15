@@ -21,13 +21,13 @@ export function useListingSearch(query: string): State {
         if (q.length < 2) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setItems([]);
-             
+
             setLoading(false);
             return;
         }
 
         const id = ++reqId.current;
-         
+
         setLoading(true);
 
         const handle = setTimeout(async () => {

@@ -67,11 +67,13 @@ export default class StudentProfileController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const profile = await prisma.studentProfile.update({
                 where: { userId: req.user!.id },
                 data,
             });
+
             ResponseWriter.success(res, { profile });
         } catch (err) {
             console.error("student.update_my_profile:", err);
@@ -85,6 +87,7 @@ export default class StudentProfileController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const profile = await prisma.studentProfile.findUnique({
                 where: { userId },
@@ -105,10 +108,12 @@ export default class StudentProfileController {
                     languages: true,
                 },
             });
+
             if (!profile) {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             ResponseWriter.success(res, { profile });
         } catch (err) {
             console.error("student.get_public_profile:", err);

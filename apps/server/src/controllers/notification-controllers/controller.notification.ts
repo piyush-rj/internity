@@ -6,7 +6,6 @@ const DEFAULT_LIMIT = 20;
 const MAX_LIMIT = 50;
 
 export default class NotificationController {
-    // GET /notification — list latest notifications for current user
     static async list_mine(req: Request, res: Response) {
         const userId = req.user!.id;
         const rawLimit = Number(req.query.limit);
@@ -32,7 +31,6 @@ export default class NotificationController {
         }
     }
 
-    // PATCH /notification/:id/read
     static async mark_read(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -62,7 +60,6 @@ export default class NotificationController {
         }
     }
 
-    // POST /notification/read-all
     static async mark_all_read(req: Request, res: Response) {
         const userId = req.user!.id;
         try {

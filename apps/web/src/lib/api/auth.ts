@@ -7,6 +7,7 @@ export type MeResponse = {
     email: string;
     image: string | null;
     role: UserRole;
+    isPremium: boolean;
     hasStudentProfile: boolean;
     hasEmployerProfile: boolean;
 };

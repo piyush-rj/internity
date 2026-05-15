@@ -13,16 +13,17 @@ export default class EmployerProfileController {
 
     static update_schema = EmployerProfileController.create_schema.partial();
 
-    // GET /employer/me — profile + companies the caller belongs to
     static async get_my_profile(req: Request, res: Response) {
         try {
             const profile = await prisma.employerProfile.findUnique({
                 where: { userId: req.user!.id },
             });
+
             const memberships = await prisma.companyMember.findMany({
                 where: { userId: req.user!.id },
                 include: { company: true },
             });
+
             ResponseWriter.success(res, { profile, memberships });
         } catch (err) {
             console.error("employer.get_my_profile:", err);
@@ -30,7 +31,6 @@ export default class EmployerProfileController {
         }
     }
 
-    // POST /employer/me
     static async create_my_profile(req: Request, res: Response) {
         const { data, success } =
             EmployerProfileController.create_schema.safeParse(req.body);
@@ -38,10 +38,12 @@ export default class EmployerProfileController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const profile = await prisma.employerProfile.create({
                 data: { userId: req.user!.id, ...data },
             });
+
             ResponseWriter.success(res, { profile }, "Profile created", 201);
         } catch (err) {
             console.error("employer.create_my_profile:", err);
@@ -49,7 +51,6 @@ export default class EmployerProfileController {
         }
     }
 
-    // PATCH /employer/me
     static async update_my_profile(req: Request, res: Response) {
         const { data, success } =
             EmployerProfileController.update_schema.safeParse(req.body);
@@ -57,11 +58,13 @@ export default class EmployerProfileController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const profile = await prisma.employerProfile.update({
                 where: { userId: req.user!.id },
                 data,
             });
+
             ResponseWriter.success(res, { profile });
         } catch (err) {
             console.error("employer.update_my_profile:", err);

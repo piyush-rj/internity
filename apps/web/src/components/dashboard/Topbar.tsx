@@ -85,7 +85,7 @@ export function Topbar() {
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setOpen(false);
-         
+
         setSearch("");
     }, [pathname]);
 

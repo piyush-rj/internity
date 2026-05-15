@@ -1,4 +1,4 @@
-import { paymentApi } from "@/src/lib/api";
+import { paymentApi, type PlanCode } from "@/src/lib/api/payment";
 
 declare global {
     interface Window {
@@ -59,13 +59,11 @@ function loadScript(): Promise<boolean> {
 }
 
 export type CheckoutInput = {
-    amountInPaise: number;
-    currency?: string;
-    name?: string;
-    description?: string;
+    planCode: PlanCode;
     prefill?: { name?: string; email?: string };
-    onSuccess?: () => void;
+    onSuccess?: () => void | Promise<void>;
     onDismiss?: () => void;
+    onFailure?: (message: string) => void;
 };
 
 export async function openCheckout(input: CheckoutInput): Promise<void> {
@@ -73,33 +71,42 @@ export async function openCheckout(input: CheckoutInput): Promise<void> {
     if (!ok) {
         throw new Error("Couldn’t load the payment gateway. Try again.");
     }
-    const order = await paymentApi.create_order(
-        input.amountInPaise,
-        input.currency ?? "INR",
-    );
+    const order = await paymentApi.create_order(input.planCode);
 
     const instance = new window.Razorpay({
         key: order.keyId,
         amount: order.amount,
         currency: order.currency,
         order_id: order.orderId,
-        name: input.name ?? "Internity",
-        description: input.description,
+        name: order.planName,
+        description: order.planDescription,
         prefill: input.prefill,
         theme: { color: "#ea580c" },
         modal: { ondismiss: input.onDismiss },
         handler: async (resp) => {
             try {
-                await paymentApi.verify(resp);
-                input.onSuccess?.();
-            } catch {
-                // verify failed — payment captured but signature mismatch
-                console.error("Razorpay verify failed");
+                await paymentApi.verify({
+                    planCode: input.planCode,
+                    razorpay_order_id: resp.razorpay_order_id,
+                    razorpay_payment_id: resp.razorpay_payment_id,
+                    razorpay_signature: resp.razorpay_signature,
+                });
+                await input.onSuccess?.();
+            } catch (err) {
+                const message =
+                    err instanceof Error
+                        ? err.message
+                        : "Payment verification failed.";
+                console.error("Razorpay verify failed:", err);
+                input.onFailure?.(message);
             }
         },
     });
     instance.on("payment.failed", (resp) => {
-        console.error("Razorpay payment failed:", resp.error?.description);
+        const message =
+            resp.error?.description ?? "Payment failed. Please try again.";
+        console.error("Razorpay payment failed:", message);
+        input.onFailure?.(message);
     });
     instance.open();
 }

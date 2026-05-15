@@ -3,7 +3,6 @@ import { prisma } from "database";
 import ResponseWriter from "../../class/response_writer";
 
 export default class SavedController {
-    // GET /saved — caller's saved listings
     static async list(req: Request, res: Response) {
         try {
             const items = await prisma.savedListing.findMany({
@@ -31,7 +30,6 @@ export default class SavedController {
         }
     }
 
-    // POST /saved/:listingId — idempotent
     static async save(req: Request, res: Response) {
         const listingId = req.params.listingId;
         if (typeof listingId !== "string") {
@@ -53,7 +51,6 @@ export default class SavedController {
         }
     }
 
-    // DELETE /saved/:listingId — idempotent
     static async unsave(req: Request, res: Response) {
         const listingId = req.params.listingId;
         if (typeof listingId !== "string") {

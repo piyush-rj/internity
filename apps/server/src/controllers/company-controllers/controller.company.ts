@@ -48,7 +48,6 @@ export default class CompanyController {
         }
     }
 
-    // GET /company/:slug — public page
     static async get_by_slug(req: Request, res: Response) {
         const slug = req.params.slug;
         if (typeof slug !== "string") {

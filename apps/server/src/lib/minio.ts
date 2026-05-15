@@ -7,7 +7,6 @@ import {
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { ENV } from "../config/config.env";
 
-// Lazy — ENV is populated after parse_env() runs in index.ts.
 let _client: S3Client | null = null;
 function client(): S3Client {
     if (_client) return _client;
@@ -60,8 +59,6 @@ export async function delete_object(key: string): Promise<void> {
     );
 }
 
-// Public URL form — works when the bucket is set to public-read.
-// Used as the cached Asset.url; fall back to presign_get(key) if you keep the bucket private.
 export function public_url_for(key: string): string {
     const base = ENV.MINIO_PUBLIC_ENDPOINT ?? ENV.MINIO_ENDPOINT;
     return `${base.replace(/\/$/, "")}/${ENV.MINIO_BUCKET}/${key}`;

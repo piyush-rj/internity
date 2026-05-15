@@ -45,9 +45,7 @@ export function StatsRow() {
     const savedLoading = useSavedStore((s) => s.loading);
     const { profile, loading: profileLoading } = useMyProfile();
 
-    const [sevenDaysAgo] = useState(
-        () => Date.now() - 7 * 24 * 60 * 60 * 1000,
-    );
+    const [sevenDaysAgo] = useState(() => Date.now() - 7 * 24 * 60 * 60 * 1000);
     const appliedThisWeek = applications.filter(
         (a) => new Date(a.appliedAt).getTime() >= sevenDaysAgo,
     ).length;

@@ -30,10 +30,10 @@ export default class UploadController {
         key: z.string(),
         contentType: z.string(),
         sizeBytes: z.number().int().positive(),
-        companyId: z.string().optional(), // required when kind=COMPANY_LOGO
+        companyId: z.string().optional(),
     });
 
-    // POST /upload/sign — returns { key, putUrl, getUrl }
+    // post /upload/sign — returns { key, putUrl, getUrl }
     static async sign(req: Request, res: Response) {
         const { data, success } = UploadController.sign_schema.safeParse(
             req.body,
@@ -53,7 +53,7 @@ export default class UploadController {
         }
     }
 
-    // POST /upload/confirm — registers Asset row + updates relevant pointer
+    // post /upload/confirm — registers asset row + updates relevant pointer
     static async confirm(req: Request, res: Response) {
         const { data, success } = UploadController.confirm_schema.safeParse(
             req.body,
@@ -71,6 +71,7 @@ export default class UploadController {
                     );
                     return;
                 }
+
                 const member = await prisma.companyMember.findUnique({
                     where: {
                         companyId_userId: {
@@ -99,7 +100,7 @@ export default class UploadController {
                 },
             });
 
-            // Update pointer based on kind
+            // db-updates
             if (data.kind === AssetKind.RESUME) {
                 await prisma.studentProfile.updateMany({
                     where: { userId: req.user!.id },
@@ -124,7 +125,7 @@ export default class UploadController {
         }
     }
 
-    // DELETE /upload/:assetId
+    // delete /upload/:assetId
     static async remove(req: Request, res: Response) {
         const assetId = req.params.assetId;
         if (typeof assetId !== "string") {

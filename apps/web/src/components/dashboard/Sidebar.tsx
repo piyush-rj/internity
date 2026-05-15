@@ -267,12 +267,11 @@ function NavItem({ item, active }: { item: Item; active: boolean }) {
     );
 }
 
-const PRO_PRICE_PAISE = 49900; // ₹499
-
 function UpgradeCard() {
     const session = useUserSessionStore((s) => s.session);
+    const isPremium = useMeStore((s) => s.me?.isPremium ?? false);
+    const refetchMe = useMeStore((s) => s.refetch);
     const [busy, setBusy] = useState(false);
-    const [paid, setPaid] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     async function handleClick() {
@@ -281,16 +280,14 @@ function UpgradeCard() {
         setBusy(true);
         try {
             await openCheckout({
-                amountInPaise: PRO_PRICE_PAISE,
-                name: "Internity Pro",
-                description:
-                    "Unlimited applications, priority support, mentor sessions",
+                planCode: "PRO",
                 prefill: {
                     name: session?.user?.name ?? undefined,
                     email: session?.user?.email ?? undefined,
                 },
-                onSuccess: () => setPaid(true),
+                onSuccess: () => refetchMe(),
                 onDismiss: () => setBusy(false),
+                onFailure: (msg) => setError(msg),
             });
         } catch (err) {
             setError(err instanceof Error ? err.message : "Payment failed");
@@ -303,14 +300,14 @@ function UpgradeCard() {
         <div className="rounded-lg border border-border bg-card p-3 m-2">
             <div className="flex items-center gap-2 text-[12px] font-medium">
                 <SparklesIcon className="text-orange-600 h-3.5 w-3.5" />
-                <span>{paid ? "You're on Pro" : "Upgrade to Pro"}</span>
+                <span>{isPremium ? "You're on Pro" : "Upgrade to Pro"}</span>
             </div>
             <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                {paid
+                {isPremium
                     ? "Thanks for upgrading — enjoy unlimited applications, priority support, and mentor sessions."
                     : "Unlimited applications, priority support, and 1:1 mentor sessions."}
             </p>
-            {!paid && (
+            {!isPremium && (
                 <button
                     type="button"
                     onClick={handleClick}

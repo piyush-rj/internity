@@ -1,9 +1,6 @@
 "use client";
-
 import { useCallback, useEffect, useState } from "react";
 import { notificationApi, type AppNotification } from "@/src/lib/api";
-
-const POLL_MS = 30_000;
 
 export type NotificationsState = {
     items: AppNotification[];
@@ -16,8 +13,8 @@ export type NotificationsState = {
 
 export function useNotifications(): NotificationsState {
     const [items, setItems] = useState<AppNotification[]>([]);
-    const [unread, setUnread] = useState(0);
-    const [loading, setLoading] = useState(true);
+    const [unread, setUnread] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(true);
 
     const refetch = useCallback(async () => {
         try {
@@ -25,7 +22,6 @@ export function useNotifications(): NotificationsState {
             setItems(res.items);
             setUnread(res.unread);
         } catch {
-            // swallow — keep showing whatever we had
         } finally {
             setLoading(false);
         }
@@ -39,7 +35,7 @@ export function useNotifications(): NotificationsState {
             if (!cancelled && document.visibilityState === "visible") {
                 refetch();
             }
-        }, POLL_MS);
+        }, 30_000);
         function onVisible() {
             if (document.visibilityState === "visible") refetch();
         }

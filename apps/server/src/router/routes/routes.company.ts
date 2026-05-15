@@ -6,9 +6,9 @@ import CompanyMemberController from "../../controllers/company-controllers/contr
 
 const companyRoutes = Router();
 
-// Company CRUD
+// company-crud-routes
 companyRoutes.post("/", auth_middleware, CompanyController.create);
-companyRoutes.get("/:slug", CompanyController.get_by_slug); // public
+companyRoutes.get("/:slug", CompanyController.get_by_slug);
 companyRoutes.patch(
     "/:id",
     auth_middleware,
@@ -16,7 +16,7 @@ companyRoutes.patch(
     CompanyController.update,
 );
 
-// Members
+// member-routes
 companyRoutes.get(
     "/:id/members",
     auth_middleware,

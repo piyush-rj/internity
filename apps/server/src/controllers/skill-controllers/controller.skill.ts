@@ -16,12 +16,14 @@ export default class SkillController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const items = await prisma.skill.findMany({
                 where: { name: { startsWith: data.q.trim().toLowerCase() } },
                 orderBy: { name: "asc" },
                 take: 10,
             });
+
             ResponseWriter.success(res, { items });
         } catch (err) {
             console.error("skill.autocomplete:", err);

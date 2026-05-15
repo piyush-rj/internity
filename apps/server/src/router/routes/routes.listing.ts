@@ -5,19 +5,19 @@ import ApplicationController from "../../controllers/application-controllers/con
 
 const listingRoutes = Router();
 
-// Public feed + detail
+// public-feed-routes
 listingRoutes.get("/", ListingController.list);
 listingRoutes.get("/mine", auth_middleware, ListingController.list_mine);
 listingRoutes.get("/:id", ListingController.get);
 
-// Employer write actions
+// employer write actions
 listingRoutes.post("/", auth_middleware, ListingController.create);
 listingRoutes.patch("/:id", auth_middleware, ListingController.update);
 listingRoutes.post("/:id/close", auth_middleware, ListingController.close);
 listingRoutes.post("/:id/reopen", auth_middleware, ListingController.reopen);
 listingRoutes.delete("/:id", auth_middleware, ListingController.remove);
 
-// Apply + view applicants (kept here because they hang off /listing/:id)
+// apply and view applicants
 listingRoutes.post("/:id/apply", auth_middleware, ApplicationController.apply);
 listingRoutes.get(
     "/:id/applications",

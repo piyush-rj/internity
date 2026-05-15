@@ -31,7 +31,7 @@ export default function PublicStudentPage({
         let cancelled = false;
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(true);
-         
+
         setError(null);
         studentApi
             .get_public(userId)

@@ -36,7 +36,7 @@ export default function EmployerSetupPage() {
         }
         // eslint-disable-next-line react-hooks/set-state-in-effect
         if (profile) setStep("company");
-         
+
         setBootstrapped(true);
     }, [loading, profile, memberships, bootstrapped, router]);
 

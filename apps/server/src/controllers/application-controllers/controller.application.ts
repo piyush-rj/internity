@@ -35,7 +35,6 @@ export default class ApplicationController {
         return !!row;
     }
 
-    // POST /listing/:id/apply — STUDENT
     static async apply(req: Request, res: Response) {
         const listingId = req.params.id;
         if (typeof listingId !== "string") {
@@ -135,7 +134,6 @@ export default class ApplicationController {
         }
     }
 
-    // GET /application/mine — student's own applications
     static async list_mine(req: Request, res: Response) {
         try {
             const items = await prisma.application.findMany({
@@ -163,7 +161,6 @@ export default class ApplicationController {
         }
     }
 
-    // GET /application/:id — applicant OR member of listing's company
     static async get(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -210,7 +207,6 @@ export default class ApplicationController {
         }
     }
 
-    // DELETE /application/:id — STUDENT, owner — sets status=WITHDRAWN
     static async withdraw(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {
@@ -236,7 +232,6 @@ export default class ApplicationController {
         }
     }
 
-    // GET /listing/:id/applications — member of listing's company only
     static async list_for_listing(req: Request, res: Response) {
         const listingId = req.params.id;
         if (typeof listingId !== "string") {
@@ -294,7 +289,6 @@ export default class ApplicationController {
         }
     }
 
-    // PATCH /application/:id/status — member of listing's company
     static async update_status(req: Request, res: Response) {
         const id = req.params.id;
         if (typeof id !== "string") {

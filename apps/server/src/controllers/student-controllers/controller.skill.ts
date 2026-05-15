@@ -17,6 +17,7 @@ export default class StudentSkillController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const sp = await prisma.studentProfile.findUnique({
                 where: { userId: req.user!.id },
@@ -59,6 +60,7 @@ export default class StudentSkillController {
             ResponseWriter.invalid_data(res);
             return;
         }
+
         try {
             const sp = await prisma.studentProfile.findUnique({
                 where: { userId: req.user!.id },
@@ -68,9 +70,11 @@ export default class StudentSkillController {
                 ResponseWriter.not_found(res);
                 return;
             }
+
             await prisma.studentSkill.deleteMany({
                 where: { studentId: sp.id, skillId },
             });
+
             ResponseWriter.success(res, { ok: true });
         } catch (err) {
             console.error("skill.remove:", err);
