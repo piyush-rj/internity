@@ -176,8 +176,9 @@ export function Sidebar() {
             )}
         >
             <Link
-           href={'/'} 
-            className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer">
+                href={"/"}
+                className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer"
+            >
                 <div
                     className={cn(
                         "h-7.5 w-7.5 flex justify-center items-center bg-linear-to-b from-neutral-700 to-neutral-900 rounded-sm ",

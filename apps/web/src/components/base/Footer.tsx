@@ -63,9 +63,7 @@ export function Footer() {
                         "text-[12px] text-muted-foreground",
                     )}
                 >
-                    <div>
-                        © {new Date().getFullYear()} SpiderSkill
-                    </div>
+                    <div>© {new Date().getFullYear()} SpiderSkill</div>
                     <div className="flex items-center gap-4">
                         <a href="#" className="hover:text-foreground">
                             Privacy

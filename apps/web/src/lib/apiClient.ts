@@ -7,13 +7,13 @@ interface ApiSuccess<T> {
     data: T;
     message?: string;
     metadata: { timestamp: string };
-};
+}
 
 interface ApiError {
     success: false;
     error: { code: string; message: string };
     metadata: { timestamp: string };
-};
+}
 
 export type ApiEnvelope<T> = ApiSuccess<T> | ApiError;
 

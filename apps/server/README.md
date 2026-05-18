@@ -36,6 +36,7 @@ pointed at the same Postgres database, with `Enum(..., create_type=False)` so
 SQLAlchemy will never try to redefine the enum types Prisma created.
 
 When the Prisma schema changes:
+
 1. Run `bunx prisma migrate dev` from `packages/database` as usual.
 2. Update `app/db/models.py` (and `app/db/enums.py` if you added an enum
    value) to match.

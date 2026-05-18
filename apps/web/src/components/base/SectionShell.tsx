@@ -17,11 +17,7 @@ export function SectionShell({
     return (
         <section>
             <SectionFrame className="px-10 py-24">
-                <SectionHeader
-                    title={title}
-                    description={subtitle}
-                    cta={cta}
-                />
+                <SectionHeader title={title} description={subtitle} cta={cta} />
                 {children}
             </SectionFrame>
         </section>

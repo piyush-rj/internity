@@ -16,7 +16,8 @@ import { cn } from "@/src/lib/utils";
 export function NotificationPanel() {
     const [open, setOpen] = useState<boolean>(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
-    const { items, unread, loading, markRead, markAllRead } = useNotifications();
+    const { items, unread, loading, markRead, markAllRead } =
+        useNotifications();
 
     useEffect(() => {
         function onDocClick(e: MouseEvent) {
