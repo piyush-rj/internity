@@ -52,10 +52,10 @@ export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
         >
             <div
                 className={cn(
-                    "mx-auto flex items-center justify-between px-6 border",
+                    "mx-auto flex items-center justify-between px-4 border",
                     "transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
                     scrolled
-                        ? "mt-1.5 h-13 max-w-260 rounded-lg border-neutral-300/80 bg-card shadow-[0_4px_16px_-4px_rgba(15,23,42,0.12)]"
+                        ? "mt-1.5 h-14 max-w-270 rounded-lg border-neutral-300/80 bg-card shadow-[0_4px_16px_-4px_rgba(15,23,42,0.12)]"
                         : "h-full max-w-6xl rounded-none border-transparent bg-transparent shadow-none",
                 )}
             >
@@ -65,7 +65,7 @@ export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
                         className="flex items-center gap-2 text-foreground"
                     >
                         <span className="text-[16px] font-semibold tracking-tight">
-                            internity
+                            SpiderSkill
                         </span>
                     </Link>
                 </div>

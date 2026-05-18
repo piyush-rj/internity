@@ -1,4 +1,3 @@
-import { HelpCircleIcon } from "@/src/components/base/icons";
 import { SectionFrame } from "@/src/components/base/SectionFrame";
 import { SectionHeader } from "@/src/components/base/SectionHeader";
 import { cn } from "@/src/lib/utils";
@@ -28,11 +27,6 @@ export function Testimonials() {
         <section className="bg-surface">
             <SectionFrame className="px-6 py-24">
                 <SectionHeader
-                    eyebrow={{
-                        icon: <HelpCircleIcon className="h-3.5 w-3.5" />,
-                        label: "Student stories",
-                        tone: "rose",
-                    }}
                     title="21 million students. One platform."
                     description="Real students share how they went from scrolling job boards to signing offer letters."
                     align="center"

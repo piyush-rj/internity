@@ -14,11 +14,10 @@ export function HeroCTAs() {
                 variant={"exec-dark"}
                 className={cn(
                     "group inline-flex items-center gap-2 rounded-lg",
-                    "text-white pl-5 pr-3.5 h-10 text-[14px] font-medium cursor-pointer group",
+                    "text-white px-4 h-10 text-[14px] font-medium cursor-pointer group",
                 )}
             >
                 Start hunting
-                <ChevronRight className="h-3.5 w-3.5 text-white/55 group-hover:text-white/80 transition-all transform duration-200 group-hover:translate-x-0.5 " />
             </Button>
 
             <Button
@@ -26,11 +25,10 @@ export function HeroCTAs() {
                 variant={"exec-light"}
                 className={cn(
                     "group inline-flex items-center gap-2 rounded-lg",
-                    "pl-5 pr-3.5 h-10 text-[14px] font-medium cursor-pointer",
+                    "px-4 h-10 text-[14px] font-medium cursor-pointer",
                 )}
             >
                 Go to Profile
-                <ChevronRight className="h-3.5 w-3.5 text-white/55 group-hover:text-white/80 transition-all transform duration-200 group-hover:translate-x-0.5 " />
             </Button>
         </div>
     );

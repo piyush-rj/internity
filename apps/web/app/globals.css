@@ -12,10 +12,10 @@
   --border: oklch(0.922 0 0);
   --surface: #fafafa;
   --accent: oklch(0.97 0 0);
-  --accent-soft: #e6f4fc;
+  --accent-soft: #fff3e6;
   --success: #00a263;
-  --brand: #008bdc;
-  --brand-soft: #e6f4fc;
+  --brand: #f97316;
+  --brand-soft: #fff3e6;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
@@ -105,7 +105,7 @@ body {
 }
 
 ::selection {
-  background: rgba(0, 139, 220, 0.18);
+  background: rgba(249, 115, 22, 0.22);
   color: #0b0d12;
 }
 

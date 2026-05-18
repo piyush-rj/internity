@@ -1,5 +1,4 @@
 "use client";
-
 import type { MeResponse } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useMeStore } from "@/src/store/useMeStore";
@@ -11,10 +10,6 @@ export type MeState = {
     refetch: () => Promise<void>;
 };
 
-/**
- * Reads from the shared me-store. The store is populated once on app load by
- * MeBootstrap, so multiple useMe() callers share a single fetch.
- */
 export function useMe(): MeState {
     const me = useMeStore((s) => s.me);
     const loading = useMeStore((s) => s.loading);

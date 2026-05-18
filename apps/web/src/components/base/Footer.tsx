@@ -28,7 +28,7 @@ export function Footer() {
                     <div className="col-span-2 md:col-span-2">
                         <div className="flex items-center gap-2">
                             <span className="text-[16px] font-semibold tracking-tight">
-                                internity
+                                SpiderSkill
                             </span>
                         </div>
                         <p className="mt-3 text-[13px] text-muted-foreground max-w-xs">
@@ -64,8 +64,7 @@ export function Footer() {
                     )}
                 >
                     <div>
-                        © {new Date().getFullYear()} Internity Technologies Pvt.
-                        Ltd.
+                        © {new Date().getFullYear()} SpiderSkill
                     </div>
                     <div className="flex items-center gap-4">
                         <a href="#" className="hover:text-foreground">

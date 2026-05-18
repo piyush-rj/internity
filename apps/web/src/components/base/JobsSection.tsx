@@ -1,4 +1,3 @@
-import { BuildingIcon } from "@/src/components/base/icons";
 import { SectionShell } from "@/src/components/base/SectionShell";
 import { cn } from "@/src/lib/utils";
 
@@ -28,9 +27,6 @@ export function JobsSection() {
     ];
     return (
         <SectionShell
-            eyebrow="Jobs for freshers"
-            eyebrowIcon={<BuildingIcon className="h-3.5 w-3.5" />}
-            eyebrowTone="blue"
             title="Get hired without prior experience"
             subtitle="Apply to entry-level full-time jobs that explicitly welcome freshers. See which companies are hiring across the year."
             cta={{ label: "Browse jobs", href: "#" }}

@@ -1,13 +1,9 @@
-import { BriefcaseIcon } from "@/src/components/base/icons";
 import { SectionShell } from "@/src/components/base/SectionShell";
 import { cn } from "@/src/lib/utils";
 
 export function InternshipsSection() {
     return (
         <SectionShell
-            eyebrow="Internships"
-            eyebrowIcon={<BriefcaseIcon className="h-3.5 w-3.5" />}
-            eyebrowTone="orange"
             title="Find an internship that opens doors"
             subtitle="Browse 70,000+ openings across 50+ profiles. Filter by location, stipend, and work-from-home options."
             cta={{ label: "Browse internships", href: "#" }}

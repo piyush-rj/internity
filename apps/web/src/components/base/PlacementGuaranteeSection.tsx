@@ -1,13 +1,10 @@
-import { CheckIcon, ShieldIcon } from "@/src/components/base/icons";
+import { CheckIcon } from "@/src/components/base/icons";
 import { SectionShell } from "@/src/components/base/SectionShell";
 import { cn } from "@/src/lib/utils";
 
 export function PlacementGuaranteeSection() {
     return (
         <SectionShell
-            eyebrow="Placement Guarantee"
-            eyebrowIcon={<ShieldIcon className="h-3.5 w-3.5" />}
-            eyebrowTone="violet"
             title="Land a job or get your money back"
             subtitle="Our flagship 6-month program prepares you for placements. If you don't get a job within 6 months of finishing, we refund your fees."
             cta={{ label: "Learn more", href: "#" }}

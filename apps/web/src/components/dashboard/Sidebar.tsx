@@ -175,7 +175,9 @@ export function Sidebar() {
                 "border-r border-sidebar-border bg-sidebar",
             )}
         >
-            <div className="flex items-center gap-2 px-5 h-13 border-b border-border">
+            <Link
+           href={'/'} 
+            className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer">
                 <div
                     className={cn(
                         "h-7.5 w-7.5 flex justify-center items-center bg-linear-to-b from-neutral-700 to-neutral-900 rounded-sm ",
@@ -184,15 +186,15 @@ export function Sidebar() {
                 >
                     <GiTie className="size-5 text-white" />
                 </div>
-                <div className="h-7.5 flex flex-col justify-between">
-                    <span className="text-[15px] font-semibold tracking-tight leading-none">
-                        internity
+                <div className="h-7.5 flex flex-col justify-between pt-px">
+                    <span className="text-[15px] font-semibold tracking-normal leading-none">
+                        SpiderSkill
                     </span>
                     <span className="text-[11px] text-black/50 leading-none">
                         Caffeine to carrier
                     </span>
                 </div>
-            </div>
+            </Link>
 
             <nav className="flex-1 overflow-y-auto px-3 py-4">
                 <SectionLabel>Workspace</SectionLabel>

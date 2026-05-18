@@ -5,8 +5,8 @@ export function BrandMark(props: SVGProps<SVGSVGElement>) {
         <svg viewBox="0 0 24 24" fill="none" {...props}>
             <defs>
                 <linearGradient id="bm" x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor="#3eb6ff" />
-                    <stop offset="100%" stopColor="#008bdc" />
+                    <stop offset="0%" stopColor="#fb923c" />
+                    <stop offset="100%" stopColor="#f97316" />
                 </linearGradient>
             </defs>
             <rect x="2" y="2" width="20" height="20" rx="6" fill="url(#bm)" />

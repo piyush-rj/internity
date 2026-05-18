@@ -31,23 +31,11 @@ const tabs = [
 export function TabCard() {
     return (
         <div className="relative mx-auto max-w-6xl px-6 -mt-5">
-            <div className="relative z-10 flex justify-center -mb-6">
-                <div
-                    className={cn(
-                        "flex items-center gap-2 sm:gap-3 p-1.5",
-                        "rounded-2xl border border-border bg-card",
-                        "shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)]",
-                    )}
-                >
-                    {tabs.map((t, i) => (
-                        <TabPill key={t.label} {...t} active={i === 0} />
-                    ))}
-                </div>
-            </div>
-
             <div className="relative rounded-t-[28px] border border-b-0 border-border pt-14 pb-0 bg-neutral-200/50">
-                <div className="px-4 sm:px-8">
-                    <WindowMock />
+                <div className="relative px-4 sm:px-8">
+                    <div className="relative">
+                        <WindowMock />
+                    </div>
                 </div>
             </div>
         </div>

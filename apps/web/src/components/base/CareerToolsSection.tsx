@@ -1,14 +1,10 @@
 import type { ReactNode } from "react";
-import { SlidersIcon } from "@/src/components/base/icons";
 import { SectionShell } from "@/src/components/base/SectionShell";
 import { cn } from "@/src/lib/utils";
 
 export function CareerToolsSection() {
     return (
         <SectionShell
-            eyebrow="Career toolkit"
-            eyebrowIcon={<SlidersIcon className="h-3.5 w-3.5" />}
-            eyebrowTone="amber"
             title="Everything you need to land the offer"
             subtitle="Resume reviews, AI-powered cover letters, and interview prep — all included with your free account."
             cta={{ label: "Explore tools", href: "#" }}
@@ -117,7 +113,7 @@ function LineChart({ values }: { values: number[] }) {
             <polyline
                 points={points}
                 fill="none"
-                stroke="rgb(0, 139, 220)"
+                stroke="rgb(249, 115, 22)"
                 strokeWidth="2"
                 vectorEffect="non-scaling-stroke"
             />
