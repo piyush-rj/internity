@@ -20,7 +20,7 @@ from sqlalchemy import (
     Text,
     func,
 )
-from sqlalchemy.dialects.postgresql import ARRAY
+from sqlalchemy.dialects.postgresql import ARRAY, UUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 from app.db.enums import (
@@ -66,15 +66,25 @@ class User(Base):
     __tablename__ = "User"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_cuid)
-    name: Mapped[str] = mapped_column(String, nullable=False)
-    email: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    name: Mapped[str | None] = mapped_column(String)
+    email: Mapped[str | None] = mapped_column(String, unique=True)
+    phone: Mapped[str | None] = mapped_column(String, unique=True)
     image: Mapped[str | None] = mapped_column(String)
 
+    # Link to Supabase auth.users.id — set by the auth.users sync trigger or
+    # lazily by current_user() when the trigger hasn't fired yet.
+    supabaseUserId: Mapped[str | None] = mapped_column(
+        UUID(as_uuid=False), unique=True
+    )
+
+    # Legacy: NextAuth Google sub. Kept while migrating existing rows; will be
+    # removed once all users have re-authenticated through Supabase.
     googleId: Mapped[str | None] = mapped_column(String, unique=True)
 
     role: Mapped[UserRole] = mapped_column(
         _pg_enum(UserRole, "UserRole"), nullable=False, default=UserRole.STUDENT
     )
+    roleConfirmed: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     isBanned: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
 
     isPremium: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)

@@ -1,7 +1,8 @@
 "use client";
-import { useCallback, useEffect, useState } from "react";
-import { studentApi, type StudentProfile } from "@/src/lib/api";
-import { ApiClientError } from "@/src/lib/apiClient";
+import { useEffect } from "react";
+import type { StudentProfile } from "@/src/lib/api";
+import type { ApiClientError } from "@/src/lib/apiClient";
+import { useMyProfileStore } from "@/src/store/useMyProfileStore";
 
 export type ProfileState = {
     profile: StudentProfile | null;
@@ -10,32 +11,21 @@ export type ProfileState = {
     refetch: () => Promise<void>;
 };
 
+/**
+ * Thin wrapper around the shared profile store. Triggers init on mount so
+ * the first consumer drives the fetch and later mounts get the cached value.
+ */
 export function useMyProfile(): ProfileState {
-    const [profile, setProfile] = useState<StudentProfile | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<ApiClientError | Error | null>(null);
-
-    const fetchProfile = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const { profile } = await studentApi.get_me();
-            setProfile(profile);
-        } catch (err) {
-            if (err instanceof ApiClientError && err.status === 404) {
-                setProfile(null);
-            } else {
-                setError(err instanceof Error ? err : new Error(String(err)));
-            }
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+    const profile = useMyProfileStore((s) => s.profile);
+    const loading = useMyProfileStore((s) => s.loading);
+    const error = useMyProfileStore((s) => s.error);
+    const init = useMyProfileStore((s) => s.init);
+    const refetch = useMyProfileStore((s) => s.refetch);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchProfile();
-    }, [fetchProfile]);
+        init();
+    }, [init]);
 
-    return { profile, loading, error, refetch: fetchProfile };
+    return { profile, loading, error, refetch };
 }

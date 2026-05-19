@@ -13,14 +13,23 @@ datasource db {
 
 model User {
   id    String  @id @default(cuid())
-  name  String
-  email String  @unique
+  name  String?
+  email String? @unique
+  phone String? @unique
   image String?
 
+  // Link to Supabase auth.users.id — the canonical auth identity
+  supabaseUserId String? @unique @db.Uuid
+
+  // Legacy: NextAuth Google sub. Kept so existing rows resolve during the
+  // Supabase Auth migration; remove once all users have re-authenticated.
   googleId String? @unique
 
-  role     UserRole @default(STUDENT)
-  isBanned Boolean  @default(false)
+  role          UserRole @default(STUDENT)
+  // Distinguishes "user picked STUDENT" from "role defaulted to STUDENT
+  // because they haven't picked yet". Flipped by POST /auth/role.
+  roleConfirmed Boolean  @default(false)
+  isBanned      Boolean  @default(false)
 
   isPremium    Boolean   @default(false)
   premiumSince DateTime?

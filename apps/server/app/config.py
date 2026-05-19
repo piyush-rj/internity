@@ -7,10 +7,16 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    SERVER_JWT_SECRET: str
     SERVER_PORT: int
 
     DATABASE_URL: AnyUrl
+
+    # Supabase Auth — used to verify JWTs issued by Supabase Auth (GoTrue).
+    # SUPABASE_URL drives the JWKS lookup; SUPABASE_JWT_SECRET is the legacy
+    # HS256 fallback for tokens signed before the project rotated to asymmetric
+    # signing keys.
+    SUPABASE_URL: AnyUrl
+    SUPABASE_JWT_SECRET: str
 
     MINIO_ENDPOINT: AnyUrl
     MINIO_PUBLIC_ENDPOINT: AnyUrl | None = None

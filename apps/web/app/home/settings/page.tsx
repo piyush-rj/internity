@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { Check, LogOut } from "lucide-react";
+import { createClient } from "@/src/lib/supabase/client";
 import { PiArrowSquareOut } from "react-icons/pi";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { EmployerProfileCard } from "@/src/components/settings/EmployerProfileCard";
@@ -16,6 +17,14 @@ import { cn } from "@/src/lib/utils";
 export default function SettingsPage() {
     const session = useUserSessionStore((s) => s.session);
     const { me, loading } = useMe();
+    const router = useRouter();
+    const supabase = createClient();
+
+    async function handleSignOut() {
+        await supabase.auth.signOut();
+        router.replace("/");
+        router.refresh();
+    }
 
     const name = me?.name ?? session?.user?.name ?? "—";
     const email = me?.email ?? session?.user?.email ?? "—";
@@ -94,7 +103,7 @@ export default function SettingsPage() {
                     <Button
                         type="button"
                         variant="exec-light"
-                        onClick={() => signOut({ callbackUrl: "/" })}
+                        onClick={handleSignOut}
                         className="h-9 px-3 text-[12.5px] cursor-pointer"
                     >
                         <LogOut className="h-3.5 w-3.5" />

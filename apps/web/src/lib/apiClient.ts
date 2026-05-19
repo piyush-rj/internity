@@ -1,6 +1,8 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
-import { useUserSessionStore } from "@/src/store/useUserSessionStore";
+import { createClient } from "@/src/lib/supabase/client";
 import { ENV } from "@/src/config/config.env";
+
+const supabase = createClient();
 
 interface ApiSuccess<T> {
     success: true;
@@ -22,9 +24,13 @@ const client: AxiosInstance = axios.create({
     headers: { "Content-Type": "application/json" },
 });
 
-client.interceptors.request.use((config) => {
-    const token = useUserSessionStore.getState().session?.user?.token;
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+client.interceptors.request.use(async (config) => {
+    const {
+        data: { session },
+    } = await supabase.auth.getSession();
+    if (session?.access_token) {
+        config.headers.Authorization = `Bearer ${session.access_token}`;
+    }
     return config;
 });
 

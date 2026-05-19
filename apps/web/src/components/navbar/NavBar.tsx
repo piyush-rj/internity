@@ -1,15 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
 import { Button } from "@/src/components/ui/button";
 import { UserMenu } from "@/src/components/navbar/UserMenu";
+import { ProfileCompletionPill } from "@/src/components/navbar/ProfileCompletionPill";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
+import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { cn } from "@/src/lib/utils";
 
 export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
     const session = useUserSessionStore((s) => s.session);
+    const openDialog = useAuthDialog((s) => s.openDialog);
     const [scrolled, setScrolled] = useState(false);
 
     useEffect(() => {
@@ -29,7 +31,7 @@ export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
     }, [floatOnScroll]);
 
     function handleSignin() {
-        signIn("google", { callbackUrl: "/home/dashboard" });
+        openDialog("/home/dashboard");
     }
 
     const items = [
@@ -82,7 +84,10 @@ export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
                 </nav>
                 <div className="flex items-center gap-2">
                     {session?.user ? (
-                        <UserMenu />
+                        <>
+                            <ProfileCompletionPill />
+                            <UserMenu />
+                        </>
                     ) : (
                         <Button
                             variant={"exec-dark"}

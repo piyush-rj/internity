@@ -10,6 +10,7 @@ import { useListingSearch } from "@/src/hooks/useListingSearch";
 import { cn } from "@/src/lib/utils";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { UserMenu } from "@/src/components/navbar/UserMenu";
+import { ProfileCompletionPill } from "@/src/components/navbar/ProfileCompletionPill";
 import { useMeStore } from "@/src/store/useMeStore";
 
 type Crumb = {
@@ -291,6 +292,7 @@ export function Topbar() {
                             {primaryCta.label}
                         </Link>
                     )}
+                    <ProfileCompletionPill />
                     <NotificationPanel />
                     <div className="ml-1">
                         <UserMenu />

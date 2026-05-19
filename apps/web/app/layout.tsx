@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { Geist_Mono, Poppins } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { SessionSetter } from "@/src/lib/SessionSetter";
+import { AuthDialog } from "@/src/components/auth/AuthDialog";
 import { cn } from "@/src/lib/utils";
-import { getServerSession } from "next-auth";
-import { authOption } from "@/app/api/auth/[...nextauth]/options";
 
 const poppins = Poppins({
     variable: "--font-poppins",
@@ -23,13 +23,11 @@ export const metadata: Metadata = {
         "India's largest career platform for students. Find internships, entry-level jobs and online trainings from 200,000+ companies.",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-    const session = await getServerSession(authOption);
-
     return (
         <html
             lang="en"
@@ -40,8 +38,19 @@ export default async function RootLayout({
             )}
         >
             <body className="min-h-full flex flex-col bg-background text-foreground">
-                <SessionSetter session={session} />
+                <SessionSetter />
                 {children}
+                <AuthDialog />
+                <Toaster
+                    position="bottom-right"
+                    richColors
+                    closeButton
+                    toastOptions={{
+                        classNames: {
+                            toast: "rounded-lg border border-border shadow-[0_8px_24px_-12px_rgba(15,23,42,0.18)]",
+                        },
+                    }}
+                />
             </body>
         </html>
     );
