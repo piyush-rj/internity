@@ -46,6 +46,7 @@ model User {
   assets             Asset[]
   notifications      Notification[]
   payments           Payment[]
+  messagesSent       Message[]        @relation("MessageSentBy")
 }
 
 model StudentProfile {
@@ -282,9 +283,46 @@ model Application {
   appliedAt       DateTime @default(now())
   statusUpdatedAt DateTime @default(now())
 
+  conversation Conversation?
+
   @@unique([listingId, studentId])
   @@index([studentId, status])
   @@index([listingId, status])
+}
+
+// One Conversation per Application. Created automatically on apply so the
+// applicant and the listing's company can chat without an extra setup step.
+// Participants resolved on access: Application.student + any CompanyMember
+// of Application.listing.company.
+model Conversation {
+  id            String   @id @default(cuid())
+  applicationId String   @unique
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  lastMessageAt DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  messages Message[]
+
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  senderId String
+  sender   User   @relation("MessageSentBy", fields: [senderId], references: [id], onDelete: Cascade)
+
+  body String @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+  @@index([senderId])
 }
 
 model SavedListing {

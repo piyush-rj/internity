@@ -67,12 +67,19 @@ export function ApplyCard({
         );
     }
 
+    const trimmedCoverLetter = coverLetter.trim();
+    const canSubmit = trimmedCoverLetter.length > 0;
+
     async function handleSubmit() {
+        if (!canSubmit) {
+            setError("Add a cover letter — it’s required.");
+            return;
+        }
         setSubmitting(true);
         setError(null);
         try {
             await listingApi.apply(listingId, {
-                coverLetter: coverLetter.trim() || undefined,
+                coverLetter: trimmedCoverLetter,
             });
             await onApplied();
             setOpen(false);
@@ -106,9 +113,7 @@ export function ApplyCard({
             <label className="block">
                 <span className="block mb-1.5 text-[12.5px] font-medium">
                     Cover letter
-                    <span className="ml-1 text-muted-foreground font-normal">
-                        (optional)
-                    </span>
+                    <span className="ml-0.5 text-destructive">*</span>
                 </span>
                 <textarea
                     value={coverLetter}
@@ -152,7 +157,7 @@ export function ApplyCard({
                     type="button"
                     variant="exec-dark"
                     onClick={handleSubmit}
-                    disabled={submitting}
+                    disabled={submitting || !canSubmit}
                     className="flex-1 h-9 text-[12.5px] cursor-pointer"
                 >
                     {submitting ? "Submitting…" : "Submit application"}

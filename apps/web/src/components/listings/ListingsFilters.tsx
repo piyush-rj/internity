@@ -90,7 +90,7 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
     const activeCount = countActive(filters);
 
     return (
-        <section className="rounded-md border border-border bg-neutral-50">
+        <section className="rounded-[20px] border border-border bg-neutral-50">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px_180px_auto] gap-2 p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -169,6 +169,7 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                             "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
                         )}
                     />
+
                     <input
                         type="number"
                         min={0}

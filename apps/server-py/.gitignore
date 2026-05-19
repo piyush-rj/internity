@@ -1,5 +1,11 @@
-node_modules
-dist
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.python-version
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
 
 .env
 .env.local
@@ -10,4 +16,3 @@ dist
 .idea/
 .vscode/
 .DS_Store
-*.log

@@ -1,5 +1,4 @@
 "use client";
-
 import { useState, type ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -11,21 +10,14 @@ import {
     SparklesIcon,
 } from "@/src/components/dashboard/icons";
 import {
-    PiBookmarkSimple,
     PiBookmarkSimpleFill,
-    PiBriefcase,
     PiBriefcaseFill,
-    PiBuildings,
     PiBuildingsFill,
-    PiFileText,
+    PiChatCircleFill,
     PiFileTextFill,
-    PiGear,
     PiGearFill,
-    PiHouse,
     PiHouseFill,
-    PiUser,
     PiUserFill,
-    PiUsers,
     PiUsersFill,
 } from "react-icons/pi";
 import { GiTie } from "react-icons/gi";
@@ -38,7 +30,6 @@ type Item = {
     key: string;
     label: string;
     icon: IconComp;
-    iconFilled: IconComp;
     href: string;
     badge?: string;
 };
@@ -50,59 +41,57 @@ const studentNav: NavSet = {
         {
             key: "dashboard",
             label: "Dashboard",
-            icon: PiHouse,
-            iconFilled: PiHouseFill,
+            icon: PiHouseFill,
             href: "/home",
         },
         {
             key: "internships",
             label: "Internships",
-            icon: PiBriefcase,
-            iconFilled: PiBriefcaseFill,
+            icon: PiBriefcaseFill,
             href: "/home/internships",
         },
         {
             key: "jobs",
             label: "Jobs",
-            icon: PiBuildings,
-            iconFilled: PiBuildingsFill,
+            icon: PiBuildingsFill,
             href: "/home/jobs",
         },
         {
             key: "applications",
             label: "Applications",
-            icon: PiFileText,
-            iconFilled: PiFileTextFill,
+            icon: PiFileTextFill,
             href: "/home/applications",
         },
         {
             key: "saved",
             label: "Saved",
-            icon: PiBookmarkSimple,
-            iconFilled: PiBookmarkSimpleFill,
+            icon: PiBookmarkSimpleFill,
             href: "/home/saved",
+        },
+        {
+            key: "messages",
+            label: "Messages",
+            icon: PiChatCircleFill,
+            href: "/home/messages",
         },
     ],
     profile: [
         {
             key: "resume",
             label: "Resume",
-            icon: PiFileText,
-            iconFilled: PiFileTextFill,
+            icon: PiFileTextFill,
             href: "/home/resume",
         },
         {
             key: "profile",
             label: "Profile",
-            icon: PiUser,
-            iconFilled: PiUserFill,
+            icon: PiUserFill,
             href: "/home/profile",
         },
         {
             key: "settings",
             label: "Settings",
-            icon: PiGear,
-            iconFilled: PiGearFill,
+            icon: PiGearFill,
             href: "/home/settings",
         },
     ],
@@ -113,38 +102,39 @@ const employerNav: NavSet = {
         {
             key: "dashboard",
             label: "Dashboard",
-            icon: PiHouse,
-            iconFilled: PiHouseFill,
+            icon: PiHouseFill,
             href: "/home",
         },
         {
             key: "manage-listings",
             label: "My listings",
-            icon: PiBriefcase,
-            iconFilled: PiBriefcaseFill,
+            icon: PiBriefcaseFill,
             href: "/home/manage-listings",
         },
         {
             key: "applicants",
             label: "Applicants",
-            icon: PiUsers,
-            iconFilled: PiUsersFill,
+            icon: PiUsersFill,
             href: "/home/applicants",
         },
         {
             key: "company",
             label: "Company",
-            icon: PiBuildings,
-            iconFilled: PiBuildingsFill,
+            icon: PiBuildingsFill,
             href: "/home/company",
+        },
+        {
+            key: "messages",
+            label: "Messages",
+            icon: PiChatCircleFill,
+            href: "/home/messages",
         },
     ],
     profile: [
         {
             key: "settings",
             label: "Settings",
-            icon: PiGear,
-            iconFilled: PiGearFill,
+            icon: PiGearFill,
             href: "/home/settings",
         },
     ],
@@ -246,7 +236,7 @@ function SectionLabel({
 }
 
 function NavItem({ item, active }: { item: Item; active: boolean }) {
-    const Icon = active ? item.iconFilled : item.icon;
+    const Icon = item.icon;
     return (
         <Link
             href={item.href}
@@ -254,11 +244,14 @@ function NavItem({ item, active }: { item: Item; active: boolean }) {
                 "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
                 active
                     ? "bg-white ring-1 ring-black/9 shadow-sm shadow-black/4"
-                    : "text-muted-foreground hover:text-foreground",
+                    : "text-muted-foreground hover:text-foreground/80",
             )}
         >
             <Icon
-                className={cn("h-4 w-4 shrink-0", active && "text-orange-500")}
+                className={cn(
+                    "h-4 w-4 shrink-0",
+                    active ? "text-orange-500" : "text-neutral-500",
+                )}
             />
             <span className="flex-1">{item.label}</span>
             {item.badge && (

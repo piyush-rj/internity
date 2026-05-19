@@ -1,0 +1,103 @@
+import type { Request, Response } from "express";
+import { z, ZodError } from "zod";
+import { ApiError, InvalidRequest, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ListingType,
+    Prisma,
+    WorkMode,
+    prisma,
+} from "../../../db.ts";
+
+const Query = z.object({
+    type: z.enum(["INTERNSHIP", "JOB"]).optional(),
+    q: z.string().optional(),
+    city: z.string().optional(),
+    mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
+    skills: z.string().optional(),
+    stipendMin: z.coerce.number().int().optional(),
+    durationMax: z.coerce.number().int().optional(),
+    partTime: z.enum(["true", "false"]).optional(),
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+function normalize(tags: readonly string[]): string[] {
+    return tags
+        .map((t) => t.trim().toLowerCase())
+        .filter((t) => t.length > 0);
+}
+
+export default async function listListings(
+    req: Request,
+    res: Response,
+): Promise<void> {
+    const api = new ResponseWriter(res);
+    try {
+        const parsed = Query.safeParse(req.query);
+        if (!parsed.success) throw new InvalidRequest("Invalid query");
+        const q = parsed.data;
+
+        const where: Prisma.ListingWhereInput = { closedAt: null };
+        if (q.type) where.type = q.type as ListingType;
+        if (q.mode) where.mode = q.mode as WorkMode;
+        if (q.city) where.city = { contains: q.city, mode: "insensitive" };
+        if (q.q && q.q.trim()) {
+            const needle = q.q.trim();
+            where.OR = [
+                { title: { contains: needle, mode: "insensitive" } },
+                {
+                    company: {
+                        name: { contains: needle, mode: "insensitive" },
+                    },
+                },
+                { skillTagsRaw: { has: needle.toLowerCase() } },
+            ];
+        }
+        if (q.stipendMin !== undefined) where.stipendMax = { gte: q.stipendMin };
+        if (q.durationMax !== undefined) {
+            where.durationMonths = { lte: q.durationMax };
+        }
+        if (q.partTime !== undefined) where.partTime = q.partTime === "true";
+        if (q.skills) {
+            const tags = normalize(q.skills.split(","));
+            if (tags.length > 0) where.skillTagsRaw = { hasSome: tags };
+        }
+
+        const [total, items] = await Promise.all([
+            prisma.listing.count({ where }),
+            prisma.listing.findMany({
+                where,
+                orderBy: { createdAt: "desc" },
+                skip: (q.page - 1) * q.pageSize,
+                take: q.pageSize,
+                include: {
+                    company: {
+                        select: {
+                            id: true,
+                            name: true,
+                            slug: true,
+                            logoUrl: true,
+                        },
+                    },
+                },
+            }),
+        ]);
+
+        api.ok({ items, page: q.page, pageSize: q.pageSize, total });
+    } catch (err) {
+        if (err instanceof ApiError) {
+            api.fail(err.status, err.code, err.message);
+            return;
+        }
+        if (err instanceof ZodError) {
+            const issue = err.issues[0];
+            const where = issue?.path.join(".") || "body";
+            api.invalidRequest(
+                `Invalid ${where}: ${issue?.message ?? "invalid"}`,
+            );
+            return;
+        }
+        console.error(err);
+        api.internalError();
+    }
+}
