@@ -21,11 +21,7 @@ import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
 
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
-const ACCEPTED_IMAGE_TYPES = [
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-] as const;
+const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export function ProfileHeaderCard({
     profile,

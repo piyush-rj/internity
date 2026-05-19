@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { Phone, ChevronLeft, Loader2, Check } from "lucide-react";
@@ -177,17 +177,6 @@ export function AuthFlow({
             window.location.assign(nextPath);
         }
     }
-
-    // When the parent unmounts the flow (modal close), don't leak state for
-    // the next session — reset on close happens at the AuthDialog level.
-    useEffect(() => {
-        if (step === "provider-select") {
-            setPhone("");
-            setOtp("");
-            setFirstName("");
-            setLastName("");
-        }
-    }, [step]);
 
     return (
         <div

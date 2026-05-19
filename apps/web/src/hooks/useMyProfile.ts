@@ -23,7 +23,6 @@ export function useMyProfile(): ProfileState {
     const refetch = useMyProfileStore((s) => s.refetch);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         init();
     }, [init]);
 

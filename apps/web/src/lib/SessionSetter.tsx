@@ -10,12 +10,14 @@ import {
 import { useMeStore } from "@/src/store/useMeStore";
 import { useMyProfileStore } from "@/src/store/useMyProfileStore";
 
-function toAppSession(user: {
-    id: string;
-    email?: string | null;
-    phone?: string | null;
-    user_metadata?: Record<string, unknown>;
-} | null): AppSession {
+function toAppSession(
+    user: {
+        id: string;
+        email?: string | null;
+        phone?: string | null;
+        user_metadata?: Record<string, unknown>;
+    } | null,
+): AppSession {
     if (!user) return null;
     const meta = user.user_metadata ?? {};
     const sessionUser: SessionUser = {
