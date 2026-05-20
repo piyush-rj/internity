@@ -42,7 +42,9 @@ export type SupabaseClaims = JWTPayload & {
 };
 
 /** Verify a Supabase JWT. Returns the claims on success, `null` on any failure. */
-export async function verifyToken(token: string): Promise<SupabaseClaims | null> {
+export async function verifyToken(
+    token: string,
+): Promise<SupabaseClaims | null> {
     let alg: string | undefined;
     try {
         alg = decodeProtectedHeader(token).alg;
@@ -54,10 +56,14 @@ export async function verifyToken(token: string): Promise<SupabaseClaims | null>
 
     try {
         if (alg === "HS256") {
-            const { payload } = await jwtVerify<SupabaseClaims>(token, hsSecret, {
-                algorithms: ["HS256"],
-                audience: _AUDIENCE,
-            });
+            const { payload } = await jwtVerify<SupabaseClaims>(
+                token,
+                hsSecret,
+                {
+                    algorithms: ["HS256"],
+                    audience: _AUDIENCE,
+                },
+            );
             return payload;
         }
         if (alg === "RS256" || alg === "ES256") {

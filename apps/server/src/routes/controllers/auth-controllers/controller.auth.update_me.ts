@@ -7,7 +7,10 @@ const Body = z.object({
     name: z.string().min(1).max(200).optional(),
 });
 
-export default async function updateMe(req: Request, res: Response): Promise<void> {
+export default async function updateMe(
+    req: Request,
+    res: Response,
+): Promise<void> {
     const api = new ResponseWriter(res);
     try {
         const body = Body.parse(req.body);

@@ -1,11 +1,12 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
 import {
-    ApplicationStatus,
-    NotificationType,
-    prisma,
-} from "../../../db.ts";
+    ApiError,
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
+import { ApplicationStatus, NotificationType, prisma } from "../../../db.ts";
 import { notify } from "../../../services/notifications.ts";
 
 const Body = z.object({

@@ -1,29 +1,13 @@
-/**
- * CustomWS — typed wrapper around the `ws` library's WebSocket.
- *
- * Browsers can't set Authorization headers on a WebSocket handshake, so we
- * authenticate in-band: the first message after the socket opens must be
- * of type `auth` carrying a Supabase JWT. The wrapper:
- *
- *   - blocks send/recv of chat traffic until auth completes,
- *   - exposes a strongly-typed `send`/`recv` interface keyed off the same
- *     ServerMessage / ClientMessage discriminated unions as the client,
- *   - holds the authenticated user identity for downstream handlers.
- *
- * Composition (not subclassing) keeps the surface area minimal — callers
- * can only do what we expose, not reach into the raw WebSocket.
- */
-
 import type { WebSocket } from "ws";
 import { verifyToken } from "../core/jwt.ts";
-import { prisma, type UserRole } from "../db.ts";
+import type { UserRole } from "../db.ts";
+import { SocketDbService } from "./socket.db_services.ts";
 import {
     ClientMessage,
     type ClientMessage as ClientMessageT,
     type ServerMessage,
-} from "./chat-types.ts";
+} from "../types/types.socket.ts";
 
-// Custom close codes — must be in 4000-4999 range per RFC 6455.
 export const WS_CLOSE_UNAUTHORIZED = 4401;
 export const WS_CLOSE_TIMEOUT = 4408;
 export const WS_CLOSE_INVALID_PAYLOAD = 4400;
@@ -48,8 +32,6 @@ export class CustomWS {
     private _user: WSUser | null = null;
 
     constructor(private readonly ws: WebSocket) {}
-
-    // ------------------------------------------------------------------ auth
 
     get user(): WSUser {
         if (this._user === null) {
@@ -122,23 +104,14 @@ export class CustomWS {
         const email = claims.email ?? null;
         const phone = claims.phone ?? null;
 
-        let user = await prisma.user.findUnique({
-            where: { supabaseUserId },
-        });
+        let user = await SocketDbService.findUserBySupabaseId(supabaseUserId);
         if (!user && (email || phone)) {
-            user = await prisma.user.findFirst({
-                where: {
-                    OR: [
-                        ...(email ? [{ email }] : []),
-                        ...(phone ? [{ phone }] : []),
-                    ],
-                },
-            });
+            user = await SocketDbService.findUserByEmailOrPhone(email, phone);
             if (user && user.supabaseUserId === null) {
-                user = await prisma.user.update({
-                    where: { id: user.id },
-                    data: { supabaseUserId },
-                });
+                user = await SocketDbService.linkSupabaseUserId(
+                    user.id,
+                    supabaseUserId,
+                );
             }
         }
 
@@ -259,12 +232,9 @@ export class CustomWS {
                         message,
                     } satisfies ServerMessage),
                 );
-            } catch {
-                // best-effort
-            }
+            } catch {}
         }
         this.close(closeCode, message.slice(0, 120));
         throw new AuthFailed(message);
     }
 }
-

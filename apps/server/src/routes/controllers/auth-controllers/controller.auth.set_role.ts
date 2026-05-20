@@ -7,7 +7,10 @@ const Body = z.object({
     role: z.enum(["STUDENT", "EMPLOYER"]),
 });
 
-export default async function setRole(req: Request, res: Response): Promise<void> {
+export default async function setRole(
+    req: Request,
+    res: Response,
+): Promise<void> {
     const api = new ResponseWriter(res);
     try {
         const body = Body.parse(req.body);

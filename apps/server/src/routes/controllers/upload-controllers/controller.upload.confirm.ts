@@ -29,7 +29,9 @@ export default async function confirmUpload(
 
         if (kind === AssetKind.COMPANY_LOGO) {
             if (!body.companyId) {
-                throw new InvalidRequest("companyId is required for COMPANY_LOGO");
+                throw new InvalidRequest(
+                    "companyId is required for COMPANY_LOGO",
+                );
             }
             const member = await prisma.companyMember.findUnique({
                 where: {

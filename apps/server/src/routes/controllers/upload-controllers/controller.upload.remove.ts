@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { ZodError } from "zod";
-import { ApiError, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { deleteObject } from "../../../core/storage.ts";
 import { prisma } from "../../../db.ts";
 

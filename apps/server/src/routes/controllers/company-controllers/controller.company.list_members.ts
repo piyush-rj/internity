@@ -13,7 +13,9 @@ export default async function listCompanyMembers(
             where: { companyId: req.params.id as string },
             orderBy: { joinedAt: "asc" },
             include: {
-                user: { select: { id: true, name: true, email: true, image: true } },
+                user: {
+                    select: { id: true, name: true, email: true, image: true },
+                },
             },
         });
         api.ok({ members });

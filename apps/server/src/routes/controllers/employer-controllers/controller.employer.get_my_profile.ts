@@ -10,13 +10,14 @@ export default async function getMyEmployerProfile(
     const api = new ResponseWriter(res);
     try {
         const [profile, memberships] = await Promise.all([
-            prisma.employerProfile.findUnique({ where: { userId: req.user!.id } }),
+            prisma.employerProfile.findUnique({
+                where: { userId: req.user!.id },
+            }),
             prisma.companyMember.findMany({
                 where: { userId: req.user!.id },
                 include: { company: true },
             }),
         ]);
-        api.ok({ profile, memberships });
     } catch (err) {
         if (err instanceof ApiError) {
             api.fail(err.status, err.code, err.message);

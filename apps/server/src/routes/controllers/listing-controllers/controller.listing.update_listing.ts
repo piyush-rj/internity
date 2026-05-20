@@ -1,12 +1,12 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
 import {
-    ListingType,
-    Prisma,
-    WorkMode,
-    prisma,
-} from "../../../db.ts";
+    ApiError,
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
+import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
 
 const Body = z.object({
     type: z.enum(["INTERNSHIP", "JOB"]).optional(),
@@ -28,9 +28,7 @@ const Body = z.object({
 });
 
 function normalize(tags: readonly string[]): string[] {
-    return tags
-        .map((t) => t.trim().toLowerCase())
-        .filter((t) => t.length > 0);
+    return tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0);
 }
 
 export default async function updateListing(
@@ -61,7 +59,9 @@ export default async function updateListing(
             ...(body.title !== undefined && { title: body.title }),
             ...(body.mode !== undefined && { mode: body.mode as WorkMode }),
             ...(body.city !== undefined && { city: body.city }),
-            ...(body.description !== undefined && { description: body.description }),
+            ...(body.description !== undefined && {
+                description: body.description,
+            }),
             ...(body.responsibilities !== undefined && {
                 responsibilities: body.responsibilities ?? [],
             }),
@@ -72,8 +72,12 @@ export default async function updateListing(
             ...(body.skillTagsRaw !== undefined && {
                 skillTagsRaw: normalize(body.skillTagsRaw ?? []),
             }),
-            ...(body.stipendMin !== undefined && { stipendMin: body.stipendMin }),
-            ...(body.stipendMax !== undefined && { stipendMax: body.stipendMax }),
+            ...(body.stipendMin !== undefined && {
+                stipendMin: body.stipendMin,
+            }),
+            ...(body.stipendMax !== undefined && {
+                stipendMax: body.stipendMax,
+            }),
             ...(body.durationMonths !== undefined && {
                 durationMonths: body.durationMonths,
             }),

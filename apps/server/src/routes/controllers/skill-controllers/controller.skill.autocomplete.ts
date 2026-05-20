@@ -9,7 +9,9 @@ export default async function autocompleteSkill(
 ): Promise<void> {
     const api = new ResponseWriter(res);
     try {
-        const q = String(req.query.q ?? "").trim().toLowerCase();
+        const q = String(req.query.q ?? "")
+            .trim()
+            .toLowerCase();
         if (!q || q.length > 50) {
             api.ok({ items: [] });
             return;

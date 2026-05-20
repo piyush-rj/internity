@@ -1,11 +1,3 @@
-/**
- * Best-effort notification writes.
- *
- * Callers are usually in the middle of a successful mutation and we don't
- * want a notification failure to roll back the real work, so both helpers
- * swallow exceptions after logging them.
- */
-
 import { type NotificationType, prisma } from "../db.ts";
 
 export type NotifyArgs = {

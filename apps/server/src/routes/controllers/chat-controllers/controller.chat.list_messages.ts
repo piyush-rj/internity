@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
 import { ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 export default async function listMessages(
@@ -34,7 +39,8 @@ export default async function listMessages(
                 ? Math.min(limitRaw, 100)
                 : 50;
         const beforeRaw = req.query.before;
-        const before = typeof beforeRaw === "string" ? new Date(beforeRaw) : null;
+        const before =
+            typeof beforeRaw === "string" ? new Date(beforeRaw) : null;
 
         const rows = await prisma.message.findMany({
             where: {

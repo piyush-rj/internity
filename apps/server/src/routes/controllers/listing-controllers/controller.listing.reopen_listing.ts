@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
 import { ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 export default async function reopenListing(

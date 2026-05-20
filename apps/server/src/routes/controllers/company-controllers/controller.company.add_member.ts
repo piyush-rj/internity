@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { CompanyRole, prisma } from "../../../db.ts";
 
 const Body = z.object({

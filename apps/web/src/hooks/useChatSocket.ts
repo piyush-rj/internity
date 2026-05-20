@@ -4,10 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import { ENV } from "@/src/config/config.env";
 import { CustomWS, buildChatSocketUrl } from "@/src/lib/ws/chat-socket";
-import type {
-    ClientMessage,
-    ServerMessage,
-} from "@/src/lib/ws/chat-types";
+import type { ClientMessage, ServerMessage } from "@/src/lib/ws/chat-types";
 
 type Status = "idle" | "connecting" | "open" | "closed";
 

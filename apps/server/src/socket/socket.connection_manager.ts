@@ -9,8 +9,8 @@
  * dict for a Redis pub/sub fan-out — the public interface stays the same.
  */
 
-import type { CustomWS } from "./custom-ws.ts";
-import type { ServerMessage } from "./chat-types.ts";
+import type { CustomWS } from "./socket.custom.ts";
+import type { ServerMessage } from "../types/types.socket.ts";
 
 class ConnectionManager {
     // userId -> set of live CustomWS instances

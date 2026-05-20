@@ -13,10 +13,7 @@
  * a non-React surface later (e.g. a service worker).
  */
 
-import type {
-    ClientMessage,
-    ServerMessage,
-} from "@/src/lib/ws/chat-types";
+import type { ClientMessage, ServerMessage } from "@/src/lib/ws/chat-types";
 
 type Listener = (msg: ServerMessage) => void;
 

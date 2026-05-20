@@ -18,7 +18,9 @@ export default async function getPublicProfile(
                 skills: { include: { skill: true } },
                 certifications: true,
                 languages: true,
-                user: { select: { id: true, name: true, email: true, image: true } },
+                user: {
+                    select: { id: true, name: true, email: true, image: true },
+                },
             },
         });
         if (!profile) {

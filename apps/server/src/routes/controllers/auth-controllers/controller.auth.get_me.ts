@@ -3,7 +3,10 @@ import { ZodError } from "zod";
 import { ApiError, ResponseWriter } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-export default async function getMe(req: Request, res: Response): Promise<void> {
+export default async function getMe(
+    req: Request,
+    res: Response,
+): Promise<void> {
     const api = new ResponseWriter(res);
     try {
         const user = await prisma.user.findUnique({

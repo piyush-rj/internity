@@ -1,12 +1,11 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, Forbidden, ResponseWriter } from "../../../utils/api-response.ts";
 import {
-    ListingType,
-    Prisma,
-    WorkMode,
-    prisma,
-} from "../../../db.ts";
+    ApiError,
+    Forbidden,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
+import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
 
 const Body = z.object({
     companyId: z.string().min(1),
@@ -29,9 +28,7 @@ const Body = z.object({
 });
 
 function normalize(tags: readonly string[]): string[] {
-    return tags
-        .map((t) => t.trim().toLowerCase())
-        .filter((t) => t.length > 0);
+    return tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0);
 }
 
 export default async function createListing(

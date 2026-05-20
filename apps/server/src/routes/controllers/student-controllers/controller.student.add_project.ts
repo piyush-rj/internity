@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, InvalidRequest, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    InvalidRequest,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 const Body = z.object({
@@ -11,7 +15,10 @@ const Body = z.object({
     endDate: z.coerce.date().nullable().optional(),
 });
 
-export default async function addProject(req: Request, res: Response): Promise<void> {
+export default async function addProject(
+    req: Request,
+    res: Response,
+): Promise<void> {
     const api = new ResponseWriter(res);
     try {
         const body = Body.parse(req.body);

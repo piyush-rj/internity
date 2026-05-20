@@ -24,7 +24,10 @@ export default async function updateCompanyMemberRole(
         });
         if (!target) throw new NotFound();
 
-        if (body.role === CompanyRole.MEMBER && target.role === CompanyRole.OWNER) {
+        if (
+            body.role === CompanyRole.MEMBER &&
+            target.role === CompanyRole.OWNER
+        ) {
             const owners = await prisma.companyMember.count({
                 where: { companyId, role: CompanyRole.OWNER },
             });

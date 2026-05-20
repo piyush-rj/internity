@@ -159,12 +159,7 @@ function Bubble({
 }) {
     const isMine = message.senderId === ownId;
     return (
-        <div
-            className={cn(
-                "flex",
-                isMine ? "justify-end" : "justify-start",
-            )}
-        >
+        <div className={cn("flex", isMine ? "justify-end" : "justify-start")}>
             <div
                 className={cn(
                     "max-w-[78%] rounded-2xl px-3 py-1.5",
@@ -178,9 +173,7 @@ function Bubble({
                 <div
                     className={cn(
                         "mt-0.5 text-[10px]",
-                        isMine
-                            ? "text-background/60"
-                            : "text-muted-foreground",
+                        isMine ? "text-background/60" : "text-muted-foreground",
                     )}
                 >
                     {new Date(message.createdAt).toLocaleTimeString("en-IN", {

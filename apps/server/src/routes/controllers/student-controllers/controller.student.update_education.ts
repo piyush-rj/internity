@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 const Body = z.object({
@@ -29,7 +33,8 @@ export default async function updateEducation(
         const data: Record<string, unknown> = {};
         if (body.institute !== undefined) data.institute = body.institute;
         if (body.degree !== undefined) data.degree = body.degree;
-        if (body.fieldOfStudy !== undefined) data.fieldOfStudy = body.fieldOfStudy;
+        if (body.fieldOfStudy !== undefined)
+            data.fieldOfStudy = body.fieldOfStudy;
         if (body.startYear !== undefined) data.startYear = body.startYear;
         if (body.endYear !== undefined) data.endYear = body.endYear;
         if (body.grade !== undefined) data.grade = body.grade;

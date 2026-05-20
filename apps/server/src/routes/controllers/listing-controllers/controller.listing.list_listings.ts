@@ -1,12 +1,11 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, InvalidRequest, ResponseWriter } from "../../../utils/api-response.ts";
 import {
-    ListingType,
-    Prisma,
-    WorkMode,
-    prisma,
-} from "../../../db.ts";
+    ApiError,
+    InvalidRequest,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
+import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
 
 const Query = z.object({
     type: z.enum(["INTERNSHIP", "JOB"]).optional(),
@@ -22,9 +21,7 @@ const Query = z.object({
 });
 
 function normalize(tags: readonly string[]): string[] {
-    return tags
-        .map((t) => t.trim().toLowerCase())
-        .filter((t) => t.length > 0);
+    return tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0);
 }
 
 export default async function listListings(
@@ -53,7 +50,8 @@ export default async function listListings(
                 { skillTagsRaw: { has: needle.toLowerCase() } },
             ];
         }
-        if (q.stipendMin !== undefined) where.stipendMax = { gte: q.stipendMin };
+        if (q.stipendMin !== undefined)
+            where.stipendMax = { gte: q.stipendMin };
         if (q.durationMax !== undefined) {
             where.durationMonths = { lte: q.durationMax };
         }

@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import { ApiError, NotFound, ResponseWriter } from "../../../utils/api-response.ts";
+import {
+    ApiError,
+    NotFound,
+    ResponseWriter,
+} from "../../../utils/api-response.ts";
 import { prisma, type Gender } from "../../../db.ts";
 
 const Body = z.object({
@@ -33,7 +37,9 @@ export default async function updateMyProfile(
         const profile = await prisma.studentProfile.update({
             where: { userId: req.user!.id },
             data: {
-                ...(body.firstName !== undefined && { firstName: body.firstName }),
+                ...(body.firstName !== undefined && {
+                    firstName: body.firstName,
+                }),
                 ...(body.lastName !== undefined && { lastName: body.lastName }),
                 ...(body.phone !== undefined && { phone: body.phone }),
                 ...(body.city !== undefined && { city: body.city }),
