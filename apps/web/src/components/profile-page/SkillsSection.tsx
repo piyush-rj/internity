@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Plus, X } from "lucide-react";
 import {
     Field,
@@ -14,6 +15,7 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
 
 type Suggestion = { id: string; name: string };
+type PendingAdd = { tempId: string; name: string };
 
 export function SkillsSection({
     profile,
@@ -24,8 +26,10 @@ export function SkillsSection({
 }) {
     const items = useMemo(() => profile?.skills ?? [], [profile?.skills]);
     const [name, setName] = useState("");
-    const [adding, setAdding] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [pendingAdds, setPendingAdds] = useState<PendingAdd[]>([]);
+    const [pendingRemoves, setPendingRemoves] = useState<Set<string>>(
+        () => new Set(),
+    );
 
     const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
     const [open, setOpen] = useState(false);
@@ -97,33 +101,57 @@ export function SkillsSection({
     async function commitSkill(value: string) {
         const trimmed = value.trim();
         if (!trimmed) return;
-        if (addedNames.has(trimmed.toLowerCase())) {
+        const key = trimmed.toLowerCase();
+        if (
+            addedNames.has(key) ||
+            pendingAdds.some((p) => p.name.toLowerCase() === key)
+        ) {
             setName("");
             setOpen(false);
             return;
         }
-        setAdding(true);
-        setError(null);
+
+        // Optimistic insert first; clear input so the next skill can be typed
+        // immediately. If the request fails we'll yank the chip back out.
+        const tempId = `tmp-${Math.random().toString(36).slice(2)}`;
+        setPendingAdds((prev) => [...prev, { tempId, name: trimmed }]);
+        setName("");
+        setOpen(false);
+
         try {
             await studentApi.add_skill({ name: trimmed });
-            setName("");
-            setOpen(false);
             await onSaved();
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof ApiClientError ? err.message : "Couldn’t save.",
             );
         } finally {
-            setAdding(false);
+            setPendingAdds((prev) => prev.filter((p) => p.tempId !== tempId));
         }
     }
 
     async function handleRemove(skillId: string) {
+        // Optimistic hide; restore on failure.
+        setPendingRemoves((prev) => {
+            const next = new Set(prev);
+            next.add(skillId);
+            return next;
+        });
         try {
             await studentApi.remove_skill(skillId);
             await onSaved();
-        } catch {
-            /* ignore */
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn’t remove skill.",
+            );
+        } finally {
+            setPendingRemoves((prev) => {
+                const next = new Set(prev);
+                next.delete(skillId);
+                return next;
+            });
         }
     }
 
@@ -213,7 +241,7 @@ export function SkillsSection({
                                     type="button"
                                     variant="exec-dark"
                                     onClick={() => commitSkill(name)}
-                                    disabled={adding || !name.trim()}
+                                    disabled={!name.trim()}
                                     className="h-10 px-3 text-[13px] cursor-pointer shrink-0"
                                 >
                                     <Plus className="h-3.5 w-3.5" />
@@ -290,40 +318,51 @@ export function SkillsSection({
                                 </ul>
                             )}
                         </div>
-                        {error && (
-                            <span className="mt-1 block text-[11.5px] text-destructive">
-                                {error}
-                            </span>
-                        )}
                     </Field>
 
-                    {items.length === 0 ? (
-                        <p className="text-[13px] text-muted-foreground text-center py-3">
-                            No skills added yet.
-                        </p>
-                    ) : (
-                        <div className="flex flex-wrap gap-1.5">
-                            {items.map((s) => (
-                                <span
-                                    key={s.skill.id}
-                                    className={cn(
-                                        "inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1 rounded-full",
-                                        "border border-border bg-background text-[12.5px] text-foreground",
-                                    )}
-                                >
-                                    {s.skill.name}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemove(s.skill.id)}
-                                        aria-label={`Remove ${s.skill.name}`}
-                                        className="h-5 w-5 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                                    >
-                                        <X className="h-3 w-3" />
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-                    )}
+                    {(() => {
+                        const visible = items.filter(
+                            (s) => !pendingRemoves.has(s.skill.id),
+                        );
+                        const optimistic = pendingAdds.filter(
+                            (p) => !addedNames.has(p.name.toLowerCase()),
+                        );
+                        if (visible.length === 0 && optimistic.length === 0) {
+                            return (
+                                <p className="text-[13px] text-muted-foreground text-center py-3">
+                                    No skills added yet.
+                                </p>
+                            );
+                        }
+                        const chipCls = cn(
+                            "inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1 rounded-full",
+                            "border border-border bg-background text-[12.5px] text-foreground",
+                        );
+                        return (
+                            <div className="flex flex-wrap gap-1.5">
+                                {visible.map((s) => (
+                                    <span key={s.skill.id} className={chipCls}>
+                                        {s.skill.name}
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handleRemove(s.skill.id)
+                                            }
+                                            aria-label={`Remove ${s.skill.name}`}
+                                            className="h-5 w-5 inline-flex items-center justify-center rounded-full text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                                        >
+                                            <X className="h-3 w-3" />
+                                        </button>
+                                    </span>
+                                ))}
+                                {optimistic.map((p) => (
+                                    <span key={p.tempId} className={chipCls}>
+                                        {p.name}
+                                    </span>
+                                ))}
+                            </div>
+                        );
+                    })()}
                 </div>
             )}
         </SectionCard>

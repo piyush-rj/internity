@@ -1,5 +1,10 @@
 "use client";
-import { useState, type ComponentType } from "react";
+import {
+    memo,
+    useCallback,
+    useState,
+    type ComponentType,
+} from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { openCheckout } from "@/src/lib/razorpay";
@@ -23,6 +28,7 @@ import {
 import { GiTie } from "react-icons/gi";
 import type { UserRole } from "@/src/lib/api";
 import { useMeStore } from "@/src/store/useMeStore";
+import { selectTotalUnread, useChatStore } from "@/src/store/useChatStore";
 
 type IconComp = ComponentType<{ className?: string }>;
 
@@ -32,6 +38,8 @@ type Item = {
     icon: IconComp;
     href: string;
     badge?: string;
+    /** "primary" badges pop visually — use for live counts like unread chats. */
+    badgeIntent?: "muted" | "primary";
 };
 
 type NavSet = { workspace: Item[]; profile: Item[] };
@@ -154,8 +162,33 @@ function resolveActiveKey(pathname: string, nav: NavSet): string {
 export function Sidebar() {
     const pathname = usePathname() ?? "/home";
     const role = useMeStore((s) => s.me?.role);
+    const totalUnread = useChatStore(selectTotalUnread);
     const nav = pickNav(role);
-    const activeKey = resolveActiveKey(pathname, nav);
+    const resolvedKey = resolveActiveKey(pathname, nav);
+
+    // Optimistic highlight: when the user clicks a tab we paint the new
+    // active row instantly while Next.js loads the route in the background.
+    // Cleared once `pathname` catches up.
+    const [pendingKey, setPendingKey] = useState<string | null>(null);
+    if (pendingKey !== null && pendingKey === resolvedKey) {
+        setPendingKey(null);
+    }
+    const activeKey = pendingKey ?? resolvedKey;
+
+    const onNavClick = useCallback((key: string) => setPendingKey(key), []);
+
+    // Inject the live unread count onto the Messages nav item.
+    const decorate = useCallback(
+        (item: Item): Item => {
+            if (item.key !== "messages" || totalUnread <= 0) return item;
+            return {
+                ...item,
+                badge: totalUnread > 99 ? "99+" : String(totalUnread),
+                badgeIntent: "primary",
+            };
+        },
+        [totalUnread],
+    );
 
     return (
         <aside
@@ -193,8 +226,9 @@ export function Sidebar() {
                     {nav.workspace.map((item) => (
                         <NavItem
                             key={item.key}
-                            item={item}
+                            item={decorate(item)}
                             active={item.key === activeKey}
+                            onClick={onNavClick}
                         />
                     ))}
                 </div>
@@ -204,8 +238,9 @@ export function Sidebar() {
                     {nav.profile.map((item) => (
                         <NavItem
                             key={item.key}
-                            item={item}
+                            item={decorate(item)}
                             active={item.key === activeKey}
+                            onClick={onNavClick}
                         />
                     ))}
                 </div>
@@ -235,11 +270,21 @@ function SectionLabel({
     );
 }
 
-function NavItem({ item, active }: { item: Item; active: boolean }) {
+const NavItem = memo(function NavItem({
+    item,
+    active,
+    onClick,
+}: {
+    item: Item;
+    active: boolean;
+    onClick: (key: string) => void;
+}) {
     const Icon = item.icon;
     return (
         <Link
             href={item.href}
+            prefetch
+            onClick={() => onClick(item.key)}
             className={cn(
                 "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
                 active
@@ -255,13 +300,20 @@ function NavItem({ item, active }: { item: Item; active: boolean }) {
             />
             <span className="flex-1">{item.label}</span>
             {item.badge && (
-                <span className="rounded-md bg-muted px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
+                <span
+                    className={cn(
+                        "min-w-4 h-4 inline-flex items-center justify-center px-1.5 text-[8.5px] font-semibold tabular-nums",
+                        item.badgeIntent === "primary"
+                            ? "rounded-full bg-orange-500 text-white"
+                            : "rounded-md bg-muted text-muted-foreground",
+                    )}
+                >
                     {item.badge}
                 </span>
             )}
         </Link>
     );
-}
+});
 
 function UpgradeCard() {
     const session = useUserSessionStore((s) => s.session);

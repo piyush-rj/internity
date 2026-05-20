@@ -18,6 +18,7 @@ export default async function getMyEmployerProfile(
                 include: { company: true },
             }),
         ]);
+        api.ok({ profile, memberships });
     } catch (err) {
         if (err instanceof ApiError) {
             api.fail(err.status, err.code, err.message);

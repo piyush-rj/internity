@@ -1,19 +1,7 @@
-/**
- * In-memory registry of live chat sockets.
- *
- * One user can have multiple open sockets (multiple tabs, mobile + desktop).
- * Broadcasts iterate every socket for every target user; per-socket failures
- * are tolerated by `CustomWS.send` so one dead connection doesn't sink the rest.
- *
- * Fine for single-process dev. For horizontal scaling, swap the in-memory
- * dict for a Redis pub/sub fan-out — the public interface stays the same.
- */
-
 import type { CustomWS } from "./socket.custom.ts";
-import type { ServerMessage } from "../types/types.socket.ts";
+import type { ServerMessage } from "types";
 
 class ConnectionManager {
-    // userId -> set of live CustomWS instances
     private readonly sockets: Map<string, Set<CustomWS>> = new Map();
 
     register(userId: string, ws: CustomWS): void {
@@ -48,5 +36,4 @@ class ConnectionManager {
     }
 }
 
-/** Process-global singleton, lazy-imported by route handlers. */
 export const manager = new ConnectionManager();

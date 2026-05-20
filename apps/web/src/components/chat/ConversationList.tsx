@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect } from "react";
 import type { ConversationListItem } from "@/src/lib/api";
+import { useChatStore } from "@/src/store/useChatStore";
 import { cn } from "@/src/lib/utils";
 
 export function ConversationList({
@@ -47,46 +48,89 @@ export function ConversationList({
     return (
         <ul className="divide-y divide-border">
             {items.map((c) => (
-                <li key={c.id}>
-                    <button
-                        type="button"
-                        onClick={() => onSelect(c.id)}
-                        className={cn(
-                            "w-full text-left px-3 py-3",
-                            "transition-colors cursor-pointer",
-                            activeId === c.id
-                                ? "bg-secondary/70"
-                                : "hover:bg-secondary/40",
-                        )}
-                    >
-                        <div className="flex items-center gap-3">
-                            <PeerAvatar
-                                name={c.peer.name}
-                                image={c.peer.image}
-                            />
-                            <div className="min-w-0 flex-1">
-                                <div className="flex items-baseline justify-between gap-2">
-                                    <span className="text-[13px] font-semibold truncate">
-                                        {c.peer.name ?? "Unknown"}
-                                    </span>
-                                    <span className="text-[10.5px] text-muted-foreground shrink-0">
-                                        {formatRelative(c.lastMessageAt)}
-                                    </span>
-                                </div>
-                                <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
-                                    {c.listingTitle} · {c.companyName}
-                                </div>
-                                {c.lastMessagePreview && (
-                                    <div className="mt-1 text-[12px] text-foreground/80 truncate">
-                                        {c.lastMessagePreview}
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </button>
-                </li>
+                <ConversationRow
+                    key={c.id}
+                    item={c}
+                    active={activeId === c.id}
+                    onSelect={() => onSelect(c.id)}
+                />
             ))}
         </ul>
+    );
+}
+
+function ConversationRow({
+    item,
+    active,
+    onSelect,
+}: {
+    item: ConversationListItem;
+    active: boolean;
+    onSelect: () => void;
+}) {
+    // Live unread count from the store; falls back to the value the API
+    // returned so the badge is correct on first paint.
+    const unread = useChatStore(
+        (s) => s.unreadByConv[item.id] ?? item.unreadCount,
+    );
+    const hasUnread = !active && unread > 0;
+    return (
+        <li>
+            <button
+                type="button"
+                onClick={onSelect}
+                className={cn(
+                    "w-full text-left px-3 py-3",
+                    "transition-colors cursor-pointer",
+                    active ? "bg-secondary/70" : "hover:bg-secondary/40",
+                )}
+            >
+                <div className="flex items-center gap-3">
+                    <PeerAvatar name={item.peer.name} image={item.peer.image} />
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                            <span
+                                className={cn(
+                                    "text-[14px] truncate",
+                                    hasUnread
+                                        ? "font-semibold text-foreground"
+                                        : "font-semibold",
+                                )}
+                            >
+                                {item.peer.name ?? "Unknown"}
+                            </span>
+                            <span className="text-[10.5px] text-muted-foreground shrink-0">
+                                {formatRelative(item.lastMessageAt)}
+                            </span>
+                        </div>
+                        {/* <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
+                            {item.listingTitle} · {item.companyName}
+                        </div> */}
+                        <div className="mt-1 flex items-center gap-2">
+                            {item.lastMessagePreview ? (
+                                <div
+                                    className={cn(
+                                        "flex-1 min-w-0 text-[12px] truncate",
+                                        hasUnread
+                                            ? "text-foreground font-medium"
+                                            : "text-foreground/80",
+                                    )}
+                                >
+                                    {item.lastMessagePreview}
+                                </div>
+                            ) : (
+                                <div className="flex-1" />
+                            )}
+                            {hasUnread && (
+                                <span className="min-w-5 h-5 inline-flex items-center justify-center px-1.5 rounded-full bg-orange-500 text-white text-[10px] font-semibold tabular-nums shrink-0">
+                                    {unread > 99 ? "99+" : unread}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </button>
+        </li>
     );
 }
 
@@ -99,7 +143,7 @@ function PeerAvatar({
 }) {
     const initial = (name ?? "U")[0]?.toUpperCase() ?? "U";
     return (
-        <span className="relative h-9 w-9 rounded-full overflow-hidden shrink-0 ring-1 ring-border">
+        <span className="relative h-12 w-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border">
             {image ? (
                 <Image
                     src={image}

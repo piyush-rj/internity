@@ -114,12 +114,12 @@ function Pill({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 border",
+                "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 shadow-2xs shadow-black/5",
                 active
-                    ? "bg-brand/10 text-brand border-brand/20"
+                    ? "bg-brand text-white"
                     : on
-                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                      : "bg-secondary text-muted-foreground border-border",
+                      ? "bg-emerald-700 text-white"
+                      : "bg-secondary text-muted-foreground",
             )}
         >
             {on && !active ? <Check className="h-3 w-3" /> : icon}

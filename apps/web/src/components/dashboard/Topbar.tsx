@@ -11,6 +11,7 @@ import { cn } from "@/src/lib/utils";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { UserMenu } from "@/src/components/navbar/UserMenu";
 import { ProfileCompletionPill } from "@/src/components/navbar/ProfileCompletionPill";
+import { useBreadcrumbOverride } from "@/src/components/dashboard/BreadcrumbContext";
 import { useMeStore } from "@/src/store/useMeStore";
 
 type Crumb = {
@@ -52,14 +53,18 @@ function prettify(segment: string): string {
 export function Topbar() {
     const router = useRouter();
     const pathname = usePathname() ?? "/home/dashboard";
+    const crumbOverride = useBreadcrumbOverride();
     const crumbs = buildCrumbs(pathname);
+    if (crumbOverride && crumbs.length > 1) {
+        crumbs[crumbs.length - 1]!.label = crumbOverride;
+    }
     const role = useMeStore((s) => s.me?.role);
     const [search, setSearch] = useState<string>("");
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState<boolean>(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { items: suggestions, loading: searching } = useListingSearch(search);
-    const [isMac, setIsMac] = useState(false);
+    const [isMac, setIsMac] = useState<boolean>(false);
 
     useEffect(() => {
         if (typeof navigator !== "undefined") {

@@ -3,6 +3,7 @@
 import { use } from "react";
 import Link from "next/link";
 import { ListingDetail } from "@/src/components/listings/ListingDetail";
+import { useBreadcrumbLabel } from "@/src/components/dashboard/BreadcrumbContext";
 import { useListing } from "@/src/hooks/useListing";
 import { useMyApplications } from "@/src/hooks/useMyApplications";
 
@@ -15,6 +16,7 @@ export default function ListingDetailPage({
     const { listing, loading, error } = useListing(id);
     const { items: applications, refetch: refetchApplications } =
         useMyApplications();
+    useBreadcrumbLabel(listing?.company.name ?? null);
 
     const applied = applications.some((a) => a.listingId === id);
 

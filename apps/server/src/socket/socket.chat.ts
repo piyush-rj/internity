@@ -1,23 +1,12 @@
-/**
- * Mount the chat WebSocket on an HTTP server.
- *
- * One persistent socket per user — messages address conversations by id in
- * the payload, not by URL. Flow:
- *
- *   1. Client opens WS to `/api/v1/chat/ws`.
- *   2. CustomWS.authenticate() waits for an `auth` message, verifies the
- *      Supabase JWT, and binds the user identity.
- *   3. The socket is registered with the ConnectionManager.
- *   4. The read loop dispatches `ping`, rejects re-auth attempts, and
- *      handles `send_message` by persisting + fanning out to participants.
- */
-
 import type { Server as HttpServer } from "node:http";
 import { WebSocketServer } from "ws";
 import { manager } from "./socket.connection_manager.ts";
 import { AuthFailed, CustomWS } from "./socket.custom.ts";
-import { SocketDbService } from "./socket.db_services.ts";
-import type { ClientMessage } from "../types/types.socket.ts";
+import {
+    SocketDbService,
+    type ConversationWithListing,
+} from "./socket.db_services.ts";
+import { MESSAGE_TYPE, SOCKET_ERROR_CODE, type ClientMessage } from "types";
 
 export class ChatSocket {
     private readonly wss: WebSocketServer;
@@ -71,8 +60,8 @@ export class ChatSocket {
             } catch (err) {
                 console.error("chat ws handler error:", err);
                 ws.send({
-                    type: "error",
-                    code: "internal",
+                    type: MESSAGE_TYPE.ERROR,
+                    code: SOCKET_ERROR_CODE.INTERNAL,
                     message: "Unexpected server error.",
                 });
             }
@@ -88,18 +77,26 @@ export class ChatSocket {
         msg: ClientMessage,
     ): Promise<void> {
         switch (msg.type) {
-            case "ping":
-                ws.send({ type: "pong" });
+            case MESSAGE_TYPE.PING:
+                ws.send({ type: MESSAGE_TYPE.PONG });
                 return;
-            case "auth":
+            case MESSAGE_TYPE.AUTH:
                 ws.send({
-                    type: "error",
-                    code: "forbidden",
+                    type: MESSAGE_TYPE.ERROR,
+                    code: SOCKET_ERROR_CODE.FORBIDDEN,
                     message: "Already authenticated.",
                 });
                 return;
-            case "send_message":
-                await this.handleSendMessage(ws, msg.conversationId, msg.body);
+            case MESSAGE_TYPE.SEND_MESSAGE:
+                await this.handleSendMessage(
+                    ws,
+                    msg.conversationId,
+                    msg.body,
+                    msg.clientId,
+                );
+                return;
+            case MESSAGE_TYPE.MARK_READ:
+                await this.handleMarkRead(ws, msg.conversationId);
                 return;
         }
     }
@@ -108,31 +105,24 @@ export class ChatSocket {
         ws: CustomWS,
         conversationId: string,
         body: string,
+        clientId: string | undefined,
     ): Promise<void> {
         const conv =
             await SocketDbService.getConversationWithListing(conversationId);
         if (!conv) {
             ws.send({
-                type: "error",
-                code: "not_found",
+                type: MESSAGE_TYPE.ERROR,
+                code: SOCKET_ERROR_CODE.NOT_FOUND,
                 message: "Conversation not found.",
             });
             return;
         }
 
-        const members = await SocketDbService.getCompanyMemberUserIds(
-            conv.application.listing.companyId,
-        );
-        const participants = Array.from(
-            new Set<string>([
-                conv.application.studentId,
-                ...members.map((m) => m.userId),
-            ]),
-        );
+        const participants = await this.resolveParticipants(conv);
         if (!participants.includes(ws.user.id)) {
             ws.send({
-                type: "error",
-                code: "forbidden",
+                type: MESSAGE_TYPE.ERROR,
+                code: SOCKET_ERROR_CODE.FORBIDDEN,
                 message: "Not a participant.",
             });
             return;
@@ -149,7 +139,8 @@ export class ChatSocket {
         );
 
         manager.sendToUsers(participants, {
-            type: "message_created",
+            type: MESSAGE_TYPE.MESSAGE_CREATED,
+            clientId,
             message: {
                 id: msg.id,
                 conversationId: msg.conversationId,
@@ -158,5 +149,59 @@ export class ChatSocket {
                 createdAt: msg.createdAt.toISOString(),
             },
         });
+    }
+
+    private async handleMarkRead(
+        ws: CustomWS,
+        conversationId: string,
+    ): Promise<void> {
+        const conv =
+            await SocketDbService.getConversationWithListing(conversationId);
+        if (!conv) {
+            ws.send({
+                type: MESSAGE_TYPE.ERROR,
+                code: SOCKET_ERROR_CODE.NOT_FOUND,
+                message: "Conversation not found.",
+            });
+            return;
+        }
+
+        const participants = await this.resolveParticipants(conv);
+        if (!participants.includes(ws.user.id)) {
+            ws.send({
+                type: MESSAGE_TYPE.ERROR,
+                code: SOCKET_ERROR_CODE.FORBIDDEN,
+                message: "Not a participant.",
+            });
+            return;
+        }
+
+        const now = new Date();
+        await SocketDbService.markConversationRead(
+            conversationId,
+            ws.user.id,
+            now,
+        );
+
+        manager.sendToUsers(participants, {
+            type: MESSAGE_TYPE.CONVERSATION_READ,
+            conversationId,
+            readerId: ws.user.id,
+            readAt: now.toISOString(),
+        });
+    }
+
+    private async resolveParticipants(
+        conv: ConversationWithListing,
+    ): Promise<string[]> {
+        const members = await SocketDbService.getCompanyMemberUserIds(
+            conv.application.listing.companyId,
+        );
+        return Array.from(
+            new Set<string>([
+                conv.application.studentId,
+                ...members.map((m) => m.userId),
+            ]),
+        );
     }
 }

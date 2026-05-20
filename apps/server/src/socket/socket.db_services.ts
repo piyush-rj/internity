@@ -1,11 +1,22 @@
 import { Prisma, prisma } from "../db.ts";
-import type { CompanyMember, Conversation, Message, User } from "../db.ts";
+import type {
+    CompanyMember,
+    Conversation,
+    ConversationRead,
+    Message,
+    User,
+} from "../db.ts";
 
-type ConversationWithListing = Prisma.ConversationGetPayload<{
+export type { CompanyMember, Conversation, ConversationRead, Message, User };
+
+export type ConversationWithListing = Prisma.ConversationGetPayload<{
     include: { application: { include: { listing: true } } };
 }>;
 
+export type CompanyMemberUserId = Pick<CompanyMember, "userId">;
+
 export class SocketDbService {
+
     static getConversationWithListing(
         conversationId: string,
     ): Promise<ConversationWithListing | null> {
@@ -17,7 +28,7 @@ export class SocketDbService {
 
     static getCompanyMemberUserIds(
         companyId: string,
-    ): Promise<Pick<CompanyMember, "userId">[]> {
+    ): Promise<CompanyMemberUserId[]> {
         return prisma.companyMember.findMany({
             where: { companyId },
             select: { userId: true },
@@ -41,6 +52,44 @@ export class SocketDbService {
         return prisma.conversation.update({
             where: { id: conversationId },
             data: { lastMessageAt: at },
+        });
+    }
+
+    static markConversationRead(
+        conversationId: string,
+        userId: string,
+        at: Date,
+    ): Promise<ConversationRead> {
+        return prisma.conversationRead.upsert({
+            where: { conversationId_userId: { conversationId, userId } },
+            create: { conversationId, userId, lastReadAt: at },
+            update: { lastReadAt: at },
+        });
+    }
+
+    static async getReadsForUser(
+        userId: string,
+        conversationIds: string[],
+    ): Promise<Map<string, Date>> {
+        if (conversationIds.length === 0) return new Map();
+        const rows = await prisma.conversationRead.findMany({
+            where: { userId, conversationId: { in: conversationIds } },
+            select: { conversationId: true, lastReadAt: true },
+        });
+        return new Map(rows.map((r) => [r.conversationId, r.lastReadAt]));
+    }
+
+    static countUnread(
+        conversationId: string,
+        viewerId: string,
+        lastReadAt: Date | null,
+    ): Promise<number> {
+        return prisma.message.count({
+            where: {
+                conversationId,
+                senderId: { not: viewerId },
+                ...(lastReadAt ? { createdAt: { gt: lastReadAt } } : {}),
+            },
         });
     }
 

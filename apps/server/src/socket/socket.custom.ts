@@ -1,12 +1,14 @@
 import type { WebSocket } from "ws";
 import { verifyToken } from "../core/jwt.ts";
 import type { UserRole } from "../db.ts";
-import { SocketDbService } from "./socket.db_services.ts";
+import { SocketDbService, type User } from "./socket.db_services.ts";
 import {
     ClientMessage,
+    MESSAGE_TYPE,
+    SOCKET_ERROR_CODE,
     type ClientMessage as ClientMessageT,
     type ServerMessage,
-} from "../types/types.socket.ts";
+} from "types";
 
 export const WS_CLOSE_UNAUTHORIZED = 4401;
 export const WS_CLOSE_TIMEOUT = 4408;
@@ -15,7 +17,7 @@ export const WS_CLOSE_INVALID_PAYLOAD = 4400;
 const AUTH_TIMEOUT_MS = 10_000;
 
 export type WSUser = {
-    id: string; // public.User.id (cuid)
+    id: string;
     name: string | null;
     email: string | null;
     role: UserRole;
@@ -46,18 +48,13 @@ export class CustomWS {
         return this._user !== null;
     }
 
-    /**
-     * Wait for the first message, parse it as an auth payload, verify the
-     * Supabase token, and resolve to a `WSUser`. Closes with a 4401-class
-     * code and throws `AuthFailed` on any error.
-     */
     async authenticate(): Promise<WSUser> {
         const raw = await this.recvRawWithTimeout(AUTH_TIMEOUT_MS).catch(
             (err: unknown) => {
                 if (err instanceof Error && err.message === "timeout") {
                     return this.failHandshake(
                         WS_CLOSE_TIMEOUT,
-                        "unauthorized",
+                        SOCKET_ERROR_CODE.UNAUTHORIZED,
                         "Auth message not received in time.",
                     );
                 }
@@ -75,16 +72,16 @@ export class CustomWS {
         } catch (err) {
             this.failHandshake(
                 WS_CLOSE_INVALID_PAYLOAD,
-                "invalid_payload",
+                SOCKET_ERROR_CODE.INVALID_PAYLOAD,
                 `Malformed auth message: ${err instanceof Error ? err.message : "parse failed"}`,
             );
             throw new AuthFailed("malformed auth payload");
         }
 
-        if (parsed.type !== "auth") {
+        if (parsed.type !== MESSAGE_TYPE.AUTH) {
             this.failHandshake(
                 WS_CLOSE_UNAUTHORIZED,
-                "unauthorized",
+                SOCKET_ERROR_CODE.UNAUTHORIZED,
                 "First message must be of type 'auth'.",
             );
             throw new AuthFailed("first message was not 'auth'");
@@ -94,7 +91,7 @@ export class CustomWS {
         if (!claims?.sub) {
             this.failHandshake(
                 WS_CLOSE_UNAUTHORIZED,
-                "unauthorized",
+                SOCKET_ERROR_CODE.UNAUTHORIZED,
                 "Invalid token.",
             );
             throw new AuthFailed("invalid token");
@@ -104,7 +101,8 @@ export class CustomWS {
         const email = claims.email ?? null;
         const phone = claims.phone ?? null;
 
-        let user = await SocketDbService.findUserBySupabaseId(supabaseUserId);
+        let user: User | null =
+            await SocketDbService.findUserBySupabaseId(supabaseUserId);
         if (!user && (email || phone)) {
             user = await SocketDbService.findUserByEmailOrPhone(email, phone);
             if (user && user.supabaseUserId === null) {
@@ -118,7 +116,7 @@ export class CustomWS {
         if (!user) {
             this.failHandshake(
                 WS_CLOSE_UNAUTHORIZED,
-                "unauthorized",
+                SOCKET_ERROR_CODE.UNAUTHORIZED,
                 "No matching user.",
             );
             throw new AuthFailed("user not found");
@@ -130,26 +128,18 @@ export class CustomWS {
             email: user.email,
             role: user.role,
         };
-        this.send({ type: "connected", userId: user.id });
+        this.send({ type: MESSAGE_TYPE.CONNECTED, userId: user.id });
         return this._user;
     }
 
-    // ------------------------------------------------------------------ io
-
-    /** Send a typed server message. Drops silently if the socket isn't open. */
     send(msg: ServerMessage): void {
         if (this.ws.readyState !== this.ws.OPEN) return;
         try {
             this.ws.send(JSON.stringify(msg));
         } catch {
-            // Best-effort: connection dying mid-send is fine — onclose will fire.
         }
     }
 
-    /**
-     * Register a handler for parsed client messages. Throws away
-     * unparseable frames after sending an `invalid_payload` reply.
-     */
     onMessage(handler: (msg: ClientMessageT) => void | Promise<void>): void {
         this.ws.on("message", async (data) => {
             let parsed: ClientMessageT;
@@ -157,8 +147,8 @@ export class CustomWS {
                 parsed = ClientMessage.parse(JSON.parse(data.toString()));
             } catch (err) {
                 this.send({
-                    type: "error",
-                    code: "invalid_payload",
+                    type: MESSAGE_TYPE.ERROR,
+                    code: SOCKET_ERROR_CODE.INVALID_PAYLOAD,
                     message:
                         err instanceof Error
                             ? err.message
@@ -182,8 +172,6 @@ export class CustomWS {
             this.ws.close(code, reason);
         }
     }
-
-    // ------------------------------------------------------------------ helpers
 
     private recvRawWithTimeout(timeoutMs: number): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -214,20 +202,14 @@ export class CustomWS {
 
     private failHandshake(
         closeCode: number,
-        errorCode:
-            | "unauthorized"
-            | "invalid_payload"
-            | "forbidden"
-            | "not_found"
-            | "internal",
+        errorCode: SOCKET_ERROR_CODE,
         message: string,
     ): never {
-        // Send the typed error before close so the client can show a reason.
         if (this.ws.readyState === this.ws.OPEN) {
             try {
                 this.ws.send(
                     JSON.stringify({
-                        type: "error",
+                        type: MESSAGE_TYPE.ERROR,
                         code: errorCode,
                         message,
                     } satisfies ServerMessage),

@@ -1,5 +1,5 @@
 import { api } from "../apiClient";
-import type { ChatMessage, ConversationListItem } from "../ws/chat-types";
+import type { ChatMessage, ConversationListItem } from "types";
 
 export const chatApi = {
     list_conversations: () =>
@@ -13,6 +13,16 @@ export const chatApi = {
             `/chat/conversations/${conversationId}/messages`,
             params,
         ),
+
+    start_conversation: (applicationId: string) =>
+        api.post<{ id: string }>("/chat/conversations", { applicationId }),
+
+    mark_read: (conversationId: string) =>
+        api.post<{ readAt: string }>(
+            `/chat/conversations/${conversationId}/read`,
+        ),
+
+    unread_count: () => api.get<{ count: number }>("/chat/unread-count"),
 };
 
 export type { ChatMessage, ConversationListItem };

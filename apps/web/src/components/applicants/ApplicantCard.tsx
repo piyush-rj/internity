@@ -3,9 +3,22 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Check, ChevronDown, ChevronUp, Mail, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import {
+    Check,
+    ChevronDown,
+    ChevronUp,
+    Mail,
+    MessageSquare,
+    X,
+} from "lucide-react";
 import { PiArrowSquareOut, PiClock, PiMapPin, PiPhone } from "react-icons/pi";
-import type { ApplicantWithStudent, ApplicationStatus } from "@/src/lib/api";
+import {
+    chatApi,
+    type ApplicantWithStudent,
+    type ApplicationStatus,
+} from "@/src/lib/api";
+import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
 
 type DecidedStatus = Exclude<ApplicationStatus, "WITHDRAWN">;
@@ -34,8 +47,10 @@ export function ApplicantCard({
     applicant: ApplicantWithStudent;
     onUpdateStatus: (id: string, status: DecidedStatus) => Promise<void>;
 }) {
+    const router = useRouter();
     const [expanded, setExpanded] = useState(false);
     const [busy, setBusy] = useState(false);
+    const [messaging, setMessaging] = useState(false);
 
     const { student } = applicant;
     const profile = student.studentProfile;
@@ -55,6 +70,24 @@ export function ApplicantCard({
             await onUpdateStatus(applicant.id, next);
         } finally {
             setBusy(false);
+        }
+    }
+
+    async function startChat() {
+        if (messaging || isWithdrawn) return;
+        setMessaging(true);
+        try {
+            const { id } = await chatApi.start_conversation(applicant.id);
+            router.push(`/home/messages?cid=${id}`);
+        } catch (err) {
+            // Surface the failure inline — anything else would be silent.
+            alert(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn’t open chat.",
+            );
+        } finally {
+            setMessaging(false);
         }
     }
 
@@ -146,6 +179,19 @@ export function ApplicantCard({
                             View profile
                             <PiArrowSquareOut className="h-3 w-3" />
                         </Link>
+                        <button
+                            type="button"
+                            onClick={startChat}
+                            disabled={messaging || isWithdrawn}
+                            className={cn(
+                                "inline-flex items-center gap-1 text-[12px] font-medium",
+                                "text-muted-foreground hover:text-foreground",
+                                "disabled:opacity-50 disabled:pointer-events-none",
+                            )}
+                        >
+                            <MessageSquare className="h-3 w-3" />
+                            {messaging ? "Opening…" : "Message"}
+                        </button>
 
                         {!isDecided && (
                             <div className="ml-auto flex items-center gap-2">
@@ -219,7 +265,7 @@ function StatusBadge({ status }: { status: ApplicationStatus }) {
 function Avatar({ name, image }: { name: string; image: string | null }) {
     if (image) {
         return (
-            <span className="relative h-10 w-10 rounded-full overflow-hidden ring-1 ring-border shrink-0">
+            <span className="relative h-15 w-15 rounded-full overflow-hidden ring-1 ring-border shrink-0">
                 <Image
                     src={image}
                     alt={name}

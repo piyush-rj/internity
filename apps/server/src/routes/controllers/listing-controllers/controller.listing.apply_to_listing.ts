@@ -89,13 +89,6 @@ export default async function applyToListing(
         throw err;
     }
 
-    // Open chat channel immediately. Idempotent.
-    await prisma.conversation.upsert({
-        where: { applicationId: application.id },
-        create: { applicationId: application.id },
-        update: {},
-    });
-
     const members = await prisma.companyMember.findMany({
         where: { companyId: found.companyId },
         select: { userId: true },

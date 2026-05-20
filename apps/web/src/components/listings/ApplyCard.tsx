@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { toast } from "sonner";
 import { Check, Info } from "lucide-react";
 import { listingApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -29,7 +30,7 @@ export function ApplyCard({
 
     if (me && me.id === postedById) {
         return (
-            <div className="rounded-lg border border-border bg-secondary/40 px-3 py-3 text-[13px] text-muted-foreground">
+            <div className="rounded-lg border border-border bg-secondary/40 px-3 py-3 text-[13px] text-muted-foreground flex justify-center">
                 This is your listing.
             </div>
         );
@@ -85,7 +86,7 @@ export function ApplyCard({
             setOpen(false);
             setCoverLetter("");
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t submit your application.",

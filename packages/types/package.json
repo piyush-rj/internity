@@ -1,0 +1,14 @@
+{
+  "name": "types",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "types": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "peerDependencies": {
+    "typescript": "^5",
+    "zod": "^4.4.3"
+  }
+}

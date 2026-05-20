@@ -182,7 +182,7 @@ export function ListingForm({
                         placeholder="A short overview of the role and what the intern/employee will work on."
                         rows={5}
                         maxLength={4000}
-                        className={cn(inputCls(), "min-h-28 py-2 resize-y")}
+                        className={cn(inputCls(), "min-h-28 py-2 resize-none")}
                     />
                 </Field>
                 <Field label="Responsibilities" hint="One per line.">
@@ -195,7 +195,7 @@ export function ListingForm({
                             "Build new UI components\nShip features end-to-end"
                         }
                         rows={4}
-                        className={cn(inputCls(), "min-h-24 py-2 resize-y")}
+                        className={cn(inputCls(), "min-h-24 py-2 resize-none")}
                     />
                 </Field>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -205,7 +205,10 @@ export function ListingForm({
                             onChange={(e) => set("preferences", e.target.value)}
                             placeholder={"Available 3+ months\nKnows React"}
                             rows={4}
-                            className={cn(inputCls(), "min-h-24 py-2 resize-y")}
+                            className={cn(
+                                inputCls(),
+                                "min-h-24 py-2 resize-none",
+                            )}
                         />
                     </Field>
                     <Field label="Perks" hint="One per line.">
@@ -214,7 +217,10 @@ export function ListingForm({
                             onChange={(e) => set("perks", e.target.value)}
                             placeholder={"Flexible hours\nCertificate"}
                             rows={4}
-                            className={cn(inputCls(), "min-h-24 py-2 resize-y")}
+                            className={cn(
+                                inputCls(),
+                                "min-h-24 py-2 resize-none",
+                            )}
                         />
                     </Field>
                 </div>

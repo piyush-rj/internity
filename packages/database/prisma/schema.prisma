@@ -47,6 +47,7 @@ model User {
   notifications      Notification[]
   payments           Payment[]
   messagesSent       Message[]        @relation("MessageSentBy")
+  conversationReads  ConversationRead[]
 }
 
 model StudentProfile {
@@ -305,8 +306,25 @@ model Conversation {
   updatedAt DateTime @updatedAt
 
   messages Message[]
+  reads    ConversationRead[]
 
   @@index([lastMessageAt])
+}
+
+// Per-user read pointer. `lastReadAt` is the most recent message timestamp
+// the user has acknowledged in this conversation. Used for unread counts and
+// blue-tick style read receipts on the sender side.
+model ConversationRead {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  lastReadAt DateTime @default(now())
+
+  @@unique([conversationId, userId])
+  @@index([userId])
 }
 
 model Message {
