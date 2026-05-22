@@ -16,16 +16,7 @@ export default async function unreadCount(
 
     const conversations = await prisma.conversation.findMany({
         where: {
-            application: {
-                OR: [
-                    { studentId: userId },
-                    {
-                        listing: {
-                            company: { members: { some: { userId } } },
-                        },
-                    },
-                ],
-            },
+            OR: [{ studentId: userId }, { recruiterId: userId }],
         },
         select: {
             id: true,

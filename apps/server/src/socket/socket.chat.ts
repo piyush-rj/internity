@@ -4,7 +4,7 @@ import { manager } from "./socket.connection_manager.ts";
 import { AuthFailed, CustomWS } from "./socket.custom.ts";
 import {
     SocketDbService,
-    type ConversationWithListing,
+    type ConversationParticipants,
 } from "./socket.db_services.ts";
 import { MESSAGE_TYPE, SOCKET_ERROR_CODE, type ClientMessage } from "types";
 
@@ -52,7 +52,11 @@ export class ChatSocket {
             return;
         }
 
-        manager.register(user.id, ws);
+        const justCameOnline = manager.register(user.id, ws);
+        if (justCameOnline) {
+            // Don't block the connection on the presence side-effects.
+            void this.announcePresence(user.id, true);
+        }
 
         ws.onMessage(async (msg) => {
             try {
@@ -68,8 +72,41 @@ export class ChatSocket {
         });
 
         ws.onClose(() => {
-            manager.unregister(user.id, ws);
+            const wentOffline = manager.unregister(user.id, ws);
+            if (wentOffline) {
+                void this.announcePresence(user.id, false);
+            }
         });
+    }
+
+    /**
+     * Persist the new presence state and fan it out to every user who
+     * shares a conversation with `userId`. Swallows DB errors so a flaky
+     * write never crashes the socket lifecycle.
+     */
+    private async announcePresence(
+        userId: string,
+        isOnline: boolean,
+    ): Promise<void> {
+        try {
+            const now = new Date();
+            const user = isOnline
+                ? await SocketDbService.markUserOnline(userId)
+                : await SocketDbService.markUserOffline(userId, now);
+            const peerIds =
+                await SocketDbService.getConversationPeerUserIds(userId);
+            manager.sendToUsers(peerIds, {
+                type: MESSAGE_TYPE.USER_PRESENCE,
+                userId,
+                isOnline,
+                lastSeenAt:
+                    isOnline || !user.lastSeenAt
+                        ? null
+                        : user.lastSeenAt.toISOString(),
+            });
+        } catch (err) {
+            console.error("presence announce failed:", err);
+        }
     }
 
     private async handleMessage(
@@ -107,8 +144,7 @@ export class ChatSocket {
         body: string,
         clientId: string | undefined,
     ): Promise<void> {
-        const conv =
-            await SocketDbService.getConversationWithListing(conversationId);
+        const conv = await SocketDbService.getConversation(conversationId);
         if (!conv) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
@@ -118,7 +154,7 @@ export class ChatSocket {
             return;
         }
 
-        const participants = await this.resolveParticipants(conv);
+        const participants = this.participantIds(conv);
         if (!participants.includes(ws.user.id)) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
@@ -155,8 +191,7 @@ export class ChatSocket {
         ws: CustomWS,
         conversationId: string,
     ): Promise<void> {
-        const conv =
-            await SocketDbService.getConversationWithListing(conversationId);
+        const conv = await SocketDbService.getConversation(conversationId);
         if (!conv) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
@@ -166,7 +201,7 @@ export class ChatSocket {
             return;
         }
 
-        const participants = await this.resolveParticipants(conv);
+        const participants = this.participantIds(conv);
         if (!participants.includes(ws.user.id)) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
@@ -191,17 +226,14 @@ export class ChatSocket {
         });
     }
 
-    private async resolveParticipants(
-        conv: ConversationWithListing,
-    ): Promise<string[]> {
-        const members = await SocketDbService.getCompanyMemberUserIds(
-            conv.application.listing.companyId,
-        );
-        return Array.from(
-            new Set<string>([
-                conv.application.studentId,
-                ...members.map((m) => m.userId),
-            ]),
-        );
+    /**
+     * The two humans on this thread. Returned as a 2-element array (with a
+     * dedupe for the theoretical self-conversation case) so the connection
+     * manager can fan-out without further filtering.
+     */
+    private participantIds(conv: ConversationParticipants): string[] {
+        return conv.studentId === conv.recruiterId
+            ? [conv.studentId]
+            : [conv.studentId, conv.recruiterId];
     }
 }

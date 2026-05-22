@@ -34,6 +34,12 @@ model User {
   isPremium    Boolean   @default(false)
   premiumSince DateTime?
 
+  // Realtime presence. Updated by the chat WebSocket on authenticate / close.
+  // `lastSeenAt` is set when the user goes offline so the chat header can
+  // render "Last seen N min ago".
+  isOnline   Boolean   @default(false)
+  lastSeenAt DateTime?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -48,6 +54,10 @@ model User {
   payments           Payment[]
   messagesSent       Message[]        @relation("MessageSentBy")
   conversationReads  ConversationRead[]
+
+  // 1:N inverse for the two FK columns on Conversation.
+  studentConversations   Conversation[] @relation("StudentConversations")
+  recruiterConversations Conversation[] @relation("RecruiterConversations")
 }
 
 model StudentProfile {
@@ -284,31 +294,48 @@ model Application {
   appliedAt       DateTime @default(now())
   statusUpdatedAt DateTime @default(now())
 
-  conversation Conversation?
+  // The student↔recruiter thread this application belongs to. Set the
+  // moment a recruiter opens a chat from the applicant; null until then.
+  // Many applications can share the same conversation.
+  conversationId String?
+  conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
   @@unique([listingId, studentId])
   @@index([studentId, status])
   @@index([listingId, status])
+  @@index([conversationId])
 }
 
 // One Conversation per Application. Created automatically on apply so the
 // applicant and the listing's company can chat without an extra setup step.
 // Participants resolved on access: Application.student + any CompanyMember
 // of Application.listing.company.
+// A conversation is between two specific humans — the student who applied
+// and the recruiter who posted the listing they applied to. If the student
+// later applies to *another* listing from the same recruiter, the new
+// Application attaches to this same conversation (`Application.conversationId`)
+// instead of spawning a duplicate thread.
 model Conversation {
-  id            String   @id @default(cuid())
-  applicationId String   @unique
-  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+
+  studentId   String
+  student     User   @relation("StudentConversations", fields: [studentId], references: [id], onDelete: Cascade)
+  recruiterId String
+  recruiter   User   @relation("RecruiterConversations", fields: [recruiterId], references: [id], onDelete: Cascade)
 
   lastMessageAt DateTime @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  messages Message[]
-  reads    ConversationRead[]
+  messages     Message[]
+  reads        ConversationRead[]
+  applications Application[]
 
+  @@unique([studentId, recruiterId])
   @@index([lastMessageAt])
+  @@index([studentId])
+  @@index([recruiterId])
 }
 
 // Per-user read pointer. `lastReadAt` is the most recent message timestamp

@@ -25,6 +25,20 @@ export type ServerConversationRead = {
     readAt: string;
 };
 
+/**
+ * Broadcast when a user's online state changes. Sent to every other
+ * participant of any conversation the user is a member of.
+ * `lastSeenAt` is null while the user is still online — it gets a value
+ * the moment the last of their sockets disconnects.
+ */
+export type ServerUserPresence = {
+    type: MESSAGE_TYPE.USER_PRESENCE;
+    userId: string;
+    isOnline: boolean;
+    /** ISO-8601 or null when the user is currently online. */
+    lastSeenAt: string | null;
+};
+
 export type ServerError = {
     type: MESSAGE_TYPE.ERROR;
     code: SOCKET_ERROR_CODE;
@@ -37,5 +51,6 @@ export type ServerMessage =
     | ServerConnected
     | ServerMessageCreated
     | ServerConversationRead
+    | ServerUserPresence
     | ServerError
     | ServerPong;

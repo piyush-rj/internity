@@ -35,4 +35,5 @@ export {
 } from "./notification";
 export { paymentApi, type CreateOrderResponse } from "./payment";
 export { chatApi, type ChatMessage, type ConversationListItem } from "./chat";
+export { callApi, type ZegoTokenResponse } from "./call";
 export { ApiClientError } from "../apiClient";

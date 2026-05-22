@@ -8,3 +8,4 @@
  */
 
 export * from "./src/socket_types/index.ts";
+export * from "./src/zego.ts";

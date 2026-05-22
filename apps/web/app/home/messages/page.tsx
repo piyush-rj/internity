@@ -127,7 +127,7 @@ export default function MessagesPage() {
             }
             if (q) {
                 const haystack =
-                    `${c.peer.name ?? ""} ${c.listingTitle} ${c.companyName}`.toLowerCase();
+                    `${c.peer.name ?? ""} ${c.listingTitle ?? ""} ${c.companyName ?? ""}`.toLowerCase();
                 if (!haystack.includes(q)) return false;
             }
             return true;

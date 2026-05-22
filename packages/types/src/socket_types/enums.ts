@@ -9,6 +9,7 @@ export enum MESSAGE_TYPE {
     CONNECTED = "connected",
     MESSAGE_CREATED = "message_created",
     CONVERSATION_READ = "conversation_read",
+    USER_PRESENCE = "user_presence",
     ERROR = "error",
     PONG = "pong",
 }

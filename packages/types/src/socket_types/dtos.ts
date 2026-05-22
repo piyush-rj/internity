@@ -16,14 +16,32 @@ export type ConversationPeer = {
     name: string | null;
     email: string | null;
     image: string | null;
+    /** True iff the peer currently has at least one open chat socket. */
+    isOnline: boolean;
+    /**
+     * ISO-8601 of the last time the peer was online, or null if they have
+     * never been seen. Always null while `isOnline` is true.
+     */
+    lastSeenAt: string | null;
 };
 
 export type ConversationListItem = {
     id: string;
-    applicationId: string;
-    listingId: string;
-    listingTitle: string;
-    companyName: string;
+    /**
+     * Most recent Application pinned to this thread. Null only in the
+     * degenerate case where every application has been deleted but the
+     * thread still has messages.
+     */
+    applicationId: string | null;
+    listingId: string | null;
+    listingTitle: string | null;
+    companyName: string | null;
+    /**
+     * Additional applications attached to this thread beyond the primary
+     * one. Lets the UI render "Frontend Engineer + 2 more" without a second
+     * round-trip.
+     */
+    otherRolesCount: number;
     peer: ConversationPeer;
     lastMessageAt: string;
     lastMessagePreview: string | null;

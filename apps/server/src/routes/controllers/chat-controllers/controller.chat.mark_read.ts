@@ -10,7 +10,7 @@ import { MESSAGE_TYPE } from "types";
 
 /**
  * Bumps the caller's `lastReadAt` for this conversation to now and broadcasts
- * a `conversation_read` to the rest of the participants so their sent-tick
+ * a `conversation_read` to the other side of the thread so their sent-tick
  * indicators flip to "read".
  */
 export default async function markConversationRead(
@@ -23,21 +23,11 @@ export default async function markConversationRead(
 
     const conv = await prisma.conversation.findUnique({
         where: { id: conversationId },
-        include: { application: { include: { listing: true } } },
+        select: { id: true, studentId: true, recruiterId: true },
     });
     if (!conv) throw new NotFound("Conversation not found");
 
-    const members = await prisma.companyMember.findMany({
-        where: { companyId: conv.application.listing.companyId },
-        select: { userId: true },
-    });
-    const participants = Array.from(
-        new Set<string>([
-            conv.application.studentId,
-            ...members.map((m) => m.userId),
-        ]),
-    );
-    if (!participants.includes(userId)) {
+    if (conv.studentId !== userId && conv.recruiterId !== userId) {
         throw new Forbidden("Not a participant");
     }
 
@@ -48,6 +38,10 @@ export default async function markConversationRead(
         update: { lastReadAt: now },
     });
 
+    const participants =
+        conv.studentId === conv.recruiterId
+            ? [conv.studentId]
+            : [conv.studentId, conv.recruiterId];
     manager.sendToUsers(participants, {
         type: MESSAGE_TYPE.CONVERSATION_READ,
         conversationId,

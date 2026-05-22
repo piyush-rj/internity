@@ -12,6 +12,7 @@ import skillRouter from "./routers/skill.ts";
 import notificationRouter from "./routers/notification.ts";
 import paymentRouter from "./routers/payment.ts";
 import chatRouter from "./routers/chat.ts";
+import callRouter from "./routers/call.ts";
 
 const v1: Router = Router();
 
@@ -31,5 +32,6 @@ v1.use("/skill", skillRouter);
 v1.use("/notification", notificationRouter);
 v1.use("/payment", paymentRouter);
 v1.use("/chat", chatRouter);
+v1.use("/call", callRouter);
 
 export default v1;

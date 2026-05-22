@@ -16,20 +16,15 @@ export default async function listMessages(
     try {
         const conv = await prisma.conversation.findUnique({
             where: { id: req.params.conversation_id as string },
-            include: { application: { include: { listing: true } } },
+            select: { id: true, studentId: true, recruiterId: true },
         });
         if (!conv) throw new NotFound();
 
-        // Participants = student on the application + company members.
-        const members = await prisma.companyMember.findMany({
-            where: { companyId: conv.application.listing.companyId },
-            select: { userId: true },
-        });
-        const participants = new Set<string>([
-            conv.application.studentId,
-            ...members.map((m) => m.userId),
-        ]);
-        if (!participants.has(req.user!.id)) {
+        // 1:1 thread — only the two ids on the row are participants.
+        if (
+            conv.studentId !== req.user!.id &&
+            conv.recruiterId !== req.user!.id
+        ) {
             throw new Forbidden("Not a participant in this conversation");
         }
 

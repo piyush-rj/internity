@@ -1,37 +1,26 @@
-import { Prisma, prisma } from "../db.ts";
-import type {
-    CompanyMember,
-    Conversation,
-    ConversationRead,
-    Message,
-    User,
-} from "../db.ts";
+import { prisma } from "../db.ts";
+import type { Conversation, ConversationRead, Message, User } from "../db.ts";
 
-export type { CompanyMember, Conversation, ConversationRead, Message, User };
+export type { Conversation, ConversationRead, Message, User };
 
-export type ConversationWithListing = Prisma.ConversationGetPayload<{
-    include: { application: { include: { listing: true } } };
-}>;
-
-export type CompanyMemberUserId = Pick<CompanyMember, "userId">;
+/**
+ * Slim view of a conversation — just what the socket code needs to authorise
+ * a message: the two participating user ids. No listing/company joins, since
+ * the chat thread now lives on the (student, recruiter) pair directly.
+ */
+export type ConversationParticipants = {
+    id: string;
+    studentId: string;
+    recruiterId: string;
+};
 
 export class SocketDbService {
-
-    static getConversationWithListing(
+    static getConversation(
         conversationId: string,
-    ): Promise<ConversationWithListing | null> {
+    ): Promise<ConversationParticipants | null> {
         return prisma.conversation.findUnique({
             where: { id: conversationId },
-            include: { application: { include: { listing: true } } },
-        });
-    }
-
-    static getCompanyMemberUserIds(
-        companyId: string,
-    ): Promise<CompanyMemberUserId[]> {
-        return prisma.companyMember.findMany({
-            where: { companyId },
-            select: { userId: true },
+            select: { id: true, studentId: true, recruiterId: true },
         });
     }
 
@@ -67,32 +56,6 @@ export class SocketDbService {
         });
     }
 
-    static async getReadsForUser(
-        userId: string,
-        conversationIds: string[],
-    ): Promise<Map<string, Date>> {
-        if (conversationIds.length === 0) return new Map();
-        const rows = await prisma.conversationRead.findMany({
-            where: { userId, conversationId: { in: conversationIds } },
-            select: { conversationId: true, lastReadAt: true },
-        });
-        return new Map(rows.map((r) => [r.conversationId, r.lastReadAt]));
-    }
-
-    static countUnread(
-        conversationId: string,
-        viewerId: string,
-        lastReadAt: Date | null,
-    ): Promise<number> {
-        return prisma.message.count({
-            where: {
-                conversationId,
-                senderId: { not: viewerId },
-                ...(lastReadAt ? { createdAt: { gt: lastReadAt } } : {}),
-            },
-        });
-    }
-
     static findUserBySupabaseId(supabaseUserId: string): Promise<User | null> {
         return prisma.user.findUnique({ where: { supabaseUserId } });
     }
@@ -119,5 +82,41 @@ export class SocketDbService {
             where: { id: userId },
             data: { supabaseUserId },
         });
+    }
+
+    static markUserOnline(userId: string): Promise<User> {
+        return prisma.user.update({
+            where: { id: userId },
+            data: { isOnline: true, lastSeenAt: null },
+        });
+    }
+
+    static markUserOffline(userId: string, at: Date): Promise<User> {
+        return prisma.user.update({
+            where: { id: userId },
+            data: { isOnline: false, lastSeenAt: at },
+        });
+    }
+
+    /**
+     * Every other user that shares at least one Conversation with `userId`.
+     * After the conversation-per-pair migration this is a direct lookup on
+     * the Conversation table — no Application/Listing/CompanyMember walk.
+     * Used to fan-out presence-change events to anyone who can see this
+     * user in their chat list.
+     */
+    static async getConversationPeerUserIds(userId: string): Promise<string[]> {
+        const rows = await prisma.conversation.findMany({
+            where: {
+                OR: [{ studentId: userId }, { recruiterId: userId }],
+            },
+            select: { studentId: true, recruiterId: true },
+        });
+        const peers = new Set<string>();
+        for (const r of rows) {
+            if (r.studentId !== userId) peers.add(r.studentId);
+            if (r.recruiterId !== userId) peers.add(r.recruiterId);
+        }
+        return Array.from(peers);
     }
 }

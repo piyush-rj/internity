@@ -6,6 +6,7 @@ import { Sidebar } from "@/src/components/dashboard/Sidebar";
 import { Topbar } from "@/src/components/dashboard/Topbar";
 import { UnreadChatsBootstrap } from "@/src/components/dashboard/UnreadChatsBootstrap";
 import { WebSocketProvider } from "@/src/lib/socket/WebSocketProvider";
+import { ZegoCallProvider } from "@/src/lib/call/ZegoCallProvider";
 
 export default function DashboardLayout({
     children,
@@ -20,11 +21,13 @@ export default function DashboardLayout({
             <Sidebar />
             <div className="flex-1 min-w-0 flex flex-col">
                 <WebSocketProvider>
-                    <UnreadChatsBootstrap />
-                    <BreadcrumbProvider>
-                        <Topbar />
-                        <main className="flex-1">{children}</main>
-                    </BreadcrumbProvider>
+                    <ZegoCallProvider>
+                        <UnreadChatsBootstrap />
+                        <BreadcrumbProvider>
+                            <Topbar />
+                            <main className="flex-1">{children}</main>
+                        </BreadcrumbProvider>
+                    </ZegoCallProvider>
                 </WebSocketProvider>
             </div>
         </div>

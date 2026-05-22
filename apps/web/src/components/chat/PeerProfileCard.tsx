@@ -50,21 +50,29 @@ export function PeerProfileCard({
 /**
  * Subtitle for the profile card.
  *   - Employer-viewing-student → student's email (their identifier).
- *   - Student-viewing-employer → listing title · company name.
+ *   - Student-viewing-employer → listing title · company name, plus a
+ *     "+ N more" tail when the thread spans multiple applications.
  *   - Otherwise → null (no subtitle).
  */
 export function buildPeerSubtitle({
     peerEmail,
     listingTitle,
     companyName,
+    otherRolesCount,
     viewerRole,
 }: {
     peerEmail: string | null;
     listingTitle: string | null;
     companyName: string | null;
+    /** Applications attached to the thread beyond the primary one. */
+    otherRolesCount: number;
     viewerRole: string | null;
 }): string | null {
     if (viewerRole === "EMPLOYER" && peerEmail) return peerEmail;
     const parts = [listingTitle, companyName].filter((v): v is string => !!v);
-    return parts.length > 0 ? parts.join(" · ") : null;
+    if (parts.length === 0) return null;
+    const base = parts.join(" · ");
+    return otherRolesCount > 0
+        ? `${base} · +${otherRolesCount} more role${otherRolesCount === 1 ? "" : "s"}`
+        : base;
 }

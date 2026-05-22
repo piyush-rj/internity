@@ -5,12 +5,14 @@ import { chatApi } from "@/src/lib/api";
 import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { useMeStore } from "@/src/store/useMeStore";
 import { useChatStore } from "@/src/store/useChatStore";
+import { usePresenceStore } from "@/src/store/usePresenceStore";
 import { MESSAGE_TYPE } from "types";
 
 /**
- * Seeds the chat-unread store on mount and keeps it live via WS events.
- * Rendered once inside the home layout so the sidebar badge stays accurate
- * regardless of which route the user is currently viewing.
+ * Seeds the chat-unread + peer-presence stores on mount and keeps both
+ * live via WS events. Rendered once inside the home layout so the sidebar
+ * badge and chat header presence stay accurate regardless of which route
+ * the user is currently viewing.
  */
 export function UnreadChatsBootstrap() {
     const socket = useWebSocket();
@@ -18,9 +20,11 @@ export function UnreadChatsBootstrap() {
     const setUnread = useChatStore((s) => s.setUnread);
     const bumpUnread = useChatStore((s) => s.bumpUnread);
     const clearUnread = useChatStore((s) => s.clearUnread);
+    const seedPresence = usePresenceStore((s) => s.seedPresence);
+    const setPresence = usePresenceStore((s) => s.setPresence);
 
     // Initial seed from the conversation list — the server already computes
-    // unread counts there, no need for a second roundtrip.
+    // unread counts + peer presence there, no need for a second roundtrip.
     useEffect(() => {
         if (!meId) return;
         let cancelled = false;
@@ -28,11 +32,22 @@ export function UnreadChatsBootstrap() {
             .list_conversations()
             .then((rows) => {
                 if (cancelled) return;
-                const map: Record<string, number> = {};
+                const unread: Record<string, number> = {};
+                const presence: Array<{
+                    userId: string;
+                    isOnline: boolean;
+                    lastSeenAt: string | null;
+                }> = [];
                 for (const c of rows) {
-                    if (c.unreadCount > 0) map[c.id] = c.unreadCount;
+                    if (c.unreadCount > 0) unread[c.id] = c.unreadCount;
+                    presence.push({
+                        userId: c.peer.id,
+                        isOnline: c.peer.isOnline,
+                        lastSeenAt: c.peer.lastSeenAt,
+                    });
                 }
-                setUnread(map);
+                setUnread(unread);
+                seedPresence(presence);
             })
             .catch(() => {
                 /* silent — sidebar badge is best-effort */
@@ -40,10 +55,10 @@ export function UnreadChatsBootstrap() {
         return () => {
             cancelled = true;
         };
-    }, [meId, setUnread]);
+    }, [meId, setUnread, seedPresence]);
 
-    // Live updates: bump on inbound messages from others, clear when we
-    // mark a conversation read ourselves.
+    // Live updates: bump unread on inbound messages from others, clear on
+    // our own read marker, refresh presence when peers come and go.
     useEffect(() => {
         if (!meId) return;
         return socket.addListener((msg) => {
@@ -53,9 +68,14 @@ export function UnreadChatsBootstrap() {
             } else if (msg.type === MESSAGE_TYPE.CONVERSATION_READ) {
                 if (msg.readerId !== meId) return;
                 clearUnread(msg.conversationId);
+            } else if (msg.type === MESSAGE_TYPE.USER_PRESENCE) {
+                setPresence(msg.userId, {
+                    isOnline: msg.isOnline,
+                    lastSeenAt: msg.lastSeenAt,
+                });
             }
         });
-    }, [socket, meId, bumpUnread, clearUnread]);
+    }, [socket, meId, bumpUnread, clearUnread, setPresence]);
 
     return null;
 }

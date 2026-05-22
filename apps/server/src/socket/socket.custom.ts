@@ -136,8 +136,7 @@ export class CustomWS {
         if (this.ws.readyState !== this.ws.OPEN) return;
         try {
             this.ws.send(JSON.stringify(msg));
-        } catch {
-        }
+        } catch {}
     }
 
     onMessage(handler: (msg: ClientMessageT) => void | Promise<void>): void {
