@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ListHeader } from "@/src/components/listings/ListHeader";
@@ -13,6 +14,14 @@ import {
 import { useListings } from "@/src/hooks/useListings";
 
 export default function InternshipsPage() {
+    return (
+        <Suspense fallback={null}>
+            <InternshipsView />
+        </Suspense>
+    );
+}
+
+function InternshipsView() {
     const sp = useSearchParams();
     const filters = filtersFromSearchParams(sp, { type: "INTERNSHIP" });
     const { items, total, page, pageSize, loading, error } =

@@ -11,6 +11,10 @@ import v1 from "./routes/routes.ts";
 const app = express();
 const server = createServer(app);
 
+// Render/Vercel/etc. terminate TLS at a reverse proxy. Without this, req.ip
+// reports the proxy and req.protocol stays "http" behind HTTPS.
+app.set("trust proxy", 1);
+
 app.use(express.json({ limit: "1mb" }));
 app.use(
     cors({

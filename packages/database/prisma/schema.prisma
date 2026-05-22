@@ -18,25 +18,17 @@ model User {
   phone String? @unique
   image String?
 
-  // Link to Supabase auth.users.id — the canonical auth identity
   supabaseUserId String? @unique @db.Uuid
 
-  // Legacy: NextAuth Google sub. Kept so existing rows resolve during the
-  // Supabase Auth migration; remove once all users have re-authenticated.
   googleId String? @unique
 
   role          UserRole @default(STUDENT)
-  // Distinguishes "user picked STUDENT" from "role defaulted to STUDENT
-  // because they haven't picked yet". Flipped by POST /auth/role.
   roleConfirmed Boolean  @default(false)
   isBanned      Boolean  @default(false)
 
   isPremium    Boolean   @default(false)
   premiumSince DateTime?
 
-  // Realtime presence. Updated by the chat WebSocket on authenticate / close.
-  // `lastSeenAt` is set when the user goes offline so the chat header can
-  // render "Last seen N min ago".
   isOnline   Boolean   @default(false)
   lastSeenAt DateTime?
 
@@ -55,7 +47,6 @@ model User {
   messagesSent       Message[]        @relation("MessageSentBy")
   conversationReads  ConversationRead[]
 
-  // 1:N inverse for the two FK columns on Conversation.
   studentConversations   Conversation[] @relation("StudentConversations")
   recruiterConversations Conversation[] @relation("RecruiterConversations")
 }
@@ -294,9 +285,6 @@ model Application {
   appliedAt       DateTime @default(now())
   statusUpdatedAt DateTime @default(now())
 
-  // The student↔recruiter thread this application belongs to. Set the
-  // moment a recruiter opens a chat from the applicant; null until then.
-  // Many applications can share the same conversation.
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
 
@@ -306,15 +294,6 @@ model Application {
   @@index([conversationId])
 }
 
-// One Conversation per Application. Created automatically on apply so the
-// applicant and the listing's company can chat without an extra setup step.
-// Participants resolved on access: Application.student + any CompanyMember
-// of Application.listing.company.
-// A conversation is between two specific humans — the student who applied
-// and the recruiter who posted the listing they applied to. If the student
-// later applies to *another* listing from the same recruiter, the new
-// Application attaches to this same conversation (`Application.conversationId`)
-// instead of spawning a duplicate thread.
 model Conversation {
   id String @id @default(cuid())
 
@@ -338,9 +317,6 @@ model Conversation {
   @@index([recruiterId])
 }
 
-// Per-user read pointer. `lastReadAt` is the most recent message timestamp
-// the user has acknowledged in this conversation. Used for unread counts and
-// blue-tick style read receipts on the sender side.
 model ConversationRead {
   id             String       @id @default(cuid())
   conversationId String

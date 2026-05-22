@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import {
@@ -17,6 +17,14 @@ import { MESSAGE_TYPE } from "types";
 import { cn } from "@/src/lib/utils";
 
 export default function MessagesPage() {
+    return (
+        <Suspense fallback={null}>
+            <MessagesView />
+        </Suspense>
+    );
+}
+
+function MessagesView() {
     const socket = useWebSocket();
     const router = useRouter();
     const searchParams = useSearchParams();

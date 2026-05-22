@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ListHeader } from "@/src/components/listings/ListHeader";
@@ -13,6 +14,14 @@ import {
 import { useListings } from "@/src/hooks/useListings";
 
 export default function JobsPage() {
+    return (
+        <Suspense fallback={null}>
+            <JobsView />
+        </Suspense>
+    );
+}
+
+function JobsView() {
     const sp = useSearchParams();
     const filters = filtersFromSearchParams(sp, { type: "JOB" });
     const { items, total, page, pageSize, loading, error } =

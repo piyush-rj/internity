@@ -1,6 +1,12 @@
 import "dotenv/config";
 import { z } from "zod";
 
+// Render (and most PaaS providers) inject the bind port as `PORT`. Prefer it
+// over our own `SERVER_PORT` so the same code runs locally and in production.
+if (process.env.PORT && !process.env.SERVER_PORT) {
+    process.env.SERVER_PORT = process.env.PORT;
+}
+
 const schema = z.object({
     SERVER_PORT: z.coerce.number().int().positive().default(8081),
     DATABASE_URL: z.string().url(),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { Suspense, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
@@ -11,6 +11,14 @@ import { useMyListings } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
 
 export default function ApplicantsPage() {
+    return (
+        <Suspense fallback={<SectionSkeleton />}>
+            <ApplicantsView />
+        </Suspense>
+    );
+}
+
+function ApplicantsView() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const queriedId = searchParams?.get("listingId") ?? null;
