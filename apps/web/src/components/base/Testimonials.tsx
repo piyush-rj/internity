@@ -35,7 +35,7 @@ export function Testimonials() {
                     {quotes.map((q) => (
                         <figure
                             key={q.a}
-                            className="rounded-xl border border-border bg-card p-6"
+                            className="rounded-lg border border-border bg-card p-6"
                         >
                             <blockquote className="text-[15px] leading-relaxed text-foreground">
                                 &ldquo;{q.q}&rdquo;

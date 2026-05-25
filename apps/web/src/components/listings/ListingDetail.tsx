@@ -124,7 +124,7 @@ function PostedByCard({
     if (!founderName) return null;
 
     return (
-        <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-2">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Posted by
             </div>
@@ -166,7 +166,7 @@ function Header({
     closed: boolean;
 }) {
     return (
-        <section className="rounded-xl border border-border bg-card p-6">
+        <section className="rounded-lg border border-border bg-card p-6">
             <div className="flex items-start gap-4">
                 <CompanyAvatar
                     name={listing.company.name}
@@ -320,7 +320,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-xl border border-border bg-card p-6">
+        <section className="rounded-lg border border-border bg-card p-6">
             <h2 className="text-[14px] font-semibold tracking-tight">
                 {title}
             </h2>

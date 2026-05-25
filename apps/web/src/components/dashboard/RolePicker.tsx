@@ -112,7 +112,7 @@ function RoleCard({
             onClick={onClick}
             disabled={disabled}
             className={cn(
-                "group text-left rounded-xl border border-border bg-background",
+                "group text-left rounded-lg border border-border bg-background",
                 "px-4 py-4 flex flex-col gap-2",
                 "transition-colors hover:bg-secondary/40 hover:border-foreground/20",
                 "disabled:opacity-60 disabled:cursor-not-allowed",

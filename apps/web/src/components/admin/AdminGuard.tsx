@@ -52,7 +52,7 @@ function ContentSkeleton() {
                 <div className="h-9 flex-1 sm:max-w-md rounded-lg bg-secondary" />
             </div>
 
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
+            <div className="rounded-lg border border-border bg-card overflow-hidden">
                 <div className="h-11 px-5 border-b border-border" />
                 <ul className="divide-y divide-border">
                     {Array.from({ length: 6 }).map((_, i) => (

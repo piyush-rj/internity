@@ -97,9 +97,9 @@ function StudentProfile() {
 function LoadingShell() {
     return (
         <div className="animate-pulse space-y-3">
-            <div className="h-32 w-full rounded-xl bg-muted" />
-            <div className="h-32 w-full rounded-xl bg-muted" />
-            <div className="h-24 w-full rounded-xl bg-muted" />
+            <div className="h-32 w-full rounded-lg bg-muted" />
+            <div className="h-32 w-full rounded-lg bg-muted" />
+            <div className="h-24 w-full rounded-lg bg-muted" />
         </div>
     );
 }

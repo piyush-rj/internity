@@ -210,13 +210,12 @@ export function MyListingCard({
             </div>
 
             {!takenDown && (
-                <div className="mt-4 pt-3 border-t border-border flex items-center justify-end gap-1.5 flex-wrap">
+                <div className="mt-3 pt-3 flex items-center justify-end gap-2 flex-wrap">
                     <Link
                         href={`/home/manage-listings/${listing.id}`}
-                        className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                        className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[12.5px] font-medium bg-background text-foreground hover:bg-secondary transition-colors"
                     >
-                        <Pencil className="h-3 w-3" />
-                        Edit
+                        <Pencil className="h-3.5 w-3.5" />
                     </Link>
                     {expired ? (
                         <Button
@@ -226,7 +225,7 @@ export function MyListingCard({
                                 run("renew", () => onRenew(listing.id))
                             }
                             disabled={!!busy}
-                            className="h-8 px-2.5 text-[12px] cursor-pointer"
+                            className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                         >
                             {busy === "renew" ? "…" : "Renew 30d"}
                         </Button>
@@ -238,7 +237,7 @@ export function MyListingCard({
                                 run("unpause", () => onUnpause(listing.id))
                             }
                             disabled={!!busy}
-                            className="h-8 px-2.5 text-[12px] cursor-pointer"
+                            className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                         >
                             {busy === "unpause" ? "…" : "Resume hiring"}
                         </Button>
@@ -250,7 +249,7 @@ export function MyListingCard({
                                 run("reopen", () => onReopen(listing.id))
                             }
                             disabled={!!busy}
-                            className="h-8 px-2.5 text-[12px] cursor-pointer"
+                            className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                         >
                             {busy === "reopen" ? "…" : "Reopen"}
                         </Button>
@@ -263,7 +262,7 @@ export function MyListingCard({
                                     run("pause", () => onPause(listing.id))
                                 }
                                 disabled={!!busy}
-                                className="h-8 px-2.5 text-[12px] cursor-pointer"
+                                className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                             >
                                 {busy === "pause" ? "…" : "Pause"}
                             </Button>
@@ -274,7 +273,7 @@ export function MyListingCard({
                                     run("close", () => onClose(listing.id))
                                 }
                                 disabled={!!busy}
-                                className="h-8 px-2.5 text-[12px] cursor-pointer"
+                                className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                             >
                                 {busy === "close" ? "…" : "Close"}
                             </Button>
@@ -297,9 +296,9 @@ export function MyListingCard({
                         aria-label="Delete listing"
                         disabled={!!busy}
                         className={cn(
-                            "h-8 w-8 inline-flex items-center justify-center rounded-lg",
-                            "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-                            "transition-colors disabled:opacity-50",
+                            "h-9 w-9 inline-flex items-center justify-center rounded-md",
+                            "border border-border text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30",
+                            "transition-colors disabled:opacity-50 cursor-pointer",
                         )}
                     >
                         <Trash2 className="h-3.5 w-3.5" />

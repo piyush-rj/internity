@@ -80,7 +80,7 @@ export function UserMenu() {
                     onClick={() => setOpen((o) => !o)}
                     className={cn(
                         "relative h-8 w-8 rounded-full overflow-hidden",
-                        "ring-1 ring-neutral-400 hover:ring-neutral-400 transition transform duration-200 cursor-pointer",
+                        "hover:ring-neutral-400 transition transform duration-200 cursor-pointer",
                         "focus:outline-none focus:ring-2 focus:ring-brand",
                     )}
                     aria-haspopup="menu"

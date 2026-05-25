@@ -62,7 +62,7 @@ function ProfileCard({
 }) {
     const [editing, setEditing] = useState(!profile);
     return (
-        <section className="rounded-xl border border-border bg-card overflow-hidden">
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
             <header className="flex items-center justify-between px-5 py-4 border-b border-border">
                 <h2 className="text-[14px] font-semibold">
                     {profile ? "Personal details" : "Set up your profile"}
@@ -340,7 +340,7 @@ function EditForm({
 
 function Skeleton() {
     return (
-        <div className="rounded-xl border border-border bg-card p-5 animate-pulse space-y-3">
+        <div className="rounded-lg border border-border bg-card p-5 animate-pulse space-y-3">
             <div className="h-4 w-1/3 rounded-md bg-secondary" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="h-10 w-full rounded-md bg-secondary" />

@@ -86,7 +86,7 @@ export default function AdminListingsPage() {
                     <SearchInput value={query} onChange={setQuery} />
                 </div>
 
-                <section className="rounded-xl border border-border bg-card overflow-hidden">
+                <section className="rounded-lg border border-border bg-card overflow-hidden">
                     <header className="flex items-center justify-between px-5 py-3 border-b border-border">
                         <div className="text-[12.5px] font-medium">
                             {TABS.find((t) => t.key === state)?.label}

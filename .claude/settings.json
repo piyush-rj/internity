@@ -4,7 +4,11 @@
       "Bash(xargs sed -i '' 's/rounded-2xl/rounded-lg/g')",
       "Bash(grep -nA 30 \"ListingWithCompany\" /Users/piyush/utility/internshala_clone/apps/web/src/lib/api/types.ts)",
       "Bash(grep -nA 5 \"listingApi.apply\" /Users/piyush/utility/internshala_clone/apps/web/src/components/listings/ApplyCard.tsx)",
-      "Bash(grep -nA 20 \"export type MyListing\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/hooks/useMyListings.ts)"
+      "Bash(grep -nA 20 \"export type MyListing\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/hooks/useMyListings.ts)",
+      "Bash(grep -nA 25 \"ApplicationCardItem\\\\|StatusBadge\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/components/applications/ApplicationCard.tsx)",
+      "Bash(grep -nA 25 \"SkeletonList\\\\b\\\\|function SkeletonList\" /Users/piyush/utility/internshala_clone/apps/web/app/home/schedules/page.tsx)",
+      "Bash(grep -nA 25 \"animate-pulse\" /Users/piyush/utility/internshala_clone/apps/web/app/admin/founders/page.tsx /Users/piyush/utility/internshala_clone/apps/web/app/admin/listings/page.tsx /Users/piyush/utility/internshala_clone/apps/web/app/admin/approvals/page.tsx)",
+      "Bash(grep -nA 12 \"animate-pulse\" /Users/piyush/utility/internshala_clone/apps/web/src/components/dashboard/MyListingsWidget.tsx /Users/piyush/utility/internshala_clone/apps/web/src/components/dashboard/Greeting.tsx /Users/piyush/utility/internshala_clone/apps/web/src/components/dashboard/CompanySnapshot.tsx)"
     ]
   }
 }

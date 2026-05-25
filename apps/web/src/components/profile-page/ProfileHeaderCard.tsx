@@ -50,7 +50,7 @@ export function ProfileHeaderCard({
     return (
         <section
             id="profile-summary"
-            className="rounded-xl border border-border bg-neutral-50 overflow-hidden scroll-mt-20"
+            className="rounded-lg border border-border bg-neutral-50 overflow-hidden scroll-mt-20"
         >
             <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-6 p-6">
                 <Avatar pct={pct} displayName={fullName} />

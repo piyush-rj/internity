@@ -158,14 +158,8 @@ function DetailContent({
                     <BannedNotice reason={owner.user.banReason} />
                 )}
             </div>
-            <div className="py-5 space-y-3">
+            <div className="py-5">
                 <StatusActions detail={detail} onMutated={onMutated} />
-                {owner && (
-                    <FounderBanActions
-                        user={owner.user}
-                        onMutated={onMutated}
-                    />
-                )}
             </div>
             <div className="py-5">
                 <Section title="Company">
@@ -213,7 +207,10 @@ function DetailContent({
 
             {owner && (
                 <div className="py-5">
-                    <FounderSection member={owner} />
+                    <FounderSection
+                        member={owner}
+                        onMutated={onMutated}
+                    />
                 </div>
             )}
 
@@ -439,7 +436,7 @@ function StatusActions({
                         variant="exec-light"
                         onClick={() => setMode("idle")}
                         disabled={busy}
-                        className="h-8 px-3 text-[12px] cursor-pointer"
+                        className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer"
                     >
                         Cancel
                     </Button>
@@ -448,7 +445,7 @@ function StatusActions({
                         variant="exec-dark"
                         onClick={reject}
                         disabled={busy}
-                        className="h-8 px-3 text-[12px] cursor-pointer bg-red-600 hover:bg-red-700"
+                        className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer bg-red-600 hover:bg-red-700"
                     >
                         {busy ? "Sending…" : "Reject with note"}
                     </Button>
@@ -464,7 +461,7 @@ function StatusActions({
                 variant="outline"
                 onClick={() => setMode("rejecting")}
                 disabled={busy}
-                className="h-9 px-3 text-[12.5px] cursor-pointer border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
+                className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
             >
                 Reject
             </Button>
@@ -472,7 +469,7 @@ function StatusActions({
                 type="button"
                 onClick={approve}
                 disabled={busy}
-                className="h-9 px-3 text-[12.5px] cursor-pointer bg-emerald-700 text-white border-transparent hover:bg-emerald-800"
+                className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer bg-emerald-700 text-white border-transparent hover:bg-emerald-800"
             >
                 {busy
                     ? "Saving…"
@@ -578,17 +575,14 @@ function FounderBanActions({
     if (user.isBanned) {
         return (
             <>
-                <div className="flex items-center justify-end">
-                    <Button
-                        type="button"
-                        variant="exec-dark"
-                        onClick={reactivate}
-                        disabled={busy}
-                        className="h-9 px-3 text-[12.5px] cursor-pointer bg-emerald-700 hover:bg-emerald-800"
-                    >
-                        {busy ? "Saving…" : "Reactivate founder"}
-                    </Button>
-                </div>
+                <Button
+                    type="button"
+                    onClick={reactivate}
+                    disabled={busy}
+                    className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer bg-emerald-700 hover:bg-emerald-800 text-white border-transparent shrink-0"
+                >
+                    {busy ? "Saving…" : "Reactivate account"}
+                </Button>
                 <ConfirmDialog {...dialogProps} />
             </>
         );
@@ -597,7 +591,7 @@ function FounderBanActions({
     if (mode === "deactivating") {
         return (
             <>
-                <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                <div className="col-span-full w-full rounded-lg border border-border bg-secondary/30 p-3 space-y-2 mt-2">
                     <label className="block text-[11.5px] font-medium">
                         Reason (sent to the founder + shown to admins)
                     </label>
@@ -618,7 +612,7 @@ function FounderBanActions({
                             variant="exec-light"
                             onClick={() => setMode("idle")}
                             disabled={busy}
-                            className="h-8 px-3 text-[12px] cursor-pointer"
+                            className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer"
                         >
                             Cancel
                         </Button>
@@ -627,7 +621,7 @@ function FounderBanActions({
                             variant="exec-dark"
                             onClick={deactivate}
                             disabled={busy}
-                            className="h-8 px-3 text-[12px] cursor-pointer bg-red-600 hover:bg-red-700"
+                            className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer bg-red-600 hover:bg-red-700"
                         >
                             {busy ? "Disabling…" : "Disable account"}
                         </Button>
@@ -640,17 +634,15 @@ function FounderBanActions({
 
     return (
         <>
-            <div className="flex items-center justify-end">
-                <Button
-                    type="button"
-                    variant="exec-light"
-                    onClick={() => setMode("deactivating")}
-                    disabled={busy}
-                    className="h-9 px-3 text-[12.5px] cursor-pointer text-red-700 hover:bg-red-50"
-                >
-                    Disable founder account
-                </Button>
-            </div>
+            <Button
+                type="button"
+                variant="outline"
+                onClick={() => setMode("deactivating")}
+                disabled={busy}
+                className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 shrink-0"
+            >
+                Disable account
+            </Button>
             <ConfirmDialog {...dialogProps} />
         </>
     );
@@ -658,8 +650,10 @@ function FounderBanActions({
 
 function FounderSection({
     member,
+    onMutated,
 }: {
     member: AdminCompanyDetail["members"][number];
+    onMutated: () => Promise<void>;
 }) {
     const ep = member.user.employerProfile;
     const name = memberName(member) ?? member.user.email ?? "(no name)";
@@ -668,15 +662,17 @@ function FounderSection({
             <div className="flex items-start gap-3">
                 <Avatar name={name} imageUrl={member.user.image} />
                 <div className="min-w-0 flex-1 space-y-1">
-                    <div className="text-[13px] font-medium truncate">
-                        {name}
-                    </div>
-                    {ep?.jobTitle && (
-                        <div className="text-[11.5px] text-muted-foreground">
-                            {ep.jobTitle}
+                    <div className="min-w-0">
+                        <div className="text-[13.5px] font-medium truncate">
+                            {name}
                         </div>
-                    )}
-                    <ul className="mt-1 space-y-0.5 text-[12px]">
+                        {ep?.jobTitle && (
+                            <div className="text-[12px] text-muted-foreground">
+                                {ep.jobTitle}
+                            </div>
+                        )}
+                    </div>
+                    <ul className="mt-1.5 space-y-0.5 text-[12px]">
                         {member.user.email && (
                             <ContactRow
                                 Icon={Mail}
@@ -693,6 +689,12 @@ function FounderSection({
                         )}
                     </ul>
                 </div>
+            </div>
+            <div className="flex items-center justify-end pt-1">
+                <FounderBanActions
+                    user={member.user}
+                    onMutated={onMutated}
+                />
             </div>
         </Section>
     );

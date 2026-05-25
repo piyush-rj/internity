@@ -332,7 +332,7 @@ export function InlineFormCard({
     error?: string | null;
 }) {
     return (
-        <div className="rounded-xl border border-border bg-background p-4 space-y-3">
+        <div className="rounded-lg border border-border bg-background p-4 space-y-3">
             {children}
             {error && (
                 <div className="text-[12px] text-destructive">{error}</div>

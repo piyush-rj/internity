@@ -196,7 +196,7 @@ export function Topbar() {
                                 "flex w-full items-center gap-2 h-9 px-3",
                                 "rounded-full border border-input bg-card",
                                 "text-[13px]",
-                                "",
+                                "bg-neutral-50",
                             )}
                         >
                             <SearchIcon className="text-muted-foreground h-4 w-4" />

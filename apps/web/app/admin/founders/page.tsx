@@ -74,7 +74,7 @@ export default function AdminFoundersPage() {
 
                 <SearchInput value={query} onChange={setQuery} />
 
-                <section className="rounded-xl border border-border bg-card overflow-hidden">
+                <section className="rounded-lg border border-border bg-card overflow-hidden">
                     <header className="flex items-center justify-between px-5 py-3 border-b border-border">
                         <div className="text-[12.5px] font-medium">
                             All founders

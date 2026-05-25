@@ -87,7 +87,7 @@ function CategoryCard({
     items: { id: string; title: string; count: string }[];
 }) {
     return (
-        <div className="rounded-xl border border-black/8 bg-white p-5 shadow-sm">
+        <div className="rounded-lg border border-black/8 bg-white p-5 shadow-sm">
             <div className="flex items-center gap-2 mb-4">
                 <span className={cn("h-2 w-2 rounded-full", color)} />
                 <span className="text-[13px] font-medium">{status}</span>

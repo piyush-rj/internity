@@ -65,7 +65,7 @@ function StatCard({
     chart: ReactNode;
 }) {
     return (
-        <div className="rounded-xl border border-black/8 bg-white p-5 shadow-sm">
+        <div className="rounded-lg border border-black/8 bg-white p-5 shadow-sm">
             <div className="text-[12px] text-muted-foreground">{label}</div>
             <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-[28px] font-semibold tracking-tight">

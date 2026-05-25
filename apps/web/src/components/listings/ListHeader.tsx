@@ -23,7 +23,7 @@ export function ListHeader({
                 className,
             )}
         >
-            <div className="text-[13px] font-medium px-3.5 py-1 ring-1 ring-black/10 shadow-xs shadow-black/10 rounded-sm">
+            <div className="text-[13px] font-medium px-3.5 py-1 bg-card border border-border shadow-xs rounded-md">
                 {title}
             </div>
             <div className="flex items-center gap-3">

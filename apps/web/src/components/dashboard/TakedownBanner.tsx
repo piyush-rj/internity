@@ -3,10 +3,18 @@
 import Link from "next/link";
 import { AlertTriangle } from "lucide-react";
 import { useMyListings } from "@/src/hooks/useMyListings";
+import { useMeStore } from "@/src/store/useMeStore";
 import { cn } from "@/src/lib/utils";
 
-// banner warning founders about admin-taken-down listings
+// banner warning founders about admin-taken-down listings. mounts the
+// useMyListings hook only for employers so students don't trigger /listing/mine
 export function TakedownBanner() {
+    const role = useMeStore((s) => s.me?.role);
+    if (role !== "EMPLOYER") return null;
+    return <TakedownBannerInner />;
+}
+
+function TakedownBannerInner() {
     const { items, loading } = useMyListings();
     if (loading) return null;
 

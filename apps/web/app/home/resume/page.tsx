@@ -134,7 +134,7 @@ export default function ResumePage() {
                         onDragLeave={() => setDragging(false)}
                         onDrop={onDrop}
                         className={cn(
-                            "rounded-xl border-2 border-dashed p-10 text-center",
+                            "rounded-lg border-2 border-dashed p-10 text-center",
                             "transition-colors",
                             dragging
                                 ? "border-brand bg-brand/5"
@@ -216,7 +216,7 @@ function CurrentResume({
     disabled: boolean;
 }) {
     return (
-        <section className="rounded-xl border border-border bg-card overflow-hidden">
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
             <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
                 <h2 className="text-[14px] font-semibold">Current resume</h2>
             </header>
@@ -258,7 +258,7 @@ function CurrentResume({
 
 function NoProfile() {
     return (
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
             <p className="text-[14px] font-medium">No profile yet.</p>
             <p className="mt-1 text-[12.5px] text-muted-foreground">
                 Create your profile first, then come back to upload your resume.

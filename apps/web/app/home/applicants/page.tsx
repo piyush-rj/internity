@@ -104,7 +104,7 @@ function ApplicantsView() {
                             router.replace(`/home/applicants?listingId=${id}`)
                         }
                     />
-                    <section className="rounded-xl border border-border bg-card overflow-hidden">
+                    <section className="rounded-lg border border-border bg-card overflow-hidden">
                         <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
                             <div className="flex items-center gap-3">
                                 <div className="text-[13px] font-medium">
@@ -314,7 +314,7 @@ function SectionSkeleton() {
     return (
         <div className="space-y-3">
             <div className="h-9 w-64 rounded-md bg-secondary animate-pulse" />
-            <div className="h-40 w-full rounded-xl bg-secondary/40 animate-pulse" />
+            <div className="h-40 w-full rounded-lg bg-secondary/40 animate-pulse" />
         </div>
     );
 }
@@ -329,7 +329,7 @@ function Empty() {
 
 function NoListings() {
     return (
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
             <p className="text-[14px] font-medium">No listings to show.</p>
             <p className="mt-1 text-[12.5px] text-muted-foreground">
                 Post your first role to start collecting applicants.

@@ -36,7 +36,7 @@ export default function SettingsPage() {
             title="Settings"
             description="Your account information and preferences."
         >
-            <section className="rounded-xl border border-border bg-card overflow-hidden">
+            <section className="rounded-lg border border-border bg-card overflow-hidden">
                 <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
                     <h2 className="text-[14px] font-semibold">Account</h2>
                 </header>
@@ -92,7 +92,7 @@ export default function SettingsPage() {
 
             {role === "EMPLOYER" && <EmployerProfileCard />}
 
-            <section className="rounded-xl border border-border bg-card overflow-hidden">
+            <section className="rounded-lg border border-border bg-card overflow-hidden">
                 <header className="flex items-center justify-between gap-3 px-5 py-4">
                     <div className="min-w-0">
                         <h2 className="text-[14px] font-semibold">Sign out</h2>

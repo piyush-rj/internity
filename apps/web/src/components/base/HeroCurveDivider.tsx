@@ -62,7 +62,7 @@ export function HeroCurveDivider() {
                         <button
                             key={t.label}
                             className={cn(
-                                "flex items-center gap-2 rounded-xl px-3 py-2 text-[13px] font-medium transition-colors",
+                                "flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium transition-colors",
                                 i === 0
                                     ? "bg-secondary text-foreground"
                                     : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",

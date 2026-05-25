@@ -59,7 +59,7 @@ export default function CompanyPage() {
 function SectionSkeleton() {
     return (
         <div className="space-y-4">
-            <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
+            <div className="rounded-lg border border-border bg-card p-6 animate-pulse">
                 <div className="flex items-start gap-4">
                     <div className="h-14 w-14 rounded-md bg-muted shrink-0" />
                     <div className="flex-1 space-y-2">
@@ -68,14 +68,14 @@ function SectionSkeleton() {
                     </div>
                 </div>
             </div>
-            <div className="h-32 w-full rounded-xl bg-secondary/40 animate-pulse" />
+            <div className="h-32 w-full rounded-lg bg-secondary/40 animate-pulse" />
         </div>
     );
 }
 
 function NoCompany() {
     return (
-        <div className="rounded-xl border border-border bg-card p-8 text-center">
+        <div className="rounded-lg border border-border bg-card p-8 text-center">
             <p className="text-[14px] font-medium">
                 You haven’t set up a company yet.
             </p>

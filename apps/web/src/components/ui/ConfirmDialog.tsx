@@ -62,7 +62,7 @@ export function ConfirmDialog({
                 aria-labelledby="confirm-dialog-title"
                 className={cn(
                     "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101]",
-                    "w-full max-w-sm mx-4 rounded-xl border border-border bg-background shadow-2xl",
+                    "w-full max-w-sm mx-4 rounded-lg border border-border bg-background shadow-2xl",
                     "flex flex-col",
                 )}
             >

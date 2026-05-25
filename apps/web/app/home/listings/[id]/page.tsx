@@ -54,7 +54,7 @@ export default function ListingDetailPage({
 function DetailSkeleton() {
     return (
         <div className="mx-auto max-w-6xl px-6 py-8">
-            <div className="rounded-xl border border-border bg-card p-6 animate-pulse">
+            <div className="rounded-lg border border-border bg-card p-6 animate-pulse">
                 <div className="flex items-start gap-4">
                     <div className="h-12 w-12 rounded-md bg-muted shrink-0" />
                     <div className="flex-1 space-y-2">
@@ -65,13 +65,13 @@ function DetailSkeleton() {
                 </div>
             </div>
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-                <div className="rounded-xl border border-border bg-card p-6 space-y-2 animate-pulse">
+                <div className="rounded-lg border border-border bg-card p-6 space-y-2 animate-pulse">
                     <div className="h-3 w-1/4 rounded-full bg-muted" />
                     <div className="h-3 w-full rounded-full bg-muted" />
                     <div className="h-3 w-5/6 rounded-full bg-muted" />
                     <div className="h-3 w-4/6 rounded-full bg-muted" />
                 </div>
-                <div className="rounded-xl border border-border bg-card p-4 h-44 animate-pulse" />
+                <div className="rounded-lg border border-border bg-card p-4 h-44 animate-pulse" />
             </div>
         </div>
     );

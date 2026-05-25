@@ -335,7 +335,7 @@ const NavItem = memo(function NavItem({
             className={cn(
                 "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
                 active
-                    ? "bg-white ring-1 ring-black/9 shadow-sm shadow-black/4"
+                    ? "bg-neutral-100 ring-1 ring-black/9 shadow-sm shadow-black/4"
                     : "text-muted-foreground hover:text-foreground/80",
             )}
         >

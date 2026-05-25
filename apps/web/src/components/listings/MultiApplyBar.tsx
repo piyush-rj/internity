@@ -148,7 +148,7 @@ function MultiApplyDialog({
                 aria-label="Apply to selected listings"
                 className={cn(
                     "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50",
-                    "w-full max-w-md mx-4 rounded-xl border border-border bg-background shadow-2xl",
+                    "w-full max-w-md mx-4 rounded-lg border border-border bg-background shadow-2xl",
                     "flex flex-col max-h-[90vh]",
                 )}
             >

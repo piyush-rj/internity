@@ -47,7 +47,7 @@ export function ProfileSummaryCard({
         <section
             className={cn(
                 "flex flex-col sm:flex-row items-start gap-5 sm:gap-7",
-                "rounded-xl border border-border bg-card p-5 sm:p-6",
+                "rounded-lg border border-border bg-card p-5 sm:p-6",
             )}
         >
             <CompletionAvatar
@@ -231,7 +231,7 @@ function MissingDetailsCard({
         <div
             className={cn(
                 "shrink-0 w-full sm:w-64 self-stretch flex flex-col justify-between",
-                "rounded-xl border border-amber-200 bg-amber-50",
+                "rounded-lg border border-amber-200 bg-amber-50",
                 "p-4",
             )}
         >

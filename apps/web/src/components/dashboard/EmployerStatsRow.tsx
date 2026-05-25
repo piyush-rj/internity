@@ -172,7 +172,7 @@ function StatCard({ stat }: { stat: Stat }) {
         <Link
             href={stat.href}
             className={cn(
-                "group relative rounded-xl border border-border bg-card/90 backdrop-blur-sm px-5 py-4",
+                "group relative rounded-lg border border-border bg-card/90 backdrop-blur-sm px-5 py-4",
                 "shadow-xs transition-all duration-200 ease-out",
                 "ring-0 ring-foreground/0 hover:ring-2 hover:ring-foreground/10",
             )}

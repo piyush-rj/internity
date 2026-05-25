@@ -121,7 +121,7 @@ export default function SchedulesPage() {
                         pastCount={data.past.length}
                     />
 
-                    <section className="rounded-xl border border-border bg-card overflow-hidden mt-4">
+                    <section className="rounded-lg border border-border bg-card overflow-hidden mt-4">
                         {items.length === 0 ? (
                             <div className="px-6 py-16 text-center text-[13px] text-muted-foreground">
                                 {emptyText}
@@ -183,12 +183,12 @@ function Tabs({
             <nav
                 role="tablist"
                 aria-label="Schedules tabs"
-                className="relative inline-flex items-center gap-1 rounded-lg border border-border bg-secondary/60 p-1 shadow-xs"
+                className="relative inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-xs"
             >
                 {indicator && (
                     <span
                         aria-hidden
-                        className="absolute top-1 bottom-1 rounded-md bg-card shadow-xs ring-1 ring-border transition-[left,width] duration-300 ease-out"
+                        className="absolute top-1 bottom-1 rounded-md bg-brand ring-1 ring-border transition-[left,width] duration-300 ease-out"
                         style={{
                             left: indicator.left,
                             width: indicator.width,
@@ -211,7 +211,7 @@ function Tabs({
                                 "relative z-10 inline-flex items-center h-8 px-3.5 rounded-md text-[12.5px] font-medium cursor-pointer",
                                 "transition-colors duration-200 ease-out",
                                 active
-                                    ? "text-foreground"
+                                    ? "text-white"
                                     : "text-muted-foreground hover:text-foreground",
                             )}
                         >
@@ -352,42 +352,42 @@ function InterviewRow({
                 </div>
 
                 {!isPast && !isCancelled && (
-                    <div className="shrink-0 flex flex-col items-end gap-2">
-                        {iv.type === "VIDEO" && iv.meetingLink && (
-                            <a
-                                href={iv.meetingLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={cn(
-                                    "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
-                                    isJoinable
-                                        ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
-                                        : "border border-border bg-white text-foreground hover:bg-secondary",
-                                )}
-                            >
-                                <PiVideoCameraFill className="h-3.5 w-3.5" />
-                                {isJoinable ? "Join now" : "Open link"}
-                            </a>
-                        )}
-                        {iv.type === "PHONE" && phone && !isStudent && (
-                            <a
-                                href={`tel:${phone}`}
-                                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
-                            >
-                                <PiPhoneFill className="h-3.5 w-3.5" />
-                                Call
-                            </a>
-                        )}
+                    <div className="shrink-0 flex flex-row items-center gap-2">
                         <Button
                             type="button"
                             variant="ghost"
                             onClick={onCancel}
                             disabled={cancelling}
-                            className="h-9 px-3 text-[13px] text-rose-600 hover:bg-rose-50 cursor-pointer"
-                        >
+                            className="h-9 px-3 text-[13px] text-rose-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                            >
                             <PiCalendarXFill className="h-3.5 w-3.5" />
                             {cancelling ? "Cancelling…" : "Cancel"}
                         </Button>
+                            {iv.type === "VIDEO" && iv.meetingLink && (
+                                <a
+                                    href={iv.meetingLink}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className={cn(
+                                        "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
+                                        isJoinable
+                                            ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
+                                            : "border border-border bg-white text-foreground hover:bg-secondary",
+                                    )}
+                                >
+                                    <PiVideoCameraFill className="h-3.5 w-3.5" />
+                                    {isJoinable ? "Join now" : "Open link"}
+                                </a>
+                            )}
+                            {iv.type === "PHONE" && phone && !isStudent && (
+                                <a
+                                    href={`tel:${phone}`}
+                                    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
+                                >
+                                    <PiPhoneFill className="h-3.5 w-3.5" />
+                                    Call
+                                </a>
+                            )}
                     </div>
                 )}
             </div>
@@ -466,26 +466,36 @@ function Meta({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 function SkeletonList() {
     return (
-        <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <header className="px-6 py-3.5 border-b border-border">
-                <div className="h-3.5 w-28 rounded-full bg-secondary animate-pulse" />
-            </header>
-            <ul className="divide-y divide-border">
-                {Array.from({ length: 3 }).map((_, i) => (
-                    <li
-                        key={i}
-                        className="px-6 py-5 flex items-start gap-4 animate-pulse"
-                    >
-                        <div className="h-12 w-12 rounded-lg bg-secondary shrink-0" />
-                        <div className="flex-1 space-y-2.5">
-                            <div className="h-4 w-1/3 rounded-full bg-secondary" />
-                            <div className="h-3 w-1/2 rounded-full bg-secondary" />
-                            <div className="h-3 w-1/4 rounded-full bg-secondary" />
-                        </div>
-                    </li>
-                ))}
-            </ul>
-        </div>
+        <>
+            <div className="h-10 w-44 rounded-lg border border-border bg-card animate-pulse" />
+            <div className="rounded-lg border border-border bg-card overflow-hidden mt-4">
+                <ul className="divide-y divide-border">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <li
+                            key={i}
+                            className="px-6 py-5 flex items-start gap-4 animate-pulse"
+                        >
+                            <div className="h-12 w-12 rounded-lg bg-secondary shrink-0" />
+                            <div className="flex-1 space-y-2.5">
+                                <div className="flex items-center gap-2">
+                                    <div className="h-4 w-40 rounded bg-secondary" />
+                                    <div className="h-4 w-14 rounded-md bg-secondary" />
+                                </div>
+                                <div className="h-3 w-2/3 rounded bg-secondary" />
+                                <div className="flex items-center gap-3 pt-1">
+                                    <div className="h-3 w-32 rounded bg-secondary" />
+                                    <div className="h-3 w-24 rounded bg-secondary" />
+                                </div>
+                            </div>
+                            <div className="shrink-0 flex items-center gap-2">
+                                <div className="h-9 w-24 rounded-md bg-secondary" />
+                                <div className="h-9 w-20 rounded-md bg-secondary" />
+                            </div>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </>
     );
 }
 

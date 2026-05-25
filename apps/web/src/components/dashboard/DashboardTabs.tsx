@@ -42,12 +42,12 @@ export function DashboardTabs() {
                 <nav
                     role="tablist"
                     aria-label="Dashboard sections"
-                    className="relative inline-flex items-center gap-1 rounded-lg border border-border bg-secondary/60 p-1 shadow-xs"
+                    className="relative inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1 shadow-xs"
                 >
                     {indicator && (
                         <span
                             aria-hidden
-                            className="absolute top-1 bottom-1 rounded-md bg-card shadow-xs ring-1 ring-border transition-[left,width] duration-300 ease-out"
+                            className="absolute top-1 bottom-1 rounded-md bg-orange-500 ring-1 ring-border transition-[left,width] duration-300 ease-out"
                             style={{
                                 left: indicator.left,
                                 width: indicator.width,
@@ -71,7 +71,7 @@ export function DashboardTabs() {
                                     "relative z-10 inline-flex items-center gap-1.5 h-8 px-3 rounded-md text-[12.5px] font-medium cursor-pointer",
                                     "transition-colors duration-200 ease-out",
                                     active
-                                        ? "text-foreground"
+                                        ? "text-white"
                                         : "text-muted-foreground hover:text-foreground",
                                 )}
                             >

@@ -9,7 +9,7 @@ export function PlacementGuaranteeSection() {
             subtitle="Our flagship 6-month program prepares you for placements. If you don't get a job within 6 months of finishing, we refund your fees."
             cta={{ label: "Learn more", href: "#" }}
         >
-            <div className="rounded-xl border border-black/8 bg-white shadow-sm overflow-hidden">
+            <div className="rounded-lg border border-black/8 bg-white shadow-sm overflow-hidden">
                 <div className="flex items-center gap-2 border-b border-black/5 px-5 py-3 text-[12px]">
                     <span className="font-mono text-muted-foreground">
                         PG-2024

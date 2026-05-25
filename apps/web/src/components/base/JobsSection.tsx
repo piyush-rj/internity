@@ -31,7 +31,7 @@ export function JobsSection() {
             subtitle="Apply to entry-level full-time jobs that explicitly welcome freshers. See which companies are hiring across the year."
             cta={{ label: "Browse jobs", href: "#" }}
         >
-            <div className="rounded-xl border border-black/8 bg-white p-6 shadow-sm">
+            <div className="rounded-lg border border-black/8 bg-white p-6 shadow-sm">
                 <div className="grid grid-cols-8 mb-3 text-[11px] text-muted-foreground">
                     {months.map((m) => (
                         <div key={m} className="border-l border-black/5 pl-2">
