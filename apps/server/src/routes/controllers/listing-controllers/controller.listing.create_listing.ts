@@ -5,7 +5,13 @@ import {
     Forbidden,
     ResponseWriter,
 } from "../../../utils/api-response.ts";
-import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
+import {
+    CompanyVerificationStatus,
+    ListingType,
+    Prisma,
+    WorkMode,
+    prisma,
+} from "../../../db.ts";
 
 const Body = z.object({
     companyId: z.string().min(1),
@@ -46,8 +52,21 @@ export default async function createListing(
                     userId: req.user!.id,
                 },
             },
+            include: {
+                company: {
+                    select: { verificationStatus: true },
+                },
+            },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (
+            member.company.verificationStatus !==
+            CompanyVerificationStatus.APPROVED
+        ) {
+            throw new Forbidden(
+                "Your company isn't approved by admin yet. You'll be able to post once it is.",
+            );
+        }
 
         const data: Prisma.ListingUncheckedCreateInput = {
             companyId: body.companyId,

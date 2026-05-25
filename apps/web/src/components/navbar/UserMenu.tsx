@@ -99,7 +99,7 @@ export function UserMenu() {
                     <div
                         role="menu"
                         className={cn(
-                            "absolute right-0 top-[calc(100%+3px)] w-72 z-50 origin-top-right",
+                            "absolute top-[calc(100%+3px)] w-72 z-50 right-2.75",
                             "rounded-lg border border-border bg-white",
                             "py-1.5",
                             "shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18)]",

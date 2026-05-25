@@ -6,6 +6,9 @@ export type NotificationType =
     | "APPLICATION_WITHDRAWN"
     | "LISTING_CLOSED"
     | "COMPANY_MEMBER_ADDED"
+    | "COMPANY_APPROVED"
+    | "COMPANY_REJECTED"
+    | "SUBSCRIPTION_ACTIVATED"
     | "GENERIC";
 
 export type AppNotification = {

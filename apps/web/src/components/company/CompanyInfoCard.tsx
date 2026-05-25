@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Info, Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import {
     PiArrowSquareOut,
     PiBuildings,
@@ -12,7 +13,11 @@ import {
 } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
-import { companyApi, type Company, type CompanyInput } from "@/src/lib/api";
+import {
+    companyApi,
+    type Company,
+    type CompanyUpdateInput,
+} from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
 
@@ -139,13 +144,11 @@ function EditForm({
     onCancel: () => void;
     onSaved: () => Promise<void>;
 }) {
-    const [form, setForm] = useState<
-        Omit<CompanyInput, "slug" | "name"> & {
-            name: string;
-        }
-    >({
+    const [form, setForm] = useState({
         name: company.name,
         website: company.website ?? "",
+        linkedinUrl: company.linkedinUrl ?? "",
+        foundingYear: company.foundingYear?.toString() ?? "",
         about: company.about ?? "",
         industry: company.industry ?? "",
         size: company.size ?? "",
@@ -153,32 +156,58 @@ function EditForm({
         logoUrl: company.logoUrl ?? "",
     });
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const currentYear = useMemo(() => new Date().getUTCFullYear(), []);
 
     function set<K extends keyof typeof form>(k: K, v: (typeof form)[K]) {
         setForm((f) => ({ ...f, [k]: v }));
     }
 
+    function validate(): string | null {
+        if (!form.name.trim()) return "Please add a company name.";
+        if (!form.linkedinUrl.trim())
+            return "LinkedIn URL is required.";
+        if (form.linkedinUrl.trim() && !isValidUrl(form.linkedinUrl.trim())) {
+            return "LinkedIn URL doesn’t look right. Include https:// at the start.";
+        }
+        if (form.website.trim() && !isValidUrl(form.website.trim())) {
+            return "Website URL doesn’t look right. Include https:// at the start.";
+        }
+        const year = Number(form.foundingYear);
+        if (!form.foundingYear.trim() || !Number.isInteger(year)) {
+            return "Please add your founding year.";
+        }
+        if (year < 1800 || year > currentYear) {
+            return `Founding year must be between 1800 and ${currentYear}.`;
+        }
+        if (!form.size.trim()) return "Please add your team size.";
+        if (!form.about.trim()) return "Please add a short blurb.";
+        return null;
+    }
+
     async function save() {
-        if (!form.name.trim()) {
-            setError("Company name is required.");
+        const err = validate();
+        if (err) {
+            toast.error(err);
             return;
         }
         setSaving(true);
-        setError(null);
         try {
-            await companyApi.update(company.id, {
+            const input: CompanyUpdateInput = {
                 name: form.name.trim(),
-                website: form.website?.trim() || undefined,
-                about: form.about?.trim() || undefined,
-                industry: form.industry?.trim() || undefined,
-                size: form.size?.trim() || undefined,
-                city: form.city?.trim() || undefined,
-                logoUrl: form.logoUrl?.trim() || undefined,
-            });
+                website: form.website.trim() || undefined,
+                linkedinUrl: form.linkedinUrl.trim(),
+                foundingYear: Number(form.foundingYear),
+                about: form.about.trim(),
+                industry: form.industry.trim() || undefined,
+                size: form.size.trim(),
+                city: form.city.trim() || undefined,
+                logoUrl: form.logoUrl.trim() || undefined,
+            };
+            await companyApi.update(company.id, input);
+            toast.success("Company updated.");
             await onSaved();
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t save. Try again.",
@@ -199,19 +228,41 @@ function EditForm({
                 />
             </Field>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="LinkedIn URL" required>
+                    <input
+                        type="url"
+                        value={form.linkedinUrl}
+                        onChange={(e) => set("linkedinUrl", e.target.value)}
+                        placeholder="https://linkedin.com/company/acme"
+                        className={inputCls()}
+                    />
+                </Field>
                 <Field label="Website">
                     <input
                         type="url"
-                        value={form.website ?? ""}
+                        value={form.website}
                         onChange={(e) => set("website", e.target.value)}
                         placeholder="https://"
+                        className={inputCls()}
+                    />
+                </Field>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Founding year" required>
+                    <input
+                        type="number"
+                        min={1800}
+                        max={currentYear}
+                        value={form.foundingYear}
+                        onChange={(e) => set("foundingYear", e.target.value)}
+                        placeholder="2022"
                         className={inputCls()}
                     />
                 </Field>
                 <Field label="Logo URL">
                     <input
                         type="url"
-                        value={form.logoUrl ?? ""}
+                        value={form.logoUrl}
                         onChange={(e) => set("logoUrl", e.target.value)}
                         placeholder="https://"
                         className={inputCls()}
@@ -222,15 +273,15 @@ function EditForm({
                 <Field label="Industry">
                     <input
                         type="text"
-                        value={form.industry ?? ""}
+                        value={form.industry}
                         onChange={(e) => set("industry", e.target.value)}
                         className={inputCls()}
                     />
                 </Field>
-                <Field label="Team size">
+                <Field label="Team size" required>
                     <input
                         type="text"
-                        value={form.size ?? ""}
+                        value={form.size}
                         onChange={(e) => set("size", e.target.value)}
                         className={inputCls()}
                     />
@@ -238,31 +289,24 @@ function EditForm({
                 <Field label="City">
                     <input
                         type="text"
-                        value={form.city ?? ""}
+                        value={form.city}
                         onChange={(e) => set("city", e.target.value)}
                         className={inputCls()}
                     />
                 </Field>
             </div>
-            <Field label="About">
+            <Field label="About" required>
                 <textarea
-                    value={form.about ?? ""}
+                    value={form.about}
                     onChange={(e) => set("about", e.target.value)}
                     rows={3}
                     maxLength={400}
                     className={cn(inputCls(), "min-h-20 py-2 resize-y")}
                 />
                 <div className="mt-1 text-right text-[11px] text-muted-foreground tabular-nums">
-                    {(form.about ?? "").length}/400
+                    {form.about.length}/400
                 </div>
             </Field>
-
-            {error && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
-                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                </div>
-            )}
 
             <div className="flex items-center justify-end gap-2 pt-1 border-t border-border">
                 <Button
@@ -286,6 +330,15 @@ function EditForm({
             </div>
         </div>
     );
+}
+
+function isValidUrl(value: string): boolean {
+    try {
+        const u = new URL(value);
+        return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+        return false;
+    }
 }
 
 function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {

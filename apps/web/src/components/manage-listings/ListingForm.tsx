@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Info } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
@@ -60,7 +60,6 @@ export function ListingForm({
 }) {
     const [form, setForm] = useState<FormState>(empty);
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     function set<K extends keyof FormState>(k: K, v: FormState[K]) {
         setForm((f) => ({ ...f, [k]: v }));
@@ -68,15 +67,15 @@ export function ListingForm({
 
     async function submit() {
         if (!form.title.trim()) {
-            setError("Title is required.");
+            toast.error("Please add a title for the listing.");
             return;
         }
         if (!form.description.trim()) {
-            setError("Description is required.");
+            toast.error("Please add a short description of the role.");
             return;
         }
         if (form.mode !== "REMOTE" && !form.city.trim()) {
-            setError("City is required for hybrid and on-site roles.");
+            toast.error("City is required for hybrid and on-site roles.");
             return;
         }
 
@@ -105,12 +104,15 @@ export function ListingForm({
         };
 
         setSaving(true);
-        setError(null);
         try {
             const { listing } = await listingApi.create(input);
             await onCreated(listing.id);
         } catch (err) {
-            setError(
+            // Backend's verification gate returns 403 FORBIDDEN with a
+            // user-friendly message — surface it verbatim so the founder
+            // sees "Your company isn't approved by admin yet…" not
+            // "FORBIDDEN".
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t create listing.",
@@ -318,13 +320,6 @@ export function ListingForm({
                     </Field>
                 </div>
             </Section>
-
-            {error && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
-                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                </div>
-            )}
 
             <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
                 <Button

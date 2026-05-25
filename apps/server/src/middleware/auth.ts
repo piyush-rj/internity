@@ -7,6 +7,7 @@ import {
 } from "../utils/api-response.ts";
 import { verifyToken } from "../core/jwt.ts";
 import { prisma, type UserRole } from "../db.ts";
+import { isAdminUser } from "../config/config.ts";
 
 export type AuthUser = {
     /** public.User.id (cuid). */
@@ -100,4 +101,32 @@ export function requireRole(...roles: UserRole[]) {
             api.internalError();
         }
     };
+}
+
+/**
+ * Admin gate. Accepts either UserRole.ADMIN OR an email in the ADMIN_EMAILS
+ * env list — this lets us bootstrap admins without a DB write or a separate
+ * admin table. See packages/database/.../auth.ts for the matching frontend
+ * check used to gate the /admin UI.
+ */
+export function requireAdmin(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): void {
+    const api = new ResponseWriter(res);
+    try {
+        if (!req.user) throw new Unauthorized();
+        if (!isAdminUser(req.user)) {
+            throw new Forbidden("Admin access required");
+        }
+        next();
+    } catch (err) {
+        if (err instanceof ApiError) {
+            api.fail(err.status, err.code, err.message);
+            return;
+        }
+        console.error(err);
+        api.internalError();
+    }
 }

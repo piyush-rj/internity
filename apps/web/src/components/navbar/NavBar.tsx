@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Button } from "@/src/components/ui/button";
 import { UserMenu } from "@/src/components/navbar/UserMenu";
 import { ProfileCompletionPill } from "@/src/components/navbar/ProfileCompletionPill";
+import { EmployerVerificationPill } from "@/src/components/navbar/EmployerVerificationPill";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
@@ -86,6 +87,7 @@ export function NavBar({ floatOnScroll = false }: { floatOnScroll?: boolean }) {
                     {session?.user ? (
                         <>
                             <ProfileCompletionPill />
+                            <EmployerVerificationPill />
                             <UserMenu />
                         </>
                     ) : (

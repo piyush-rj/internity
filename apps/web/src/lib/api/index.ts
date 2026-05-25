@@ -16,7 +16,12 @@ export {
     companyApi,
     type EmployerProfileInput,
     type CompanyInput,
+    type CompanyUpdateInput,
     type CompanyMemberWithUser,
+    type AdminCompanyListItem,
+    type AdminCompanyDetail,
+    type AdminCompanyDetailMember,
+    type AdminCompanyListingSnapshot,
 } from "./employer";
 export {
     listingApi,

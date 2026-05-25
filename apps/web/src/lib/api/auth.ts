@@ -9,6 +9,7 @@ export type MeResponse = {
     image: string | null;
     role: UserRole;
     roleConfirmed: boolean;
+    isAdmin: boolean;
     isPremium: boolean;
     needsOnboarding: boolean;
     hasStudentProfile: boolean;

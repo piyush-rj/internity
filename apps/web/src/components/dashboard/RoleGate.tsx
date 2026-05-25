@@ -76,6 +76,13 @@ export function RoleGate() {
 
     if (!session?.user || loading || !me) return null;
 
+    // Admins always live in the /admin shell — bounce them out of /home so a
+    // post-signin landing on /home/dashboard immediately becomes /admin.
+    if (me.isAdmin) {
+        router.replace("/admin");
+        return null;
+    }
+
     // Pre-setup gate for fresh employers: they have a role but no company yet.
     if (
         me.role === "EMPLOYER" &&

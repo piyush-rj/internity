@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { ZodError } from "zod";
 import { ApiError, ResponseWriter } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { isAdminUser } from "../../../config/config.ts";
 
 export default async function getMe(
     req: Request,
@@ -28,6 +29,7 @@ export default async function getMe(
             image: user.image,
             role: user.role,
             roleConfirmed: user.roleConfirmed,
+            isAdmin: isAdminUser({ role: user.role, email: user.email }),
             isPremium: user.isPremium,
             needsOnboarding: !user.name || user.name.trim().length === 0,
             hasStudentProfile: user.studentProfile !== null,

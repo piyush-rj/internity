@@ -12,6 +12,7 @@ export type ApplicationStatus =
     | "REJECTED"
     | "WITHDRAWN";
 export type CompanyRole = "OWNER" | "MEMBER";
+export type CompanyVerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type AssetKind = "RESUME" | "COMPANY_LOGO" | "PROFILE_IMAGE";
 
 export type User = {
@@ -117,10 +118,16 @@ export type Company = {
     slug: string;
     logoUrl: string | null;
     website: string | null;
+    linkedinUrl: string | null;
     about: string | null;
     industry: string | null;
     size: string | null;
     city: string | null;
+    foundingYear: number | null;
+    verificationStatus: CompanyVerificationStatus;
+    rejectionNote: string | null;
+    submittedAt: string | null;
+    approvedAt: string | null;
 };
 
 export type CompanyMember = {

@@ -12,7 +12,7 @@ import {
     ResponseWriter,
 } from "../../utils/api-response.ts";
 import { CompanyRole, prisma } from "../../db.ts";
-import { requireAuth } from "../../middleware/auth.ts";
+import { requireAdmin, requireAuth } from "../../middleware/auth.ts";
 import createCompany from "../controllers/company-controllers/controller.company.create.ts";
 import getCompanyBySlug from "../controllers/company-controllers/controller.company.get_by_slug.ts";
 import updateCompany from "../controllers/company-controllers/controller.company.update.ts";
@@ -20,6 +20,9 @@ import listCompanyMembers from "../controllers/company-controllers/controller.co
 import addCompanyMember from "../controllers/company-controllers/controller.company.add_member.ts";
 import updateCompanyMemberRole from "../controllers/company-controllers/controller.company.update_member_role.ts";
 import removeCompanyMember from "../controllers/company-controllers/controller.company.remove_member.ts";
+import setCompanyVerification from "../controllers/company-controllers/controller.company.set_verification.ts";
+import adminListCompanies from "../controllers/company-controllers/controller.company.admin_list.ts";
+import adminGetCompany from "../controllers/company-controllers/controller.company.admin_get.ts";
 
 /** Inline middleware: only company members may pass; `ownerOnly` restricts further. */
 function requireCompanyMember(opts: { ownerOnly?: boolean } = {}) {
@@ -57,8 +60,15 @@ const router: RouterType = Router();
 router.use(requireAuth);
 
 router.post("/", createCompany);
+
+// Admin routes — must come BEFORE the catch-all "/:slug" so the "admin"
+// segment isn't treated as a slug.
+router.get("/admin/list", requireAdmin, adminListCompanies);
+router.get("/admin/:id", requireAdmin, adminGetCompany);
+
 router.get("/:slug", getCompanyBySlug);
 router.patch("/:id", requireCompanyMember({ ownerOnly: true }), updateCompany);
+router.post("/:id/verification", requireAdmin, setCompanyVerification);
 router.get("/:id/members", requireCompanyMember(), listCompanyMembers);
 router.post(
     "/:id/members",

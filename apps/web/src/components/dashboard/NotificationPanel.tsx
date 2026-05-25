@@ -64,7 +64,7 @@ export function NotificationPanel() {
             {open && (
                 <div
                     className={cn(
-                        "absolute right-0 top-[calc(100%+6px)] z-40 w-80",
+                        "absolute right-2 top-[calc(100%+3px)] z-40 w-80",
                         "rounded-lg border border-border bg-card shadow-lg overflow-hidden",
                     )}
                 >
@@ -210,6 +210,8 @@ function NotificationIcon({
         case "LISTING_CLOSED":
             return <PiBriefcaseFill className={className} />;
         case "COMPANY_MEMBER_ADDED":
+        case "COMPANY_APPROVED":
+        case "COMPANY_REJECTED":
             return <PiBuildingsFill className={className} />;
         default:
             return <PiInfo className={className} />;

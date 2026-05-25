@@ -33,6 +33,13 @@ const schema = z.object({
     ZEGO_SERVER_SECRET: z.string().length(32).optional(),
 
     CORS_ORIGIN: z.string().default("http://localhost:3000"),
+
+    // Comma-separated list of admin emails. Any user who signs in with an
+    // email in this list is treated as an admin (in addition to anyone whose
+    // User.role is ADMIN in the DB). ADMIN_EMAIL (singular) is also accepted
+    // as a convenience and merged with the plural one.
+    ADMIN_EMAILS: z.string().optional().default(""),
+    ADMIN_EMAIL: z.string().optional().default(""),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -45,3 +52,20 @@ if (!parsed.success) {
 }
 
 export const config: z.infer<typeof schema> = parsed.data;
+
+export const ADMIN_EMAIL_SET: ReadonlySet<string> = new Set(
+    [config.ADMIN_EMAILS, config.ADMIN_EMAIL]
+        .flatMap((s) => s.split(","))
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean),
+);
+
+/** Treat the user as an admin if their email is whitelisted OR their role is ADMIN. */
+export function isAdminUser(user: {
+    role: string;
+    email: string | null;
+}): boolean {
+    if (user.role === "ADMIN") return true;
+    if (!user.email) return false;
+    return ADMIN_EMAIL_SET.has(user.email.toLowerCase());
+}
