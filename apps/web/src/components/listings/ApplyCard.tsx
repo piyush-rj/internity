@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { Check } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { listingApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Button } from "@/src/components/ui/button";
@@ -28,20 +29,7 @@ export function ApplyCard({
     onApplied: () => Promise<void> | void;
 }) {
     const { me } = useMe();
-    const [coverLetter, setCoverLetter] = useState<string>("");
-    const [answers, setAnswers] = useState<string[]>(() =>
-        screeningQuestions.map(() => ""),
-    );
-    const [submitting, setSubmitting] = useState<boolean>(false);
-
-    // Keep `answers` length in sync if the founder edits the listing while
-    // the student is viewing.
-    useEffect(() => {
-        setAnswers((prev) => {
-            if (prev.length === screeningQuestions.length) return prev;
-            return screeningQuestions.map((_, i) => prev[i] ?? "");
-        });
-    }, [screeningQuestions]);
+    const [open, setOpen] = useState(false);
 
     if (me && me.id === postedById) {
         return (
@@ -83,17 +71,123 @@ export function ApplyCard({
         );
     }
 
-    const remaining = COVER_LIMIT - coverLetter.length;
-    const over = remaining < 0;
+    return (
+        <>
+            <Button
+                type="button"
+                variant="exec-dark"
+                onClick={() => setOpen(true)}
+                className="w-full h-10 text-[13px] cursor-pointer"
+            >
+                Apply now
+            </Button>
+            {screeningQuestions.length > 0 && (
+                <p className="mt-1.5 text-[11.5px] text-muted-foreground text-center">
+                    {screeningQuestions.length} short{" "}
+                    {screeningQuestions.length === 1
+                        ? "question"
+                        : "questions"}{" "}
+                    from the employer
+                </p>
+            )}
+            <ApplyDialog
+                open={open}
+                onClose={() => setOpen(false)}
+                listingId={listingId}
+                screeningQuestions={screeningQuestions}
+                onApplied={onApplied}
+            />
+        </>
+    );
+}
+
+/* ------------------------------- Dialog ---------------------------------- */
+
+type Step = "questions" | "cover";
+
+function ApplyDialog({
+    open,
+    onClose,
+    listingId,
+    screeningQuestions,
+    onApplied,
+}: {
+    open: boolean;
+    onClose: () => void;
+    listingId: string;
+    screeningQuestions: string[];
+    onApplied: () => Promise<void> | void;
+}) {
+    const hasQuestions = screeningQuestions.length > 0;
+
+    const [coverLetter, setCoverLetter] = useState<string>("");
+    const [answers, setAnswers] = useState<string[]>(() =>
+        screeningQuestions.map(() => ""),
+    );
+    const [step, setStep] = useState<Step>(
+        hasQuestions ? "questions" : "cover",
+    );
+    const [submitting, setSubmitting] = useState<boolean>(false);
+
+    // Reset the form and the step pointer whenever the dialog opens fresh.
+    // Also keeps the `answers` array length in lock-step with the listing's
+    // questions if the founder edited them while the dialog was closed.
+    useEffect(() => {
+        if (!open) return;
+        setStep(hasQuestions ? "questions" : "cover");
+        setAnswers((prev) => {
+            if (prev.length === screeningQuestions.length) return prev;
+            return screeningQuestions.map((_, i) => prev[i] ?? "");
+        });
+    }, [open, hasQuestions, screeningQuestions]);
+
+    // Esc to close (when not submitting).
+    useEffect(() => {
+        if (!open) return;
+        function onKey(e: KeyboardEvent) {
+            if (e.key === "Escape" && !submitting) onClose();
+        }
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open, onClose, submitting]);
+
+    // Render nothing until mounted in the browser — createPortal needs
+    // document.body, which doesn't exist during SSR.
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!open || !mounted) return null;
+
+    const overCover = coverLetter.length > COVER_LIMIT;
     const overAnswer =
         answers.find((a) => a.length > ANSWER_LIMIT) !== undefined;
-    const missingAnswerIndex = screeningQuestions.length
+    const missingAnswerIndex = hasQuestions
         ? answers.findIndex((a) => a.trim().length === 0)
         : -1;
-    const ready = missingAnswerIndex === -1 && !over && !overAnswer;
+    const questionsReady =
+        !overAnswer && missingAnswerIndex === -1;
+    const coverReady = !overCover;
+
+    function goToCoverStep() {
+        if (overAnswer) {
+            toast.error(
+                `Keep each screening answer under ${ANSWER_LIMIT} characters.`,
+            );
+            return;
+        }
+        if (missingAnswerIndex !== -1) {
+            toast.error(
+                `Please answer question ${missingAnswerIndex + 1}.`,
+            );
+            return;
+        }
+        setStep("cover");
+    }
 
     async function submit() {
-        if (over) {
+        if (overCover) {
             toast.error(
                 `Keep your cover note under ${COVER_LIMIT} characters.`,
             );
@@ -115,15 +209,15 @@ export function ApplyCard({
         try {
             await listingApi.apply(listingId, {
                 coverLetter: coverLetter.trim() || undefined,
-                screeningAnswers:
-                    screeningQuestions.length > 0
-                        ? answers.map((a) => a.trim())
-                        : undefined,
+                screeningAnswers: hasQuestions
+                    ? answers.map((a) => a.trim())
+                    : undefined,
             });
             await onApplied();
+            toast.success("Application sent.");
             setCoverLetter("");
             setAnswers(screeningQuestions.map(() => ""));
-            toast.success("Application sent.");
+            onClose();
         } catch (err) {
             toast.error(
                 err instanceof ApiClientError
@@ -135,111 +229,196 @@ export function ApplyCard({
         }
     }
 
-    return (
-        <div className="space-y-3">
-            {screeningQuestions.length > 0 && (
-                <div className="space-y-2.5">
-                    <div className="text-[12.5px] font-medium">
-                        A few quick questions from the employer
-                    </div>
-                    {screeningQuestions.map((q, i) => {
-                        const overThis = answers[i]!.length > ANSWER_LIMIT;
-                        return (
-                            <label key={i} className="block space-y-1">
-                                <span className="block text-[12.5px] text-foreground/90">
-                                    <span className="font-medium tabular-nums text-muted-foreground">
-                                        Q{i + 1}.
-                                    </span>{" "}
-                                    {q}
-                                </span>
-                                <textarea
-                                    value={answers[i]}
-                                    onChange={(e) =>
-                                        setAnswers((prev) =>
-                                            prev.map((a, j) =>
-                                                j === i ? e.target.value : a,
-                                            ),
-                                        )
-                                    }
-                                    rows={2}
-                                    maxLength={ANSWER_LIMIT}
-                                    placeholder="Your answer"
-                                    className={cn(
-                                        "w-full rounded-lg border bg-background px-3 py-2",
-                                        "text-[13px] placeholder:text-muted-foreground/70",
-                                        "outline-none focus:ring-3 focus:ring-foreground/5",
-                                        "resize-y min-h-14 max-h-32",
-                                        overThis
-                                            ? "border-destructive/50 focus:border-destructive/60"
-                                            : "border-border focus:border-foreground/40",
-                                    )}
-                                />
-                                <div
-                                    className={cn(
-                                        "text-right text-[11px] tabular-nums",
-                                        overThis
-                                            ? "text-destructive"
-                                            : "text-muted-foreground",
-                                    )}
-                                >
-                                    {answers[i]!.length}/{ANSWER_LIMIT}
-                                </div>
-                            </label>
-                        );
-                    })}
-                </div>
-            )}
-
-            <label className="block">
-                <span className="block mb-1.5 text-[12.5px] font-medium">
-                    Cover note{" "}
-                    <span className="text-muted-foreground font-normal">
-                        (optional)
-                    </span>
-                </span>
-                <textarea
-                    value={coverLetter}
-                    onChange={(e) => setCoverLetter(e.target.value)}
-                    placeholder="One or two lines about why you’re a great fit. Skip if you just want to apply in 1 click."
-                    rows={3}
-                    maxLength={COVER_LIMIT}
-                    className={cn(
-                        "w-full rounded-lg border bg-background px-3 py-2",
-                        "text-[13px] placeholder:text-muted-foreground/70",
-                        "outline-none focus:ring-3 focus:ring-foreground/5",
-                        // Cap height so the textarea doesn't stretch with
-                        // the parent column on listing pages with sparse
-                        // detail. resize-y keeps user control within range.
-                        "resize-y min-h-20 max-h-32",
-                        over
-                            ? "border-destructive/50 focus:border-destructive/60"
-                            : "border-border focus:border-foreground/40",
-                    )}
-                />
-                <div
-                    className={cn(
-                        "mt-1 text-right text-[11px] tabular-nums",
-                        over ? "text-destructive" : "text-muted-foreground",
-                    )}
-                >
-                    {coverLetter.length}/{COVER_LIMIT}
-                </div>
-            </label>
-
-            <Button
-                type="button"
-                variant="exec-dark"
-                onClick={submit}
-                disabled={submitting || !ready}
-                className="w-full h-10 text-[13px] cursor-pointer"
+    return createPortal(
+        <>
+            <div
+                className="fixed inset-0 z-[100] bg-black/30"
+                onClick={() => !submitting && onClose()}
+                aria-hidden
+            />
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Apply to this listing"
+                className={cn(
+                    "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101]",
+                    "w-full max-w-lg mx-4 rounded-xl border border-border bg-background shadow-2xl",
+                    "flex flex-col max-h-[90vh]",
+                )}
             >
-                {submitting
-                    ? "Submitting…"
-                    : screeningQuestions.length > 0 ||
-                        coverLetter.trim().length > 0
-                      ? "Submit application"
-                      : "Apply in 1 click"}
-            </Button>
-        </div>
+                <header className="flex items-center justify-between px-5 h-13 border-b border-border shrink-0">
+                    <div className="min-w-0">
+                        <h2 className="text-[14px] font-semibold">
+                            Apply to this listing
+                        </h2>
+                        {/* {hasQuestions && (
+                            <div className="text-[11px] text-muted-foreground mt-0.5">
+                                Step {step === "questions" ? 1 : 2} of 2 ·{" "}
+                                {step === "questions"
+                                    ? "Screening questions"
+                                    : "Cover note"}
+                            </div>
+                        )} */}
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        disabled={submitting}
+                        aria-label="Close"
+                        className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground cursor-pointer shrink-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </header>
+
+                <div className="flex-1 px-5 py-4 overflow-y-auto">
+                    {step === "questions" && hasQuestions && (
+                        <section className="space-y-3">
+                            <div className="text-[12.5px] font-medium">
+                                A few quick questions from the employer
+                            </div>
+                            {screeningQuestions.map((q, i) => {
+                                const overThis =
+                                    answers[i]!.length > ANSWER_LIMIT;
+                                return (
+                                    <label key={i} className="block space-y-1">
+                                        <span className="block text-[12.5px] text-foreground/90">
+                                            <span className="font-medium tabular-nums text-muted-foreground">
+                                                Q{i + 1}.
+                                            </span>{" "}
+                                            {q}
+                                        </span>
+                                        <textarea
+                                            value={answers[i]}
+                                            onChange={(e) =>
+                                                setAnswers((prev) =>
+                                                    prev.map((a, j) =>
+                                                        j === i
+                                                            ? e.target.value
+                                                            : a,
+                                                    ),
+                                                )
+                                            }
+                                            rows={3}
+                                            maxLength={ANSWER_LIMIT}
+                                            placeholder="Your answer"
+                                            className={cn(
+                                                "w-full rounded-lg border bg-background px-3 py-2",
+                                                "text-[13px] placeholder:text-muted-foreground/70",
+                                                "outline-none focus:ring-3 focus:ring-foreground/5",
+                                                "resize-none h-24",
+                                                overThis
+                                                    ? "border-destructive/50 focus:border-destructive/60"
+                                                    : "border-border focus:border-foreground/40",
+                                            )}
+                                        />
+                                        <div
+                                            className={cn(
+                                                "text-right text-[11px] tabular-nums",
+                                                overThis
+                                                    ? "text-destructive"
+                                                    : "text-muted-foreground",
+                                            )}
+                                        >
+                                            {answers[i]!.length}/{ANSWER_LIMIT}
+                                        </div>
+                                    </label>
+                                );
+                            })}
+                        </section>
+                    )}
+
+                    {step === "cover" && (
+                        <label className="block space-y-1">
+                            <span className="block text-[12.5px] font-medium">
+                                Cover note{" "}
+                                <span className="text-muted-foreground font-normal">
+                                    (optional)
+                                </span>
+                            </span>
+                            <textarea
+                                value={coverLetter}
+                                onChange={(e) =>
+                                    setCoverLetter(e.target.value)
+                                }
+                                placeholder="One or two lines about why you’re a great fit. Skip if you just want to apply."
+                                rows={3}
+                                maxLength={COVER_LIMIT}
+                                className={cn(
+                                    "w-full rounded-lg border bg-background px-3 py-2",
+                                    "text-[13px] placeholder:text-muted-foreground/70",
+                                    "outline-none focus:ring-3 focus:ring-foreground/5",
+                                    "resize-none h-24",
+                                    overCover
+                                        ? "border-destructive/50 focus:border-destructive/60"
+                                        : "border-border focus:border-foreground/40",
+                                )}
+                            />
+                            <div
+                                className={cn(
+                                    "text-right text-[11px] tabular-nums",
+                                    overCover
+                                        ? "text-destructive"
+                                        : "text-muted-foreground",
+                                )}
+                            >
+                                {coverLetter.length}/{COVER_LIMIT}
+                            </div>
+                        </label>
+                    )}
+                </div>
+
+                <footer className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border shrink-0">
+                    {step === "questions" ? (
+                        <>
+                            <Button
+                                type="button"
+                                variant="exec-light"
+                                onClick={onClose}
+                                disabled={submitting}
+                                className="h-9 px-3 text-[12.5px] cursor-pointer"
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="exec-dark"
+                                onClick={goToCoverStep}
+                                disabled={submitting || !questionsReady}
+                                className="h-9 px-3 text-[12.5px] cursor-pointer"
+                            >
+                                Next
+                            </Button>
+                        </>
+                    ) : (
+                        <>
+                            <Button
+                                type="button"
+                                variant="exec-light"
+                                onClick={
+                                    hasQuestions
+                                        ? () => setStep("questions")
+                                        : onClose
+                                }
+                                disabled={submitting}
+                                className="h-9 px-3 text-[12.5px] cursor-pointer"
+                            >
+                                {hasQuestions ? "Back" : "Cancel"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="exec-dark"
+                                onClick={submit}
+                                disabled={submitting || !coverReady}
+                                className="h-9 px-3 text-[12.5px] cursor-pointer"
+                            >
+                                {submitting ? "Submitting…" : "Apply"}
+                            </Button>
+                        </>
+                    )}
+                </footer>
+            </div>
+        </>,
+        document.body,
     );
 }
