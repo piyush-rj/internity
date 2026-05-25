@@ -61,10 +61,7 @@ function Pill({ status }: { status: CompanyVerificationStatus }) {
     }
 
     return (
-        <span
-            aria-label={cfg.aria}
-            className={cn(className, "cursor-default")}
-        >
+        <span aria-label={cfg.aria} className={cn(className, "cursor-default")}>
             {content}
         </span>
     );

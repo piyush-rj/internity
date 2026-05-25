@@ -30,8 +30,7 @@ export default function EmployerSetupPage() {
     const [bootstrapped, setBootstrapped] = useState(false);
 
     const existingCompany = memberships[0]?.company ?? null;
-    const isRejected =
-        existingCompany?.verificationStatus === "REJECTED";
+    const isRejected = existingCompany?.verificationStatus === "REJECTED";
 
     // Resume mid-setup:
     //  - REJECTED → stay on the company step so the founder can edit & resubmit.

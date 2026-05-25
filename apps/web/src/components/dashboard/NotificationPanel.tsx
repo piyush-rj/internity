@@ -208,6 +208,8 @@ function NotificationIcon({
         case "APPLICATION_WITHDRAWN":
             return <PiBriefcaseFill className={className} />;
         case "LISTING_CLOSED":
+        case "LISTING_TAKEN_DOWN":
+        case "LISTING_RESTORED":
             return <PiBriefcaseFill className={className} />;
         case "COMPANY_MEMBER_ADDED":
         case "COMPANY_APPROVED":

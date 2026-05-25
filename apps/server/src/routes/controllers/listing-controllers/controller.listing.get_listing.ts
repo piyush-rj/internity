@@ -21,6 +21,9 @@ export default async function getListing(
             },
         });
         if (!l) throw new NotFound();
+        // Taken-down listings are invisible publicly. The founder learns
+        // why from the notification + the "Removed" row in manage-listings.
+        if (l.takenDownAt) throw new NotFound();
         api.ok({ listing: l });
     } catch (err) {
         if (err instanceof ApiError) {

@@ -93,7 +93,9 @@ export default function AdminApprovalsPage() {
                             {TABS.find((t) => t.key === tab)?.label}
                         </div>
                         <span className="text-[11.5px] text-muted-foreground tabular-nums">
-                            {loading ? "…" : `${total} ${total === 1 ? "company" : "companies"}`}
+                            {loading
+                                ? "…"
+                                : `${total} ${total === 1 ? "company" : "companies"}`}
                         </span>
                     </header>
 
@@ -244,13 +246,7 @@ function SubmittedAt({ iso }: { iso: string | null }) {
     );
 }
 
-function Logo({
-    name,
-    logoUrl,
-}: {
-    name: string;
-    logoUrl: string | null;
-}) {
+function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     if (logoUrl) {
         return (
             // eslint-disable-next-line @next/next/no-img-element

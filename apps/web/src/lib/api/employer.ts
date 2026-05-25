@@ -30,7 +30,10 @@ export type CompanyInput = {
 };
 
 export type CompanyUpdateInput = Partial<
-    Omit<CompanyInput, "slug" | "linkedinUrl" | "foundingYear" | "about" | "size">
+    Omit<
+        CompanyInput,
+        "slug" | "linkedinUrl" | "foundingYear" | "about" | "size"
+    >
 > & {
     linkedinUrl?: string;
     foundingYear?: number;
@@ -93,6 +96,37 @@ export type AdminCompanyDetail = Company & {
     _count: { listings: number };
 };
 
+export type AdminFounderListItem = {
+    id: string;
+    userId: string;
+    firstName: string;
+    lastName: string | null;
+    phone: string | null;
+    jobTitle: string | null;
+    createdAt: string;
+    updatedAt: string;
+    user: {
+        id: string;
+        name: string | null;
+        email: string | null;
+        image: string | null;
+        createdAt: string;
+        companyMemberships: Array<{
+            companyId: string;
+            userId: string;
+            role: CompanyRole;
+            joinedAt: string;
+            company: {
+                id: string;
+                name: string;
+                slug: string;
+                logoUrl: string | null;
+                verificationStatus: CompanyVerificationStatus;
+            };
+        }>;
+    };
+};
+
 export const employerApi = {
     get_me: () =>
         api.get<{
@@ -103,6 +137,14 @@ export const employerApi = {
         api.post<{ profile: EmployerProfile }>("/employer/me", input),
     update: (input: Partial<EmployerProfileInput>) =>
         api.patch<{ profile: EmployerProfile }>("/employer/me", input),
+
+    admin_list: (params: { q?: string; page?: number; pageSize?: number }) =>
+        api.get<{
+            items: AdminFounderListItem[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/employer/admin/list", params),
 };
 
 export const companyApi = {

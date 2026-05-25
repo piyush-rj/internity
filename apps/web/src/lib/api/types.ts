@@ -161,6 +161,9 @@ export type Listing = {
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;
+    takenDownAt: string | null;
+    takedownReason: string | null;
+    takenDownById: string | null;
 };
 
 export type ListingWithCompany = Listing & {

@@ -89,9 +89,7 @@ export function CompanyDetailPanel({
             <div
                 className={cn(
                     "fixed inset-0 z-40 bg-black/30 transition-opacity",
-                    open
-                        ? "opacity-100"
-                        : "pointer-events-none opacity-0",
+                    open ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
                 onClick={onClose}
                 aria-hidden
@@ -126,7 +124,10 @@ export function CompanyDetailPanel({
                     {loading && !detail ? (
                         <Skeleton />
                     ) : errorMessage ? (
-                        <ErrorRow message={errorMessage} onRetry={fetchDetail} />
+                        <ErrorRow
+                            message={errorMessage}
+                            onRetry={fetchDetail}
+                        />
                     ) : detail ? (
                         <DetailContent
                             detail={detail}
@@ -354,7 +355,9 @@ function StatusActions({
     async function approve() {
         setBusy(true);
         try {
-            await companyApi.set_verification(detail.id, { status: "APPROVED" });
+            await companyApi.set_verification(detail.id, {
+                status: "APPROVED",
+            });
             toast.success(`${detail.name} approved`);
             await onMutated();
         } catch (err) {
@@ -469,15 +472,11 @@ function FounderSection({
     member: AdminCompanyDetail["members"][number];
 }) {
     const ep = member.user.employerProfile;
-    const name =
-        memberName(member) ?? member.user.email ?? "(no name)";
+    const name = memberName(member) ?? member.user.email ?? "(no name)";
     return (
         <Section title="Founder">
             <div className="flex items-start gap-3">
-                <Avatar
-                    name={name}
-                    imageUrl={member.user.image}
-                />
+                <Avatar name={name} imageUrl={member.user.image} />
                 <div className="min-w-0 flex-1 space-y-1">
                     <div className="text-[13px] font-medium truncate">
                         {name}
@@ -630,13 +629,7 @@ function ContactRow({
     );
 }
 
-function Avatar({
-    name,
-    imageUrl,
-}: {
-    name: string;
-    imageUrl: string | null;
-}) {
+function Avatar({ name, imageUrl }: { name: string; imageUrl: string | null }) {
     if (imageUrl) {
         return (
             // eslint-disable-next-line @next/next/no-img-element
@@ -654,13 +647,7 @@ function Avatar({
     );
 }
 
-function Logo({
-    name,
-    logoUrl,
-}: {
-    name: string;
-    logoUrl: string | null;
-}) {
+function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     if (logoUrl) {
         return (
             // eslint-disable-next-line @next/next/no-img-element
@@ -678,13 +665,7 @@ function Logo({
     );
 }
 
-function EmptyHint({
-    Icon,
-    text,
-}: {
-    Icon: typeof Mail;
-    text: string;
-}) {
+function EmptyHint({ Icon, text }: { Icon: typeof Mail; text: string }) {
     return (
         <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-[12px] text-muted-foreground">
             <Icon className="mx-auto h-4 w-4 mb-1.5" />
@@ -732,9 +713,7 @@ function Skeleton() {
     );
 }
 
-function memberName(
-    m: AdminCompanyDetail["members"][number],
-): string | null {
+function memberName(m: AdminCompanyDetail["members"][number]): string | null {
     const ep = m.user.employerProfile;
     if (ep?.firstName) {
         return [ep.firstName, ep.lastName].filter(Boolean).join(" ");

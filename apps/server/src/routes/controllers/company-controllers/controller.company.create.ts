@@ -1,9 +1,6 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import {
-    ApiError,
-    ResponseWriter,
-} from "../../../utils/api-response.ts";
+import { ApiError, ResponseWriter } from "../../../utils/api-response.ts";
 import { CompanyRole, Prisma, prisma } from "../../../db.ts";
 
 const Body = z.object({
@@ -24,7 +21,10 @@ const Body = z.object({
         .number()
         .int()
         .min(1800, "Founding year looks too far back")
-        .max(new Date().getUTCFullYear(), "Founding year can't be in the future"),
+        .max(
+            new Date().getUTCFullYear(),
+            "Founding year can't be in the future",
+        ),
     about: z.string().min(1, "Tell us briefly what your company does"),
     industry: z.string().nullable().optional(),
     size: z.string().min(1, "Team size is required"),

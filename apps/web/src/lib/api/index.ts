@@ -22,6 +22,7 @@ export {
     type AdminCompanyDetail,
     type AdminCompanyDetailMember,
     type AdminCompanyListingSnapshot,
+    type AdminFounderListItem,
 } from "./employer";
 export {
     listingApi,
@@ -32,6 +33,8 @@ export {
     type ListingInput,
     type ListingListFilters,
     type ApplicantWithStudent,
+    type AdminListingListItem,
+    type AdminListingStateFilter,
 } from "./listing";
 export {
     notificationApi,

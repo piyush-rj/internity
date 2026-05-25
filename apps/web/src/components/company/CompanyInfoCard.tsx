@@ -164,8 +164,7 @@ function EditForm({
 
     function validate(): string | null {
         if (!form.name.trim()) return "Please add a company name.";
-        if (!form.linkedinUrl.trim())
-            return "LinkedIn URL is required.";
+        if (!form.linkedinUrl.trim()) return "LinkedIn URL is required.";
         if (form.linkedinUrl.trim() && !isValidUrl(form.linkedinUrl.trim())) {
             return "LinkedIn URL doesn’t look right. Include https:// at the start.";
         }

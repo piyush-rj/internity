@@ -39,6 +39,7 @@ model User {
   employerProfile    EmployerProfile?
   companyMemberships CompanyMember[]
   listingsPosted     Listing[]        @relation("ListingPostedBy")
+  listingsTakenDown  Listing[]        @relation("ListingTakenDownBy")
   applications       Application[]
   savedListings      SavedListing[]
   assets             Asset[]
@@ -259,6 +260,14 @@ model Listing {
   updatedAt DateTime  @updatedAt
   closedAt  DateTime? // null = live, non-null = closed
 
+  // Admin moderation (soft-removal). When takenDownAt is set the listing
+  // becomes hidden from public browse + the founder's own listings show it
+  // as "Removed by admin" with the reason. An admin can restore it.
+  takenDownAt     DateTime?
+  takedownReason  String?  @db.Text
+  takenDownById   String?
+  takenDownBy     User?    @relation("ListingTakenDownBy", fields: [takenDownById], references: [id], onDelete: SetNull)
+
   skills       ListingSkill[]
   applications Application[]
   savedBy      SavedListing[]
@@ -269,6 +278,7 @@ model Listing {
   @@index([city])
   @@index([applyBy])
   @@index([closedAt])
+  @@index([takenDownAt])
 }
 
 model ListingSkill {
@@ -482,6 +492,8 @@ enum NotificationType {
   APPLICATION_STATUS_CHANGED
   APPLICATION_WITHDRAWN
   LISTING_CLOSED
+  LISTING_TAKEN_DOWN
+  LISTING_RESTORED
   COMPANY_MEMBER_ADDED
   COMPANY_APPROVED
   COMPANY_REJECTED

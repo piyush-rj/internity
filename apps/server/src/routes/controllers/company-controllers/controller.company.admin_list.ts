@@ -5,11 +5,7 @@ import {
     InvalidRequest,
     ResponseWriter,
 } from "../../../utils/api-response.ts";
-import {
-    CompanyVerificationStatus,
-    Prisma,
-    prisma,
-} from "../../../db.ts";
+import { CompanyVerificationStatus, Prisma, prisma } from "../../../db.ts";
 
 const Query = z.object({
     status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),

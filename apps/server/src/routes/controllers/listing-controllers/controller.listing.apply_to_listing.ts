@@ -22,9 +22,15 @@ export default async function applyToListing(
 
     const found = await prisma.listing.findUnique({
         where: { id },
-        select: { companyId: true, closedAt: true, title: true },
+        select: {
+            companyId: true,
+            closedAt: true,
+            takenDownAt: true,
+            title: true,
+        },
     });
     if (!found) throw new NotFound("Listing not found");
+    if (found.takenDownAt !== null) throw new NotFound("Listing not found");
     if (found.closedAt !== null) throw new InvalidRequest("Listing is closed");
 
     const member = await prisma.companyMember.findUnique({

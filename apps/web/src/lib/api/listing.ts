@@ -2,6 +2,7 @@ import { api } from "../apiClient";
 import type {
     Application,
     ApplicationStatus,
+    CompanyVerificationStatus,
     Listing,
     ListingType,
     ListingWithCompany,
@@ -19,6 +20,20 @@ export type ApplicantWithStudent = Application & {
         > | null;
     };
 };
+
+export type AdminListingListItem = Listing & {
+    company: {
+        id: string;
+        name: string;
+        slug: string;
+        logoUrl: string | null;
+        verificationStatus: CompanyVerificationStatus;
+    };
+    postedBy: Pick<User, "id" | "name" | "email" | "image">;
+    _count: { applications: number };
+};
+
+export type AdminListingStateFilter = "live" | "closed" | "takendown" | "all";
 
 export type ListingInput = {
     companyId: string;
@@ -88,6 +103,25 @@ export const listingApi = {
         api.get<{ items: ApplicantWithStudent[] }>(
             `/listing/${listingId}/applications`,
         ),
+
+    admin_list: (params: {
+        state?: AdminListingStateFilter;
+        q?: string;
+        page?: number;
+        pageSize?: number;
+    }) =>
+        api.get<{
+            items: AdminListingListItem[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/listing/admin/list", params),
+    admin_take_down: (id: string, reason: string) =>
+        api.post<{ listing: Listing }>(`/listing/admin/${id}/take-down`, {
+            reason,
+        }),
+    admin_restore: (id: string) =>
+        api.post<{ listing: Listing }>(`/listing/admin/${id}/restore`),
 };
 
 export const applicationApi = {

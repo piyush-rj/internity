@@ -11,16 +11,15 @@ const Body = z.object({
     name: z.string().min(1).optional(),
     logoUrl: z.string().url().nullable().optional(),
     website: z.string().url("Enter a valid website URL").nullable().optional(),
-    linkedinUrl: z
-        .string()
-        .url("Enter a valid LinkedIn URL")
-        .min(1)
-        .optional(),
+    linkedinUrl: z.string().url("Enter a valid LinkedIn URL").min(1).optional(),
     foundingYear: z
         .number()
         .int()
         .min(1800, "Founding year looks too far back")
-        .max(new Date().getUTCFullYear(), "Founding year can't be in the future")
+        .max(
+            new Date().getUTCFullYear(),
+            "Founding year can't be in the future",
+        )
         .optional(),
     about: z.string().nullable().optional(),
     industry: z.string().nullable().optional(),

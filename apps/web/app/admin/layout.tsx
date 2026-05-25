@@ -11,13 +11,13 @@ export default function AdminLayout({
     return (
         <div className="flex min-h-screen w-full">
             <MeBootstrap />
-            <AdminGuard>
-                <AdminSidebar />
-                <div className="flex-1 min-w-0 flex flex-col">
-                    <AdminTopbar />
-                    <main className="flex-1">{children}</main>
-                </div>
-            </AdminGuard>
+            <AdminSidebar />
+            <div className="flex-1 min-w-0 flex flex-col">
+                <AdminTopbar />
+                <main className="flex-1">
+                    <AdminGuard>{children}</AdminGuard>
+                </main>
+            </div>
         </div>
     );
 }

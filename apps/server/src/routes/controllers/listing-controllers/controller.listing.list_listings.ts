@@ -34,7 +34,10 @@ export default async function listListings(
         if (!parsed.success) throw new InvalidRequest("Invalid query");
         const q = parsed.data;
 
-        const where: Prisma.ListingWhereInput = { closedAt: null };
+        const where: Prisma.ListingWhereInput = {
+            closedAt: null,
+            takenDownAt: null,
+        };
         if (q.type) where.type = q.type as ListingType;
         if (q.mode) where.mode = q.mode as WorkMode;
         if (q.city) where.city = { contains: q.city, mode: "insensitive" };
