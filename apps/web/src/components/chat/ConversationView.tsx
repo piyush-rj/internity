@@ -157,7 +157,7 @@ export function ConversationView({
 
     return (
         <div className="flex flex-col h-full min-h-0 bg-neutral-50">
-            <ConversationHeader peer={peer} viewerRole={meRole} />
+            <ConversationHeader peer={peer} />
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto">
                 <PeerProfileCard

@@ -1,28 +1,18 @@
 "use client";
 
-import { Phone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { ConversationPeer } from "types";
-import type { UserRole } from "@/src/lib/api/types";
-import { useZegoCall } from "@/src/lib/call/ZegoCallProvider";
 import { usePresenceStore } from "@/src/store/usePresenceStore";
-import { cn } from "@/src/lib/utils";
 import { ChatAvatar } from "./ChatAvatar";
 
 /**
  * Sticky top bar above the chat thread. Shows the peer's avatar, name, and
- * live presence subtitle. Employers get a phone-icon call button on the
- * right — disabled while the peer is offline or the Zego SDK is still
- * warming up.
+ * live presence subtitle.
  */
 export function ConversationHeader({
     peer,
-    viewerRole,
 }: {
     peer: ConversationPeer | null;
-    /** Used to gate the call button — only employers may initiate calls. */
-    viewerRole: UserRole | null;
 }) {
     const livePresence = usePresenceStore((s) =>
         peer ? s.presenceByUser[peer.id] : undefined,
@@ -54,9 +44,6 @@ export function ConversationHeader({
                 </div>
                 <PresenceSubtitle peer={peerWithLivePresence} />
             </div>
-            {viewerRole === "EMPLOYER" && (
-                <CallButton peer={peerWithLivePresence} />
-            )}
         </header>
     );
 }
@@ -87,52 +74,6 @@ function PresenceSubtitle({ peer }: { peer: ConversationPeer }) {
         <div className="text-[11px] leading-tight text-muted-foreground truncate">
             {label}
         </div>
-    );
-}
-
-function CallButton({ peer }: { peer: ConversationPeer }) {
-    const { ready, error, startCall } = useZegoCall();
-    const [pending, setPending] = useState(false);
-
-    const disabledReason = !peer.isOnline
-        ? "User is offline"
-        : !ready
-          ? (error ?? "Connecting voice service…")
-          : null;
-    const disabled = disabledReason !== null || pending;
-
-    async function onClick() {
-        if (disabled) return;
-        setPending(true);
-        try {
-            await startCall(peer);
-        } catch (err) {
-            toast.error(
-                err instanceof Error
-                    ? err.message
-                    : "Could not start the call.",
-            );
-        } finally {
-            setPending(false);
-        }
-    }
-
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            disabled={disabled}
-            title={disabledReason ?? "Call applicant"}
-            aria-label="Call applicant"
-            className={cn(
-                "h-9 w-9 rounded-full inline-flex items-center justify-center transition-colors",
-                disabled
-                    ? "text-neutral-400 cursor-not-allowed"
-                    : "text-emerald-600 hover:bg-emerald-50",
-            )}
-        >
-            <Phone className="h-4.5 w-4.5" strokeWidth={2} />
-        </button>
     );
 }
 

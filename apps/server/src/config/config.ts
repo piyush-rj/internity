@@ -27,11 +27,6 @@ const schema = z.object({
     SERVER_RAZORPAY_ID: z.string().optional(),
     SERVER_RAZORPAY_SECRET: z.string().optional(),
 
-    // ZegoCloud — optional. Without both set, /call/zego-token returns 503.
-    // Server secret is the 32-char AES-256 key used by the token04 algorithm.
-    ZEGO_APP_ID: z.coerce.number().int().positive().optional(),
-    ZEGO_SERVER_SECRET: z.string().length(32).optional(),
-
     CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
     // Comma-separated list of admin emails. Any user who signs in with an
