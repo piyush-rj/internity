@@ -12,6 +12,7 @@ import {
     PiUsers,
 } from "react-icons/pi";
 import { NavBar } from "@/src/components/navbar/NavBar";
+import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { companyApi, type Company, type Listing } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
@@ -138,9 +139,14 @@ function Hero({ company }: { company: CompanyDetail }) {
             <div className="flex items-start gap-5">
                 <Logo name={company.name} logoUrl={company.logoUrl} />
                 <div className="flex-1 min-w-0">
-                    <h1 className="text-[26px] font-semibold tracking-tight truncate">
-                        {company.name}
-                    </h1>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h1 className="text-[26px] font-semibold tracking-tight truncate">
+                            {company.name}
+                        </h1>
+                        {company.verificationStatus === "APPROVED" && (
+                            <VerifiedBadge size="chip" />
+                        )}
+                    </div>
                     {(company.industry || company.city) && (
                         <p className="mt-1 text-[13px] text-muted-foreground truncate">
                             {[company.industry, company.city]

@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { CertificationsSection } from "@/src/components/profile-page/CertificationsSection";
 import { EducationSection } from "@/src/components/profile-page/EducationSection";
+import { EmployerProfileEditor } from "@/src/components/profile-page/EmployerProfileEditor";
 import { ExperienceSection } from "@/src/components/profile-page/ExperienceSection";
 import { LanguagesSection } from "@/src/components/profile-page/LanguagesSection";
 import { ProfileHeaderCard } from "@/src/components/profile-page/ProfileHeaderCard";
@@ -10,8 +11,19 @@ import { SkillsSection } from "@/src/components/profile-page/SkillsSection";
 import { ProfileFormSidebar } from "@/src/components/profile-wizard/ProfileFormSidebar";
 import type { StepKey } from "@/src/components/profile-wizard/utils";
 import { useMyProfile } from "@/src/hooks/useMyProfile";
+import { useMeStore } from "@/src/store/useMeStore";
 
 export default function ProfilePage() {
+    const role = useMeStore((s) => s.me?.role);
+    // Employers landing on /home/profile need a personal-details editor —
+    // company-level fields (name, website, verification) live on
+    // /home/company. The student profile editor below is irrelevant for them.
+    if (role === "EMPLOYER") return <EmployerProfileEditor />;
+
+    return <StudentProfile />;
+}
+
+function StudentProfile() {
     const { profile, loading, refetch } = useMyProfile();
     const [currentStep, setCurrentStep] = useState<StepKey>("summary");
     const [basicsEditTrigger, setBasicsEditTrigger] = useState<number>(0);

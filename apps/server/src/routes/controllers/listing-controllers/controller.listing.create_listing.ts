@@ -1,10 +1,6 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import {
-    ApiError,
-    Forbidden,
-    ResponseWriter,
-} from "../../../utils/api-response.ts";
+import { ApiError, Forbidden, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import {
     CompanyVerificationStatus,
     ListingType,
@@ -112,19 +108,6 @@ export default async function createListing(
         });
         api.created({ listing: created }, "Listing created");
     } catch (err) {
-        if (err instanceof ApiError) {
-            api.fail(err.status, err.code, err.message);
-            return;
-        }
-        if (err instanceof ZodError) {
-            const issue = err.issues[0];
-            const where = issue?.path.join(".") || "body";
-            api.invalidRequest(
-                `Invalid ${where}: ${issue?.message ?? "invalid"}`,
-            );
-            return;
-        }
-        console.error(err);
-        api.internalError();
+        handleApiError(err, api);
     }
 }

@@ -4,7 +4,20 @@ import { useCallback, useEffect, useState } from "react";
 import { listingApi, type ListingWithCompany } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 
-export type ListingDetail = ListingWithCompany & { skills: unknown[] };
+export type ListingDetail = ListingWithCompany & {
+    skills: unknown[];
+    postedBy: {
+        id: string;
+        name: string | null;
+        image: string | null;
+        employerProfile: {
+            firstName: string;
+            lastName: string | null;
+            jobTitle: string | null;
+            linkedinUrl: string | null;
+        } | null;
+    };
+};
 
 export type ListingState = {
     listing: ListingDetail | null;

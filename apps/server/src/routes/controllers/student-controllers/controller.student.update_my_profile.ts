@@ -1,10 +1,6 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import {
-    ApiError,
-    NotFound,
-    ResponseWriter,
-} from "../../../utils/api-response.ts";
+import { ApiError, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import { prisma, type Gender } from "../../../db.ts";
 
 const Body = z.object({
@@ -52,19 +48,6 @@ export default async function updateMyProfile(
         });
         api.ok({ profile });
     } catch (err) {
-        if (err instanceof ApiError) {
-            api.fail(err.status, err.code, err.message);
-            return;
-        }
-        if (err instanceof ZodError) {
-            const issue = err.issues[0];
-            const where = issue?.path.join(".") || "body";
-            api.invalidRequest(
-                `Invalid ${where}: ${issue?.message ?? "invalid"}`,
-            );
-            return;
-        }
-        console.error(err);
-        api.internalError();
+        handleApiError(err, api);
     }
 }

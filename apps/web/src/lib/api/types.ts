@@ -110,6 +110,7 @@ export type EmployerProfile = {
     lastName: string | null;
     phone: string | null;
     jobTitle: string | null;
+    linkedinUrl: string | null;
 };
 
 export type Company = {
@@ -170,7 +171,10 @@ export type Listing = {
 };
 
 export type ListingWithCompany = Listing & {
-    company: Pick<Company, "id" | "name" | "slug" | "logoUrl">;
+    company: Pick<
+        Company,
+        "id" | "name" | "slug" | "logoUrl" | "verificationStatus"
+    >;
 };
 
 export type Application = {

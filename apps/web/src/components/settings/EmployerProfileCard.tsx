@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Info, Pencil } from "lucide-react";
+import { toast } from "sonner";
+import { Pencil } from "lucide-react";
 import { PiBriefcase, PiPhone, PiUser } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
@@ -104,9 +105,9 @@ function EditForm({
         lastName: profile.lastName ?? "",
         phone: profile.phone ?? "",
         jobTitle: profile.jobTitle ?? "",
+        linkedinUrl: profile.linkedinUrl ?? "",
     });
     const [saving, setSaving] = useState(false);
-    const [error, setError] = useState<string | null>(null);
 
     function set<K extends keyof EmployerProfileInput>(
         k: K,
@@ -117,21 +118,22 @@ function EditForm({
 
     async function save() {
         if (!form.firstName?.trim()) {
-            setError("First name is required.");
+            toast.error("Please add your first name.");
             return;
         }
         setSaving(true);
-        setError(null);
         try {
             await employerApi.update({
                 firstName: form.firstName.trim(),
                 lastName: form.lastName?.trim() || undefined,
                 phone: form.phone?.trim() || undefined,
                 jobTitle: form.jobTitle?.trim() || undefined,
+                linkedinUrl: form.linkedinUrl?.trim() || undefined,
             });
+            toast.success("Saved.");
             await onSaved();
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t save. Try again.",
@@ -182,13 +184,6 @@ function EditForm({
                     />
                 </Field>
             </div>
-
-            {error && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
-                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                </div>
-            )}
 
             <div className="flex items-center justify-end gap-2 pt-1 border-t border-border">
                 <Button

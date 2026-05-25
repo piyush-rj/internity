@@ -12,8 +12,10 @@ import {
 } from "react-icons/pi";
 import type { ListingDetail as ListingDetailType } from "@/src/hooks/useListing";
 import { ApplyCard } from "@/src/components/listings/ApplyCard";
+import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { cn } from "@/src/lib/utils";
+import { PiLinkedinLogoFill } from "react-icons/pi";
 
 export function ListingDetail({
     listing,
@@ -98,7 +100,58 @@ export function ListingDetail({
                             />
                         </div>
                     </div>
+
+                    <PostedByCard postedBy={listing.postedBy} />
                 </aside>
+            </div>
+        </div>
+    );
+}
+
+function PostedByCard({
+    postedBy,
+}: {
+    postedBy: ListingDetailType["postedBy"];
+}) {
+    const ep = postedBy.employerProfile;
+    const founderName =
+        (ep
+            ? `${ep.firstName}${ep.lastName ? " " + ep.lastName : ""}`.trim()
+            : null) ??
+        postedBy.name ??
+        null;
+    if (!founderName) return null;
+
+    return (
+        <div className="rounded-xl border border-border bg-card p-4 space-y-2">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Posted by
+            </div>
+            <div className="flex items-start gap-3">
+                <span className="h-9 w-9 rounded-full flex items-center justify-center bg-linear-to-br from-orange-400 to-orange-600 text-white text-[13px] font-semibold ring-1 ring-border shrink-0">
+                    {founderName.charAt(0).toUpperCase()}
+                </span>
+                <div className="min-w-0 flex-1">
+                    <div className="text-[13px] font-medium truncate">
+                        {founderName}
+                    </div>
+                    {ep?.jobTitle && (
+                        <div className="text-[11.5px] text-muted-foreground truncate">
+                            {ep.jobTitle}
+                        </div>
+                    )}
+                    {ep?.linkedinUrl && (
+                        <a
+                            href={ep.linkedinUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-orange-600 hover:text-orange-700"
+                        >
+                            <PiLinkedinLogoFill className="h-3.5 w-3.5" />
+                            View LinkedIn
+                        </a>
+                    )}
+                </div>
             </div>
         </div>
     );
@@ -130,9 +183,11 @@ function Header({
                             </span>
                         )}
                     </div>
-                    <p className="mt-1 text-[13.5px] text-muted-foreground">
-                        {listing.company.name}
-                        {listing.city ? ` · ${listing.city}` : ""}
+                    <p className="mt-1 inline-flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
+                        <span>{listing.company.name}</span>
+                        {listing.company.verificationStatus ===
+                            "APPROVED" && <VerifiedBadge label />}
+                        {listing.city && <span>· {listing.city}</span>}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground">
                         <Meta

@@ -135,6 +135,12 @@ const employerNav: NavSet = {
     ],
     profile: [
         {
+            key: "profile",
+            label: "Profile",
+            icon: PiUserFill,
+            href: "/home/profile",
+        },
+        {
             key: "settings",
             label: "Settings",
             icon: PiGearFill,

@@ -1,4 +1,6 @@
 import type { Response } from "express";
+import { ZodError } from "zod";
+import { Prisma } from "../db.ts";
 
 export type ApiResponse<T = unknown> = {
     success: boolean;
@@ -88,4 +90,71 @@ export class NotFound extends ApiError {
     constructor(message = "Not found") {
         super(message, { status: 404, code: "NOT_FOUND" });
     }
+}
+
+/**
+ * Single catch-block translator for controllers. Maps ApiError, ZodError, and
+ * common Prisma error codes to user-friendly responses; falls back to a
+ * generic 500 for anything unknown (and logs to console for debugging).
+ *
+ * Usage:
+ *   try { ... } catch (err) { handleApiError(err, api); }
+ *
+ * Keeps every controller's catch-block to a single line and ensures unique
+ * constraint / not-found / fk-violation errors never leak as "Internal
+ * server error" to the user.
+ */
+export function handleApiError(err: unknown, api: ResponseWriter): void {
+    if (err instanceof ApiError) {
+        api.fail(err.status, err.code, err.message);
+        return;
+    }
+    if (err instanceof ZodError) {
+        const issue = err.issues[0];
+        api.invalidRequest(issue?.message ?? "Please check your details");
+        return;
+    }
+    if (err instanceof Prisma.PrismaClientKnownRequestError) {
+        switch (err.code) {
+            case "P2002": {
+                // Unique constraint — surface the conflicting field if Prisma
+                // reports it so users can fix the right input.
+                const target = (err.meta?.target as string[] | undefined) ?? [];
+                const field = target.length > 0 ? target.join(", ") : "value";
+                api.fail(
+                    409,
+                    "DUPLICATE",
+                    `This ${field} is already in use. Try a different one.`,
+                );
+                return;
+            }
+            case "P2025":
+                // Record not found (update/delete missing row).
+                api.fail(
+                    404,
+                    "NOT_FOUND",
+                    "We couldn't find what you're trying to update.",
+                );
+                return;
+            case "P2003":
+                // Foreign key constraint failed.
+                api.fail(
+                    400,
+                    "INVALID_REFERENCE",
+                    "Something this depends on no longer exists. Refresh and try again.",
+                );
+                return;
+            case "P2014":
+                // Required relation violation.
+                api.fail(
+                    400,
+                    "INVALID_RELATION",
+                    "Operation conflicts with related data.",
+                );
+                return;
+        }
+    }
+    // Unknown — log full error server-side, send a clean generic message.
+    console.error(err);
+    api.internalError();
 }

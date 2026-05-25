@@ -18,6 +18,7 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
+import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { cn } from "@/src/lib/utils";
 
 export function ListingList({
@@ -216,7 +217,12 @@ function ListingRow({
                 </Link>
             </Td>
             <Td compact={compact} className="text-muted-foreground">
-                <span className="truncate">{listing.company.name}</span>
+                <span className="inline-flex items-center gap-1 min-w-0">
+                    <span className="truncate">{listing.company.name}</span>
+                    {listing.company.verificationStatus === "APPROVED" && (
+                        <VerifiedBadge />
+                    )}
+                </span>
             </Td>
             <Td compact={compact}>
                 <ModeBadge mode={listing.mode} />

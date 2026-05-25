@@ -1,11 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
-import {
-    ApiError,
-    InvalidRequest,
-    ResponseWriter,
-} from "../../../utils/api-response.ts";
+import { ApiError, InvalidRequest, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import { config } from "../../../config/config.ts";
 import { PLANS, isPlanCode } from "../../../core/plans.ts";
 import { NotificationType, PaymentStatus, prisma } from "../../../db.ts";
@@ -84,19 +80,6 @@ export default async function verifyPayment(
 
         api.ok({ ok: true, planCode: plan.code });
     } catch (err) {
-        if (err instanceof ApiError) {
-            api.fail(err.status, err.code, err.message);
-            return;
-        }
-        if (err instanceof ZodError) {
-            const issue = err.issues[0];
-            const where = issue?.path.join(".") || "body";
-            api.invalidRequest(
-                `Invalid ${where}: ${issue?.message ?? "invalid"}`,
-            );
-            return;
-        }
-        console.error(err);
-        api.internalError();
+        handleApiError(err, api);
     }
 }

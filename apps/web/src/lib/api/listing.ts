@@ -12,12 +12,43 @@ import type {
     WorkMode,
 } from "./types";
 
+export type ApplicantStudentEducation = {
+    institute: string;
+    degree: string;
+    fieldOfStudy: string | null;
+    startYear: number;
+    endYear: number | null;
+    current: boolean;
+};
+
+export type ApplicantStudentProject = {
+    id: string;
+    title: string;
+    link: string | null;
+};
+
+export type ApplicantStudentExperience = {
+    id: string;
+    title: string;
+    company: string;
+    startDate: string;
+    endDate: string | null;
+    current: boolean;
+};
+
 export type ApplicantWithStudent = Application & {
     student: Pick<User, "id" | "name" | "email" | "image"> & {
-        studentProfile: Pick<
-            StudentProfile,
-            "firstName" | "lastName" | "phone" | "city" | "bio"
-        > | null;
+        studentProfile:
+            | (Pick<
+                  StudentProfile,
+                  "firstName" | "lastName" | "phone" | "city" | "bio"
+              > & {
+                  skills: Array<{ skill: { name: string } }>;
+                  educations: ApplicantStudentEducation[];
+                  projects: ApplicantStudentProject[];
+                  experiences: ApplicantStudentExperience[];
+              })
+            | null;
     };
 };
 
@@ -80,9 +111,22 @@ export const listingApi = {
             "/listing/mine",
         ),
     get: (id: string) =>
-        api.get<{ listing: ListingWithCompany & { skills: unknown[] } }>(
-            `/listing/${id}`,
-        ),
+        api.get<{
+            listing: ListingWithCompany & {
+                skills: unknown[];
+                postedBy: {
+                    id: string;
+                    name: string | null;
+                    image: string | null;
+                    employerProfile: {
+                        firstName: string;
+                        lastName: string | null;
+                        jobTitle: string | null;
+                        linkedinUrl: string | null;
+                    } | null;
+                };
+            };
+        }>(`/listing/${id}`),
     create: (input: ListingInput) =>
         api.post<{ listing: Listing }>("/listing", input),
     update: (id: string, input: Partial<Omit<ListingInput, "companyId">>) =>
@@ -113,6 +157,7 @@ export const listingApi = {
         api.get<{
             items: ApplicantWithStudent[];
             screeningQuestions: string[];
+            skillTagsRaw: string[];
         }>(`/listing/${listingId}/applications`),
 
     admin_list: (params: {

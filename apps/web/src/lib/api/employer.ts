@@ -14,6 +14,7 @@ export type EmployerProfileInput = {
     lastName?: string;
     phone?: string;
     jobTitle?: string;
+    linkedinUrl?: string;
 };
 
 export type CompanyInput = {

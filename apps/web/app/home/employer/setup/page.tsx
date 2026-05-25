@@ -156,6 +156,7 @@ function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
         lastName: "",
         phone: "",
         jobTitle: "",
+        linkedinUrl: "",
     });
     const [saving, setSaving] = useState(false);
 
@@ -175,6 +176,13 @@ function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
             toast.error("Please add your job title at the company.");
             return;
         }
+        const linkedin = form.linkedinUrl?.trim() || "";
+        if (linkedin && !isHttpUrl(linkedin)) {
+            toast.error(
+                "LinkedIn URL doesn’t look right. Include https:// at the start.",
+            );
+            return;
+        }
         setSaving(true);
         try {
             await employerApi.create({
@@ -182,6 +190,7 @@ function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
                 lastName: form.lastName?.trim() || undefined,
                 phone: form.phone?.trim() || undefined,
                 jobTitle: form.jobTitle?.trim() || undefined,
+                linkedinUrl: linkedin || undefined,
             });
             await onSaved();
         } catch (err) {
@@ -192,6 +201,15 @@ function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
             );
         } finally {
             setSaving(false);
+        }
+    }
+
+    function isHttpUrl(value: string): boolean {
+        try {
+            const u = new URL(value);
+            return u.protocol === "http:" || u.protocol === "https:";
+        } catch {
+            return false;
         }
     }
 
@@ -244,6 +262,18 @@ function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
                     />
                 </Field>
             </div>
+            <Field
+                label="LinkedIn URL"
+                hint="Shown to students on listings you post — helps build trust."
+            >
+                <input
+                    type="url"
+                    value={form.linkedinUrl ?? ""}
+                    onChange={(e) => set("linkedinUrl", e.target.value)}
+                    placeholder="https://linkedin.com/in/your-handle"
+                    className={inputCls()}
+                />
+            </Field>
 
             <div className="flex items-center justify-end pt-2">
                 <Button

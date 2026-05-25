@@ -175,10 +175,11 @@ model EmployerProfile {
   userId String @unique
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  firstName String
-  lastName  String?
-  phone     String?
-  jobTitle  String?
+  firstName   String
+  lastName    String?
+  phone       String?
+  jobTitle    String?
+  linkedinUrl String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

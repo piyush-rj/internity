@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Info } from "lucide-react";
+import { toast } from "sonner";
 import { PiBriefcase, PiGraduationCap } from "react-icons/pi";
 import { authApi, type UserRole } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -15,17 +15,15 @@ export function RolePicker({
     onChosen: (role: PickableRole) => Promise<void> | void;
 }) {
     const [submitting, setSubmitting] = useState<PickableRole | null>(null);
-    const [error, setError] = useState<string | null>(null);
 
     async function pick(role: PickableRole) {
         if (submitting) return;
         setSubmitting(role);
-        setError(null);
         try {
             await authApi.set_role(role);
             await onChosen(role);
         } catch (err) {
-            setError(
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t save your choice. Try again.",
@@ -87,12 +85,6 @@ export function RolePicker({
                     />
                 </div>
 
-                {error && (
-                    <div className="mt-4 flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
-                        <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                        <span>{error}</span>
-                    </div>
-                )}
             </div>
         </div>
     );
