@@ -4,9 +4,11 @@ import { useRef, useState } from "react";
 import { FileText, Info, Trash2, Upload } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { Button } from "@/src/components/ui/button";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { studentApi, uploadApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useMyProfile } from "@/src/hooks/useMyProfile";
+import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
@@ -20,6 +22,7 @@ export default function ResumePage() {
     const [dragging, setDragging] = useState(false);
     const [removing, setRemoving] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const { confirm, dialogProps } = useConfirm();
 
     const currentResume = profile?.resumeUrl ?? null;
 
@@ -79,8 +82,14 @@ export default function ResumePage() {
 
     async function handleRemove() {
         if (!currentResume) return;
-        if (!confirm("Remove your resume? You'll need to re-upload to apply."))
-            return;
+        const ok = await confirm({
+            title: "Remove your resume?",
+            description:
+                "You'll need to upload a new one before you can apply to any listings.",
+            confirmLabel: "Remove resume",
+            variant: "destructive",
+        });
+        if (!ok) return;
         setRemoving(true);
         setError(null);
         try {
@@ -195,6 +204,7 @@ export default function ResumePage() {
                     )}
                 </>
             )}
+            <ConfirmDialog {...dialogProps} />
         </EmptySection>
     );
 }

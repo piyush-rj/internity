@@ -31,7 +31,7 @@ export function TemplatePicker({
 
     return (
         <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
-            <div className="flex items-start justify-between gap-3">
+            <div className="flex items-center justify-between gap-3">
                 <div className="flex items-start gap-2">
                     <Sparkles className="h-4 w-4 mt-0.5 text-orange-600 shrink-0" />
                     <div className="space-y-0.5">

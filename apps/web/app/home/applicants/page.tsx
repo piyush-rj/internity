@@ -238,7 +238,7 @@ function applicantName(a: ApplicantWithStudent): string {
 }
 
 function applicantCollege(a: ApplicantWithStudent): string {
-    return a.student.studentProfile?.educations[0]?.institute ?? "";
+    return a.student.studentProfile?.educations?.[0]?.institute ?? "";
 }
 
 function matchCount(

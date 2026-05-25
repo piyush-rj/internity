@@ -87,6 +87,7 @@ export default async function listListings(
                             name: true,
                             slug: true,
                             logoUrl: true,
+                            verificationStatus: true,
                         },
                     },
                 },

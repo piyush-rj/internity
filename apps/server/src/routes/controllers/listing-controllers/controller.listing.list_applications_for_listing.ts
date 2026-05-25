@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
-import { ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 export default async function listApplicationsForListing(
@@ -12,7 +16,11 @@ export default async function listApplicationsForListing(
         const id = req.params.id as string;
         const found = await prisma.listing.findUnique({
             where: { id },
-            select: { companyId: true, screeningQuestions: true },
+            select: {
+                companyId: true,
+                screeningQuestions: true,
+                skillTagsRaw: true,
+            },
         });
         if (!found) throw new NotFound();
         const member = await prisma.companyMember.findUnique({
@@ -51,6 +59,53 @@ export default async function listApplicationsForListing(
                                 phone: true,
                                 city: true,
                                 bio: true,
+                                skills: {
+                                    select: {
+                                        skill: { select: { name: true } },
+                                    },
+                                },
+                                // Top two educations (current first) — drives
+                                // the "College (A→Z)" sort and the structured
+                                // Education row on the applicant card.
+                                educations: {
+                                    select: {
+                                        institute: true,
+                                        degree: true,
+                                        fieldOfStudy: true,
+                                        startYear: true,
+                                        endYear: true,
+                                        current: true,
+                                    },
+                                    orderBy: [
+                                        { current: "desc" },
+                                        { startYear: "desc" },
+                                    ],
+                                    take: 2,
+                                },
+                                projects: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        link: true,
+                                    },
+                                    take: 4,
+                                    orderBy: { endDate: "desc" },
+                                },
+                                experiences: {
+                                    select: {
+                                        id: true,
+                                        title: true,
+                                        company: true,
+                                        startDate: true,
+                                        endDate: true,
+                                        current: true,
+                                    },
+                                    take: 4,
+                                    orderBy: [
+                                        { current: "desc" },
+                                        { startDate: "desc" },
+                                    ],
+                                },
                             },
                         },
                     },
@@ -60,6 +115,7 @@ export default async function listApplicationsForListing(
         api.ok({
             items: rows,
             screeningQuestions: found.screeningQuestions,
+            skillTagsRaw: found.skillTagsRaw,
         });
     } catch (err) {
         handleApiError(err, api);

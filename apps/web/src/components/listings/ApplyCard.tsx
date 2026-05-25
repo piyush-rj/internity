@@ -232,7 +232,7 @@ function ApplyDialog({
     return createPortal(
         <>
             <div
-                className="fixed inset-0 z-[100] bg-black/30"
+                className="fixed inset-0 z-100 bg-black/30"
                 onClick={() => !submitting && onClose()}
                 aria-hidden
             />
@@ -241,7 +241,7 @@ function ApplyDialog({
                 aria-modal="true"
                 aria-label="Apply to this listing"
                 className={cn(
-                    "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[101]",
+                    "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-101",
                     "w-full max-w-lg mx-4 rounded-xl border border-border bg-background shadow-2xl",
                     "flex flex-col max-h-[90vh]",
                 )}

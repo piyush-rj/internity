@@ -1,12 +1,13 @@
 "use client";
-
 import { useState } from "react";
 import Image from "next/image";
 import { Info, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import type { CompanyMemberWithUser, CompanyRole } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
 export function MembersCard({
@@ -28,7 +29,7 @@ export function MembersCard({
     onUpdateRole: (userId: string, role: CompanyRole) => Promise<void>;
     onRemove: (userId: string) => Promise<void>;
 }) {
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState<boolean>(false);
 
     return (
         <section className="rounded-xl border border-border bg-card overflow-hidden">
@@ -103,6 +104,7 @@ function Row({
     onRemove: (userId: string) => Promise<void>;
 }) {
     const [busy, setBusy] = useState(false);
+    const { confirm, dialogProps } = useConfirm();
 
     async function changeRole(role: CompanyRole) {
         if (busy || role === member.role) return;
@@ -116,7 +118,14 @@ function Row({
 
     async function handleRemove() {
         if (busy) return;
-        if (!confirm(`Remove ${member.user.name} from this company?`)) return;
+        const ok = await confirm({
+            title: `Remove ${member.user.name}?`,
+            description:
+                "They'll lose access to this company's listings and applicants immediately. You can re-invite them later.",
+            confirmLabel: "Remove",
+            variant: "destructive",
+        });
+        if (!ok) return;
         setBusy(true);
         try {
             await onRemove(member.userId);
@@ -176,6 +185,7 @@ function Row({
                     <Trash2 className="h-3.5 w-3.5" />
                 </button>
             )}
+            <ConfirmDialog {...dialogProps} />
         </div>
     );
 }

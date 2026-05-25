@@ -12,8 +12,10 @@ import {
     PiUsers,
 } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { ApiClientError } from "@/src/lib/apiClient";
 import type { MyListing } from "@/src/hooks/useMyListings";
+import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
 type BusyKind =
@@ -48,6 +50,7 @@ export function MyListingCard({
     const expired = isExpired(listing.expiresAt);
     const expiringSoon = !expired && isExpiringSoon(listing.expiresAt);
     const [busy, setBusy] = useState<BusyKind>(null);
+    const { confirm, dialogProps } = useConfirm();
 
     async function run<T>(kind: BusyKind, fn: () => Promise<T>) {
         if (busy) return;
@@ -205,12 +208,15 @@ export function MyListingCard({
                     )}
                     <button
                         type="button"
-                        onClick={() => {
-                            if (
-                                confirm(
-                                    `Delete "${listing.title}"? This can’t be undone.`,
-                                )
-                            ) {
+                        onClick={async () => {
+                            const ok = await confirm({
+                                title: `Delete "${listing.title}"?`,
+                                description:
+                                    "Applicants and all data for this listing will be removed. This can’t be undone.",
+                                confirmLabel: "Delete listing",
+                                variant: "destructive",
+                            });
+                            if (ok) {
                                 run("remove", () => onRemove(listing.id));
                             }
                         }}
@@ -226,6 +232,7 @@ export function MyListingCard({
                     </button>
                 </div>
             )}
+            <ConfirmDialog {...dialogProps} />
         </div>
     );
 }

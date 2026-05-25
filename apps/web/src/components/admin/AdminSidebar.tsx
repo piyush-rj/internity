@@ -47,18 +47,6 @@ function resolveActiveKey(pathname: string): string {
 }
 
 export function AdminSidebar() {
-    const pathname = usePathname() ?? "/admin/approvals";
-    const resolvedKey = resolveActiveKey(pathname);
-
-    // Optimistic highlight — matches the dashboard Sidebar pattern.
-    const [pendingKey, setPendingKey] = useState<string | null>(null);
-    if (pendingKey !== null && pendingKey === resolvedKey) {
-        setPendingKey(null);
-    }
-    const activeKey = pendingKey ?? resolvedKey;
-
-    const onNavClick = useCallback((key: string) => setPendingKey(key), []);
-
     return (
         <aside
             className={cn(
@@ -67,9 +55,44 @@ export function AdminSidebar() {
                 "border-r border-sidebar-border bg-sidebar",
             )}
         >
+            <AdminSidebarBody />
+        </aside>
+    );
+}
+
+/**
+ * Inner admin sidebar (brand + nav). Shared between the desktop aside and
+ * the mobile drawer; `onNavigate` lets the drawer close when the user
+ * picks a destination.
+ */
+export function AdminSidebarBody({
+    onNavigate,
+}: {
+    onNavigate?: () => void;
+} = {}) {
+    const pathname = usePathname() ?? "/admin/approvals";
+    const resolvedKey = resolveActiveKey(pathname);
+
+    const [pendingKey, setPendingKey] = useState<string | null>(null);
+    if (pendingKey !== null && pendingKey === resolvedKey) {
+        setPendingKey(null);
+    }
+    const activeKey = pendingKey ?? resolvedKey;
+
+    const onNavClick = useCallback(
+        (key: string) => {
+            setPendingKey(key);
+            onNavigate?.();
+        },
+        [onNavigate],
+    );
+
+    return (
+        <>
             <Link
                 href={"/admin/approvals"}
-                className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer"
+                onClick={() => onNavigate?.()}
+                className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer shrink-0"
             >
                 <div
                     className={cn(
@@ -102,7 +125,7 @@ export function AdminSidebar() {
                     ))}
                 </div>
             </nav>
-        </aside>
+        </>
     );
 }
 

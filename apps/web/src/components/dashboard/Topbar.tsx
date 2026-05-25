@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Menu } from "lucide-react";
 import { PiArrowUUpLeft } from "react-icons/pi";
 import { PlusIcon, SearchIcon } from "@/src/components/dashboard/icons";
 import { NotificationPanel } from "@/src/components/dashboard/NotificationPanel";
+import { MobileNavDrawer } from "@/src/components/dashboard/MobileNavDrawer";
+import { SidebarBody } from "@/src/components/dashboard/Sidebar";
 import { useListingSearch } from "@/src/hooks/useListingSearch";
 import { cn } from "@/src/lib/utils";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
@@ -61,6 +64,7 @@ export function Topbar() {
     const role = useMeStore((s) => s.me?.role);
     const [search, setSearch] = useState<string>("");
     const [open, setOpen] = useState<boolean>(false);
+    const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
     const wrapperRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
     const { items: suggestions, loading: searching } = useListingSearch(search);
@@ -128,7 +132,21 @@ export function Topbar() {
 
     return (
         <header className="h-13 border-b border-border nav-blur sticky top-0 z-30 bg-neutral-50">
-            <div className="h-full flex items-center justify-between gap-4 px-6">
+            <div className="h-full flex items-center justify-between gap-4 px-4 sm:px-6">
+                {/* Mobile hamburger — the desktop sidebar is hidden below
+                    lg, so this is the only way to navigate on small screens. */}
+                <button
+                    type="button"
+                    onClick={() => setDrawerOpen(true)}
+                    aria-label="Open menu"
+                    className={cn(
+                        "lg:hidden h-9 w-9 -ml-1 inline-flex items-center justify-center shrink-0",
+                        "rounded-md text-muted-foreground",
+                        "hover:bg-secondary hover:text-foreground transition-colors",
+                    )}
+                >
+                    <Menu className="h-4 w-4" />
+                </button>
                 <nav
                     aria-label="Breadcrumb"
                     className="flex items-center gap-2 min-w-0"
@@ -138,7 +156,7 @@ export function Topbar() {
                         onClick={() => router.back()}
                         aria-label="Go back"
                         className={cn(
-                            "h-7 w-7 inline-flex items-center justify-center shrink-0",
+                            "hidden sm:inline-flex h-7 w-7 items-center justify-center shrink-0",
                             "rounded-md text-muted-foreground",
                             "hover:bg-secondary hover:text-foreground transition-colors",
                         )}
@@ -304,6 +322,12 @@ export function Topbar() {
                     </div>
                 </div>
             </div>
+            <MobileNavDrawer
+                open={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+            >
+                <SidebarBody onNavigate={() => setDrawerOpen(false)} />
+            </MobileNavDrawer>
         </header>
     );
 }

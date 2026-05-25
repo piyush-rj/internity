@@ -111,8 +111,12 @@ export function ListingDetail({
 function PostedByCard({
     postedBy,
 }: {
-    postedBy: ListingDetailType["postedBy"];
+    postedBy: ListingDetailType["postedBy"] | null | undefined;
 }) {
+    // Defense in depth: if the backend ever ships a listing without the
+    // postedBy join (regression / older payload), render nothing instead of
+    // crashing the whole detail page.
+    if (!postedBy) return null;
     const ep = postedBy.employerProfile;
     const founderName =
         (ep

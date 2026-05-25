@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Check, ChevronDown, ChevronUp, MessageSquare, X } from "lucide-react";
 import {
     PiArrowSquareOut,
@@ -95,7 +96,7 @@ export function ApplicantCard({
             const { id } = await chatApi.start_conversation(applicant.id);
             router.push(`/home/messages?cid=${id}`);
         } catch (err) {
-            alert(
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t open chat.",
@@ -105,7 +106,10 @@ export function ApplicantCard({
         }
     }
 
-    const primaryEducation = profile?.educations[0] ?? null;
+    // Defensive ?? — the backend may ship payloads where the relations
+    // arrays are absent (older API shape, partial responses); we render an
+    // empty Skills / Education row rather than crashing the page.
+    const primaryEducation = profile?.educations?.[0] ?? null;
     const skills = profile?.skills ?? [];
     const projects = profile?.projects ?? [];
     const experiences = profile?.experiences ?? [];
@@ -195,7 +199,7 @@ export function ApplicantCard({
             </div>
 
             {/* ---- Structured rows ---- */}
-            <dl className="mt-4 ml-14 space-y-2 text-[12.5px]">
+            <dl className="mt-4 sm:ml-14 space-y-2 text-[12.5px]">
                 <Row label="Education">
                     {primaryEducation ? (
                         <EducationLine education={primaryEducation} />
@@ -221,7 +225,7 @@ export function ApplicantCard({
             </dl>
 
             {/* ---- Footer: expand + actions ---- */}
-            <div className="mt-3 ml-14 flex items-center gap-3">
+            <div className="mt-3 sm:ml-14 flex flex-wrap items-center gap-x-3 gap-y-2">
                 {hasExpandableContent && (
                     <button
                         type="button"
@@ -297,7 +301,7 @@ export function ApplicantCard({
 
             {/* ---- Expanded panel ---- */}
             {expanded && (
-                <div className="mt-3 ml-14 space-y-3">
+                <div className="mt-3 sm:ml-14 space-y-3">
                     {applicant.screeningAnswers.length > 0 && (
                         <Panel title="Answers">
                             <div className="divide-y divide-border">
@@ -467,8 +471,10 @@ function Row({
     children: React.ReactNode;
 }) {
     return (
-        <div className="grid grid-cols-[110px_1fr] gap-3 items-start">
-            <dt className="text-muted-foreground pt-0.5">{label}</dt>
+        <div className="flex flex-col gap-0.5 sm:grid sm:grid-cols-[110px_1fr] sm:gap-3 sm:items-start">
+            <dt className="text-[11px] uppercase tracking-wider text-muted-foreground sm:text-[12.5px] sm:normal-case sm:tracking-normal sm:pt-0.5">
+                {label}
+            </dt>
             <dd className="min-w-0 text-foreground/90">{children}</dd>
         </div>
     );

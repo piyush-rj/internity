@@ -161,6 +161,29 @@ function resolveActiveKey(pathname: string, nav: NavSet): string {
 }
 
 export function Sidebar() {
+    return (
+        <aside
+            className={cn(
+                "hidden lg:flex flex-col w-60 shrink-0",
+                "sticky top-0 h-screen",
+                "border-r border-sidebar-border bg-sidebar",
+            )}
+        >
+            <SidebarBody />
+        </aside>
+    );
+}
+
+/**
+ * Inner sidebar contents (brand + nav + upgrade card) so the desktop aside
+ * and the mobile drawer can share one implementation. `onNavigate` lets the
+ * drawer close itself after the user picks a destination.
+ */
+export function SidebarBody({
+    onNavigate,
+}: {
+    onNavigate?: () => void;
+} = {}) {
     const pathname = usePathname() ?? "/home";
     const role = useMeStore((s) => s.me?.role);
     const totalUnread = useChatStore(selectTotalUnread);
@@ -176,7 +199,13 @@ export function Sidebar() {
     }
     const activeKey = pendingKey ?? resolvedKey;
 
-    const onNavClick = useCallback((key: string) => setPendingKey(key), []);
+    const onNavClick = useCallback(
+        (key: string) => {
+            setPendingKey(key);
+            onNavigate?.();
+        },
+        [onNavigate],
+    );
 
     // Inject the live unread count onto the Messages nav item.
     const decorate = useCallback(
@@ -192,16 +221,11 @@ export function Sidebar() {
     );
 
     return (
-        <aside
-            className={cn(
-                "hidden lg:flex flex-col w-60 shrink-0",
-                "sticky top-0 h-screen",
-                "border-r border-sidebar-border bg-sidebar",
-            )}
-        >
+        <>
             <Link
                 href={"/"}
-                className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer"
+                onClick={() => onNavigate?.()}
+                className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer shrink-0"
             >
                 <div
                     className={cn(
@@ -248,7 +272,7 @@ export function Sidebar() {
             </nav>
 
             <UpgradeCard />
-        </aside>
+        </>
     );
 }
 

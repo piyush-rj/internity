@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
-import { ZodError } from "zod";
-import { ApiError, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    NotFound,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 export default async function getListing(
@@ -14,6 +17,24 @@ export default async function getListing(
             include: {
                 company: true,
                 skills: { include: { skill: true } },
+                // Surface the poster's name + LinkedIn so the public detail
+                // page can render a "Posted by" trust signal next to the
+                // company. Email/phone deliberately excluded for privacy.
+                postedBy: {
+                    select: {
+                        id: true,
+                        name: true,
+                        image: true,
+                        employerProfile: {
+                            select: {
+                                firstName: true,
+                                lastName: true,
+                                jobTitle: true,
+                                linkedinUrl: true,
+                            },
+                        },
+                    },
+                },
             },
         });
         if (!l) throw new NotFound();
