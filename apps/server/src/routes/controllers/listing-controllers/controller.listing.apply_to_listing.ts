@@ -26,12 +26,27 @@ export default async function applyToListing(
             companyId: true,
             closedAt: true,
             takenDownAt: true,
+            pausedAt: true,
+            expiresAt: true,
             title: true,
         },
     });
     if (!found) throw new NotFound("Listing not found");
     if (found.takenDownAt !== null) throw new NotFound("Listing not found");
     if (found.closedAt !== null) throw new InvalidRequest("Listing is closed");
+    if (found.pausedAt !== null) {
+        throw new InvalidRequest(
+            "This role has paused hiring. Try again later.",
+        );
+    }
+    if (
+        found.expiresAt !== null &&
+        found.expiresAt.getTime() <= Date.now()
+    ) {
+        throw new InvalidRequest(
+            "This role's application window has closed.",
+        );
+    }
 
     const member = await prisma.companyMember.findUnique({
         where: {

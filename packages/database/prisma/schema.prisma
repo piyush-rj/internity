@@ -260,6 +260,13 @@ model Listing {
   updatedAt DateTime  @updatedAt
   closedAt  DateTime? // null = live, non-null = closed
 
+  // Lifecycle. expiresAt is set on creation to createdAt + 30 days; once it
+  // passes the listing is hidden from public surfaces until the founder
+  // renews. pausedAt = "Not Hiring" — also hides from browse but keeps
+  // existing applicants visible to the founder.
+  expiresAt DateTime?
+  pausedAt  DateTime?
+
   // Admin moderation (soft-removal). When takenDownAt is set the listing
   // becomes hidden from public browse + the founder's own listings show it
   // as "Removed by admin" with the reason. An admin can restore it.
@@ -279,6 +286,8 @@ model Listing {
   @@index([applyBy])
   @@index([closedAt])
   @@index([takenDownAt])
+  @@index([expiresAt])
+  @@index([pausedAt])
 }
 
 model ListingSkill {

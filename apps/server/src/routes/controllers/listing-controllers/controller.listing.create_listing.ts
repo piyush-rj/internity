@@ -37,6 +37,8 @@ function normalize(tags: readonly string[]): string[] {
     return tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0);
 }
 
+const LISTING_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
 export default async function createListing(
     req: Request,
     res: Response,
@@ -68,6 +70,10 @@ export default async function createListing(
             );
         }
 
+        // Listings live for 30 days. The founder can renew to bump this
+        // forward; we cap visibility on the public surfaces using this field.
+        const expiresAt = new Date(Date.now() + LISTING_TTL_MS);
+
         const data: Prisma.ListingUncheckedCreateInput = {
             companyId: body.companyId,
             postedById: req.user!.id,
@@ -86,6 +92,7 @@ export default async function createListing(
             startDate: body.startDate ?? null,
             applyBy: body.applyBy ?? null,
             openings: body.openings ?? null,
+            expiresAt,
             ...(body.partTime !== null && body.partTime !== undefined
                 ? { partTime: body.partTime }
                 : {}),

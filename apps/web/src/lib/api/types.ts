@@ -161,6 +161,8 @@ export type Listing = {
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;
+    expiresAt: string | null;
+    pausedAt: string | null;
     takenDownAt: string | null;
     takedownReason: string | null;
     takenDownById: string | null;

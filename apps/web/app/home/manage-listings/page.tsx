@@ -8,7 +8,17 @@ import { useMyListings } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
 
 export default function ManageListingsPage() {
-    const { items, loading, error, close, reopen, remove } = useMyListings();
+    const {
+        items,
+        loading,
+        error,
+        close,
+        reopen,
+        renew,
+        pause,
+        unpause,
+        remove,
+    } = useMyListings();
 
     const openCount = items.filter((it) => !it.closedAt).length;
 
@@ -41,6 +51,9 @@ export default function ManageListingsPage() {
                                     listing={listing}
                                     onClose={close}
                                     onReopen={reopen}
+                                    onRenew={renew}
+                                    onPause={pause}
+                                    onUnpause={unpause}
                                     onRemove={remove}
                                 />
                             </li>

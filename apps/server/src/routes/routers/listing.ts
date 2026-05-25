@@ -13,6 +13,9 @@ import listApplicationsForListing from "../controllers/listing-controllers/contr
 import adminListListings from "../controllers/listing-controllers/controller.listing.admin_list.ts";
 import adminTakeDownListing from "../controllers/listing-controllers/controller.listing.admin_take_down.ts";
 import adminRestoreListing from "../controllers/listing-controllers/controller.listing.admin_restore.ts";
+import renewListing from "../controllers/listing-controllers/controller.listing.renew_listing.ts";
+import pauseListing from "../controllers/listing-controllers/controller.listing.pause_listing.ts";
+import unpauseListing from "../controllers/listing-controllers/controller.listing.unpause_listing.ts";
 
 const router: RouterType = Router();
 
@@ -32,6 +35,9 @@ router.post("/", requireAuth, createListing);
 router.patch("/:id", requireAuth, updateListing);
 router.post("/:id/close", requireAuth, closeListing);
 router.post("/:id/reopen", requireAuth, reopenListing);
+router.post("/:id/renew", requireAuth, renewListing);
+router.post("/:id/pause", requireAuth, pauseListing);
+router.post("/:id/unpause", requireAuth, unpauseListing);
 router.delete("/:id", requireAuth, deleteListing);
 router.post("/:id/apply", requireAuth, applyToListing);
 router.get("/:id/applications", requireAuth, listApplicationsForListing);

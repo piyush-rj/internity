@@ -21,9 +21,14 @@ export default async function getListing(
             },
         });
         if (!l) throw new NotFound();
-        // Taken-down listings are invisible publicly. The founder learns
-        // why from the notification + the "Removed" row in manage-listings.
+        // Hidden from public surfaces: admin takedowns, founder pauses, and
+        // listings past their 30-day expiry. The founder learns about each
+        // case from the manage-listings UI + the in-app notifications.
         if (l.takenDownAt) throw new NotFound();
+        if (l.pausedAt) throw new NotFound();
+        if (l.expiresAt && l.expiresAt.getTime() <= Date.now()) {
+            throw new NotFound();
+        }
         api.ok({ listing: l });
     } catch (err) {
         if (err instanceof ApiError) {

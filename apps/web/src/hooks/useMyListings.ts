@@ -13,6 +13,9 @@ export type MyListingsState = {
     refetch: () => Promise<void>;
     close: (id: string) => Promise<void>;
     reopen: (id: string) => Promise<void>;
+    renew: (id: string) => Promise<void>;
+    pause: (id: string) => Promise<void>;
+    unpause: (id: string) => Promise<void>;
     remove: (id: string) => Promise<void>;
 };
 
@@ -52,6 +55,39 @@ export function useMyListings(): MyListingsState {
         );
     }, []);
 
+    const renew = useCallback(async (id: string) => {
+        const { listing } = await listingApi.renew(id);
+        setItems((prev) =>
+            prev.map((it) =>
+                it.id === id
+                    ? {
+                          ...it,
+                          expiresAt: listing.expiresAt,
+                          closedAt: listing.closedAt,
+                      }
+                    : it,
+            ),
+        );
+    }, []);
+
+    const pause = useCallback(async (id: string) => {
+        const { listing } = await listingApi.pause(id);
+        setItems((prev) =>
+            prev.map((it) =>
+                it.id === id ? { ...it, pausedAt: listing.pausedAt } : it,
+            ),
+        );
+    }, []);
+
+    const unpause = useCallback(async (id: string) => {
+        const { listing } = await listingApi.unpause(id);
+        setItems((prev) =>
+            prev.map((it) =>
+                it.id === id ? { ...it, pausedAt: listing.pausedAt } : it,
+            ),
+        );
+    }, []);
+
     const remove = useCallback(async (id: string) => {
         await listingApi.remove(id);
         setItems((prev) => prev.filter((it) => it.id !== id));
@@ -69,6 +105,9 @@ export function useMyListings(): MyListingsState {
         refetch: fetchListings,
         close,
         reopen,
+        renew,
+        pause,
+        unpause,
         remove,
     };
 }

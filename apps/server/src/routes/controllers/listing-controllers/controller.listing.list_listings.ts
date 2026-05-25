@@ -34,9 +34,22 @@ export default async function listListings(
         if (!parsed.success) throw new InvalidRequest("Invalid query");
         const q = parsed.data;
 
+        // Public browse only shows listings that are: open, not taken down,
+        // not paused ("Not Hiring"), and not past their 30-day expiry. The
+        // expiry constraint is nested under AND so it composes with the
+        // free-text search's own OR clause below.
         const where: Prisma.ListingWhereInput = {
             closedAt: null,
             takenDownAt: null,
+            pausedAt: null,
+            AND: [
+                {
+                    OR: [
+                        { expiresAt: null },
+                        { expiresAt: { gt: new Date() } },
+                    ],
+                },
+            ],
         };
         if (q.type) where.type = q.type as ListingType;
         if (q.mode) where.mode = q.mode as WorkMode;

@@ -90,6 +90,12 @@ export const listingApi = {
         api.post<{ listing: Listing }>(`/listing/${id}/close`),
     reopen: (id: string) =>
         api.post<{ listing: Listing }>(`/listing/${id}/reopen`),
+    renew: (id: string) =>
+        api.post<{ listing: Listing }>(`/listing/${id}/renew`),
+    pause: (id: string) =>
+        api.post<{ listing: Listing }>(`/listing/${id}/pause`),
+    unpause: (id: string) =>
+        api.post<{ listing: Listing }>(`/listing/${id}/unpause`),
     remove: (id: string) => api.delete<{ ok: true }>(`/listing/${id}`),
 
     // apply hangs off /listing/:id/apply

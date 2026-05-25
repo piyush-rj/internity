@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { AlertTriangle, ChevronRight, Trash2 } from "lucide-react";
 import {
     PiBriefcase,
@@ -11,31 +12,54 @@ import {
     PiUsers,
 } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
+import { ApiClientError } from "@/src/lib/apiClient";
 import type { MyListing } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
+
+type BusyKind =
+    | "close"
+    | "reopen"
+    | "renew"
+    | "pause"
+    | "unpause"
+    | "remove"
+    | null;
 
 export function MyListingCard({
     listing,
     onClose,
     onReopen,
+    onRenew,
+    onPause,
+    onUnpause,
     onRemove,
 }: {
     listing: MyListing;
     onClose: (id: string) => Promise<void>;
     onReopen: (id: string) => Promise<void>;
+    onRenew: (id: string) => Promise<void>;
+    onPause: (id: string) => Promise<void>;
+    onUnpause: (id: string) => Promise<void>;
     onRemove: (id: string) => Promise<void>;
 }) {
     const closed = !!listing.closedAt;
     const takenDown = !!listing.takenDownAt;
-    const [busy, setBusy] = useState<"close" | "reopen" | "remove" | null>(
-        null,
-    );
+    const paused = !!listing.pausedAt;
+    const expired = isExpired(listing.expiresAt);
+    const expiringSoon = !expired && isExpiringSoon(listing.expiresAt);
+    const [busy, setBusy] = useState<BusyKind>(null);
 
-    async function run<T>(kind: typeof busy, fn: () => Promise<T>) {
+    async function run<T>(kind: BusyKind, fn: () => Promise<T>) {
         if (busy) return;
         setBusy(kind);
         try {
             await fn();
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Something went wrong. Try again.",
+            );
         } finally {
             setBusy(null);
         }
@@ -59,7 +83,17 @@ export function MyListingCard({
                     )}
                     <TypeBadge type={listing.type} />
                     <ModeBadge mode={listing.mode} />
-                    <StatusBadge closed={closed} takenDown={takenDown} />
+                    <StatusBadge
+                        closed={closed}
+                        takenDown={takenDown}
+                        paused={paused}
+                        expired={expired}
+                    />
+                    {expiringSoon && (
+                        <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                            Expires {formatExpiresAt(listing.expiresAt)}
+                        </span>
+                    )}
                 </div>
                 {takenDown && listing.takedownReason && (
                     <div className="mt-2 flex items-start gap-1.5 text-[11.5px] text-red-700">
@@ -107,7 +141,31 @@ export function MyListingCard({
 
             {!takenDown && (
                 <div className="flex items-center gap-1.5 shrink-0">
-                    {closed ? (
+                    {expired ? (
+                        <Button
+                            type="button"
+                            variant="exec-dark"
+                            onClick={() =>
+                                run("renew", () => onRenew(listing.id))
+                            }
+                            disabled={!!busy}
+                            className="h-8 px-2.5 text-[12px] cursor-pointer"
+                        >
+                            {busy === "renew" ? "…" : "Renew 30d"}
+                        </Button>
+                    ) : paused ? (
+                        <Button
+                            type="button"
+                            variant="exec-light"
+                            onClick={() =>
+                                run("unpause", () => onUnpause(listing.id))
+                            }
+                            disabled={!!busy}
+                            className="h-8 px-2.5 text-[12px] cursor-pointer"
+                        >
+                            {busy === "unpause" ? "…" : "Resume hiring"}
+                        </Button>
+                    ) : closed ? (
                         <Button
                             type="button"
                             variant="exec-light"
@@ -120,17 +178,30 @@ export function MyListingCard({
                             {busy === "reopen" ? "…" : "Reopen"}
                         </Button>
                     ) : (
-                        <Button
-                            type="button"
-                            variant="exec-light"
-                            onClick={() =>
-                                run("close", () => onClose(listing.id))
-                            }
-                            disabled={!!busy}
-                            className="h-8 px-2.5 text-[12px] cursor-pointer"
-                        >
-                            {busy === "close" ? "…" : "Close"}
-                        </Button>
+                        <>
+                            <Button
+                                type="button"
+                                variant="exec-light"
+                                onClick={() =>
+                                    run("pause", () => onPause(listing.id))
+                                }
+                                disabled={!!busy}
+                                className="h-8 px-2.5 text-[12px] cursor-pointer"
+                            >
+                                {busy === "pause" ? "…" : "Pause"}
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="exec-light"
+                                onClick={() =>
+                                    run("close", () => onClose(listing.id))
+                                }
+                                disabled={!!busy}
+                                className="h-8 px-2.5 text-[12px] cursor-pointer"
+                            >
+                                {busy === "close" ? "…" : "Close"}
+                            </Button>
+                        </>
                     )}
                     <button
                         type="button"
@@ -162,14 +233,32 @@ export function MyListingCard({
 function StatusBadge({
     closed,
     takenDown,
+    paused,
+    expired,
 }: {
     closed: boolean;
     takenDown: boolean;
+    paused: boolean;
+    expired: boolean;
 }) {
     if (takenDown) {
         return (
             <span className="rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
                 Removed by admin
+            </span>
+        );
+    }
+    if (expired) {
+        return (
+            <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                Expired
+            </span>
+        );
+    }
+    if (paused) {
+        return (
+            <span className="rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">
+                Paused
             </span>
         );
     }
@@ -185,6 +274,27 @@ function StatusBadge({
             {closed ? "Closed" : "Open"}
         </span>
     );
+}
+
+function isExpired(expiresAt: string | null): boolean {
+    if (!expiresAt) return false;
+    return new Date(expiresAt).getTime() <= Date.now();
+}
+
+function isExpiringSoon(expiresAt: string | null): boolean {
+    if (!expiresAt) return false;
+    const diffMs = new Date(expiresAt).getTime() - Date.now();
+    return diffMs > 0 && diffMs <= 3 * 24 * 60 * 60 * 1000;
+}
+
+function formatExpiresAt(iso: string | null): string {
+    if (!iso) return "";
+    const diffMs = new Date(iso).getTime() - Date.now();
+    if (diffMs <= 0) return "now";
+    const days = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+    if (days >= 1) return `in ${days}d`;
+    const hours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
+    return `in ${hours}h`;
 }
 
 function TypeBadge({ type }: { type: MyListing["type"] }) {
