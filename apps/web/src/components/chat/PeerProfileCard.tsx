@@ -5,11 +5,7 @@ import type { ConversationPeer } from "types";
 import { ChatAvatar } from "./ChatAvatar";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Profile header card shown at the top of the message scroll area — large
- * avatar, peer name, contextual subtitle (email or listing/company), and an
- * optional "View Profile" link.
- */
+// profile header card at top of message scroll area
 export function PeerProfileCard({
     peer,
     subtitle,
@@ -47,13 +43,7 @@ export function PeerProfileCard({
     );
 }
 
-/**
- * Subtitle for the profile card.
- *   - Employer-viewing-student → student's email (their identifier).
- *   - Student-viewing-employer → listing title · company name, plus a
- *     "+ N more" tail when the thread spans multiple applications.
- *   - Otherwise → null (no subtitle).
- */
+// builds the subtitle for the peer profile card
 export function buildPeerSubtitle({
     peerEmail,
     listingTitle,
@@ -64,7 +54,6 @@ export function buildPeerSubtitle({
     peerEmail: string | null;
     listingTitle: string | null;
     companyName: string | null;
-    /** Applications attached to the thread beyond the primary one. */
     otherRolesCount: number;
     viewerRole: string | null;
 }): string | null {

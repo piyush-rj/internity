@@ -2,11 +2,7 @@ import type { Request, Response } from "express";
 import { ResponseWriter } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-/**
- * Total unread message count across every conversation the caller is part of.
- * Drives the sidebar badge — kept as a single integer so the client doesn't
- * have to keep the full conversation list hot.
- */
+// returns total unread message count across all caller conversations
 export default async function unreadCount(
     req: Request,
     res: Response,

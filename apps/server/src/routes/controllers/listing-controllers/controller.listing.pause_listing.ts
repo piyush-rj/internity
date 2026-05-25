@@ -7,11 +7,7 @@ import {
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-/**
- * "Not Hiring" toggle — hides the listing from public browse but keeps it
- * visible (with existing applicants) to the founder. Idempotent: re-pausing
- * an already-paused listing keeps the original pausedAt timestamp.
- */
+// pauses a listing from public browse and keeps it visible to the founder
 export default async function pauseListing(
     req: Request,
     res: Response,

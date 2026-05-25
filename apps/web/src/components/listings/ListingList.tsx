@@ -37,8 +37,6 @@ export function ListingList({
     compact?: boolean;
 }) {
     const { me } = useMe();
-    // Only students get the select-to-apply column. Employers / admins
-    // browsing the same surface don't need it.
     const selectable = !compact && me?.role === "STUDENT";
     const colCount = (compact ? 6 : 8) + (selectable ? 1 : 0);
     return (
@@ -432,7 +430,7 @@ function ModeBadge({ mode }: { mode: ListingWithCompany["mode"] }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium",
+                "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
                 s.wrap,
             )}
         >

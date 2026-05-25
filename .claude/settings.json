@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs sed -i '' 's/rounded-2xl/rounded-lg/g')",
+      "Bash(grep -nA 30 \"ListingWithCompany\" /Users/piyush/utility/internshala_clone/apps/web/src/lib/api/types.ts)",
+      "Bash(grep -nA 5 \"listingApi.apply\" /Users/piyush/utility/internshala_clone/apps/web/src/components/listings/ApplyCard.tsx)",
+      "Bash(grep -nA 20 \"export type MyListing\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/hooks/useMyListings.ts)"
+    ]
+  }
+}

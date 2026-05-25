@@ -75,7 +75,7 @@ export function AddEmailDialog({
                     className={cn(
                         "fixed left-1/2 top-1/2 z-[101] w-[calc(100%-2rem)] max-w-[380px]",
                         "-translate-x-1/2 -translate-y-1/2",
-                        "rounded-2xl bg-white px-6 pt-6 pb-5",
+                        "rounded-lg bg-white px-6 pt-6 pb-5",
                         "shadow-[0_24px_48px_-12px_rgba(15,23,42,0.25)] ring-1 ring-black/5",
                         "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",
                         "data-[starting-style]:scale-95 data-[ending-style]:scale-95",

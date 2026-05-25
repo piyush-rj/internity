@@ -1,8 +1,4 @@
-/**
- * Plan catalogue for paid upgrades. Amounts are in the smallest currency unit
- * (paise for INR).
- */
-
+// plan catalogue for paid upgrades, amounts in smallest currency unit
 export type Plan = {
     code: string;
     name: string;

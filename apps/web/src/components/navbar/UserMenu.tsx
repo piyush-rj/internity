@@ -65,9 +65,7 @@ export function UserMenu() {
 
     if (!session?.user) return null;
 
-    // Prefer the app's own User row (me) — it has the persisted name/email
-    // we collected during phone-OTP onboarding. Fall back to the Supabase
-    // session metadata during the brief load window.
+    // prefer me row over supabase session metadata
     const displayName = me?.name ?? session.user.name ?? null;
     const displayImage = me?.image ?? session.user.image ?? null;
     const displayEmail = me?.email ?? session.user.email ?? null;
@@ -99,7 +97,7 @@ export function UserMenu() {
                     <div
                         role="menu"
                         className={cn(
-                            "absolute top-[calc(100%+3px)] w-72 z-50 right-2.75",
+                            "absolute top-[calc(100%+6px)] w-72 z-50 right-2.75",
                             "rounded-lg border border-border bg-white",
                             "py-1.5",
                             "shadow-[0_12px_32px_-12px_rgba(15,23,42,0.18)]",

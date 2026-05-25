@@ -49,10 +49,7 @@ export default async function updateCompany(
         if (body.size !== undefined) data.size = body.size;
         if (body.city !== undefined) data.city = body.city;
 
-        // Edit-and-resubmit: if the founder edits a rejected company, transition
-        // it back to PENDING so it re-enters the admin queue. We clear the
-        // rejection note and re-stamp submittedAt so the admin sees a fresh
-        // submission time.
+        // edit-and-resubmit transitions a rejected company back to pending
         if (c.verificationStatus === CompanyVerificationStatus.REJECTED) {
             data.verificationStatus = CompanyVerificationStatus.PENDING;
             data.rejectionNote = null;

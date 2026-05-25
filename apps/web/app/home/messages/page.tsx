@@ -47,8 +47,6 @@ function MessagesView() {
             .then((rows) => {
                 setError(null);
                 setConversations(rows);
-                // Keep the current selection if it still exists; otherwise leave
-                // the right pane empty — never auto-pick the first conversation.
                 setActiveId((curr) => {
                     if (curr && rows.some((c) => c.id === curr)) return curr;
                     return null;
@@ -68,7 +66,7 @@ function MessagesView() {
         refresh();
     }, [refresh]);
 
-    // Escape closes the active conversation and returns to the empty state.
+    // escape closes the active conversation
     useEffect(() => {
         function onKey(e: KeyboardEvent) {
             if (e.key === "Escape") setActiveId(null);
@@ -77,7 +75,7 @@ function MessagesView() {
         return () => window.removeEventListener("keydown", onKey);
     }, []);
 
-    // Mirror the active conversation into the URL so a refresh restores it.
+    // mirror the active conversation into the url
     useEffect(() => {
         const target = activeId
             ? `/home/messages?cid=${encodeURIComponent(activeId)}`
@@ -85,19 +83,14 @@ function MessagesView() {
         router.replace(target, { scroll: false });
     }, [activeId, router]);
 
-    // Mark the active conversation as read whenever it changes. Optimistic
-    // local clear + server upsert; the server broadcasts CONVERSATION_READ
-    // so the peer's tick flips.
+    // mark active conversation as read with optimistic local clear
     useEffect(() => {
         if (!activeId) return;
         clearUnread(activeId);
-        chatApi.mark_read(activeId).catch(() => {
-            /* silent — non-critical */
-        });
+        chatApi.mark_read(activeId).catch(() => {});
     }, [activeId, clearUnread]);
 
-    // Reorder + freshen the preview on every inbound message. Unread counts
-    // are kept in sync by UnreadChatsBootstrap.
+    // reorder and freshen the preview on every inbound message
     useEffect(() => {
         return socket.addListener((msg) => {
             if (msg.type !== MESSAGE_TYPE.MESSAGE_CREATED) return;
@@ -155,14 +148,9 @@ function MessagesView() {
         const unreadConvs = conversations.filter(
             (c) => unreadCountFor(c.id, c.unreadCount) > 0,
         );
-        // Optimistic: clear locally first; server broadcasts will confirm.
         for (const c of unreadConvs) clearUnread(c.id);
         await Promise.all(
-            unreadConvs.map((c) =>
-                chatApi.mark_read(c.id).catch(() => {
-                    /* silent */
-                }),
-            ),
+            unreadConvs.map((c) => chatApi.mark_read(c.id).catch(() => {})),
         );
     }
 

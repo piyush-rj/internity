@@ -8,23 +8,13 @@ import {
 import { Prisma, prisma } from "../../../db.ts";
 
 const Query = z.object({
-    /**
-     * live      = open, not taken down (default)
-     * closed    = closed by founder
-     * takendown = removed by admin
-     * all       = everything
-     */
     state: z.enum(["live", "closed", "takendown", "all"]).default("live"),
     q: z.string().optional(),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-/**
- * Admin-only list of every listing. Search hits title, company name,
- * skills, postedBy name/email, founder employerProfile name/jobTitle. Used
- * by the moderation queue on /admin/listings.
- */
+// admin-only paginated list of all listings with state filter and search
 export default async function adminListListings(
     req: Request,
     res: Response,

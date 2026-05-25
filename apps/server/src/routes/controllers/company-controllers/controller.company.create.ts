@@ -52,7 +52,6 @@ export default async function createCompany(
                     industry: body.industry ?? null,
                     size: body.size,
                     city: body.city ?? null,
-                    // New companies always start in the admin queue.
                     submittedAt: now,
                 },
             });
@@ -83,7 +82,6 @@ export default async function createCompany(
             err instanceof Prisma.PrismaClientKnownRequestError &&
             err.code === "P2002"
         ) {
-            // Unique constraint — almost always the slug for company create.
             const target = (err.meta?.target as string[] | undefined) ?? [];
             if (target.includes("slug")) {
                 api.fail(

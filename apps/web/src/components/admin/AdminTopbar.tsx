@@ -26,10 +26,9 @@ export function AdminTopbar() {
         <header
             className={cn(
                 "sticky top-0 z-30 h-13 px-4 sm:px-5 flex items-center justify-between gap-3",
-                "border-b border-border bg-background/85 backdrop-blur",
+                "border-b border-border bg-card",
             )}
         >
-            {/* Mobile hamburger — admin sidebar is hidden below lg. */}
             <button
                 type="button"
                 onClick={() => setDrawerOpen(true)}

@@ -13,6 +13,7 @@ import {
     PiBookmarkSimpleFill,
     PiBriefcaseFill,
     PiBuildingsFill,
+    PiCalendarCheckFill,
     PiChatCircleFill,
     PiFileTextFill,
     PiGearFill,
@@ -33,7 +34,6 @@ type Item = {
     icon: IconComp;
     href: string;
     badge?: string;
-    /** "primary" badges pop visually — use for live counts like unread chats. */
     badgeIntent?: "muted" | "primary";
 };
 
@@ -76,6 +76,12 @@ const studentNav: NavSet = {
             label: "Messages",
             icon: PiChatCircleFill,
             href: "/home/messages",
+        },
+        {
+            key: "schedules",
+            label: "Schedules",
+            icon: PiCalendarCheckFill,
+            href: "/home/schedules",
         },
     ],
     profile: [
@@ -132,6 +138,12 @@ const employerNav: NavSet = {
             icon: PiChatCircleFill,
             href: "/home/messages",
         },
+        {
+            key: "schedules",
+            label: "Schedules",
+            icon: PiCalendarCheckFill,
+            href: "/home/schedules",
+        },
     ],
     profile: [
         {
@@ -174,11 +186,7 @@ export function Sidebar() {
     );
 }
 
-/**
- * Inner sidebar contents (brand + nav + upgrade card) so the desktop aside
- * and the mobile drawer can share one implementation. `onNavigate` lets the
- * drawer close itself after the user picks a destination.
- */
+// inner sidebar shared by desktop aside and mobile drawer
 export function SidebarBody({
     onNavigate,
 }: {
@@ -186,13 +194,11 @@ export function SidebarBody({
 } = {}) {
     const pathname = usePathname() ?? "/home";
     const role = useMeStore((s) => s.me?.role);
+    const initialized = useMeStore((s) => s.initialized);
     const totalUnread = useChatStore(selectTotalUnread);
     const nav = pickNav(role);
     const resolvedKey = resolveActiveKey(pathname, nav);
 
-    // Optimistic highlight: when the user clicks a tab we paint the new
-    // active row instantly while Next.js loads the route in the background.
-    // Cleared once `pathname` catches up.
     const [pendingKey, setPendingKey] = useState<string | null>(null);
     if (pendingKey !== null && pendingKey === resolvedKey) {
         setPendingKey(null);
@@ -207,7 +213,6 @@ export function SidebarBody({
         [onNavigate],
     );
 
-    // Inject the live unread count onto the Messages nav item.
     const decorate = useCallback(
         (item: Item): Item => {
             if (item.key !== "messages" || totalUnread <= 0) return item;
@@ -248,31 +253,48 @@ export function SidebarBody({
             <nav className="flex-1 overflow-y-auto px-3 py-4">
                 <SectionLabel>Workspace</SectionLabel>
                 <div className="space-y-0.5">
-                    {nav.workspace.map((item) => (
-                        <NavItem
-                            key={item.key}
-                            item={decorate(item)}
-                            active={item.key === activeKey}
-                            onClick={onNavClick}
-                        />
-                    ))}
+                    {!initialized
+                        ? Array.from({ length: 6 }).map((_, i) => (
+                              <NavItemSkeleton key={i} />
+                          ))
+                        : nav.workspace.map((item) => (
+                              <NavItem
+                                  key={item.key}
+                                  item={decorate(item)}
+                                  active={item.key === activeKey}
+                                  onClick={onNavClick}
+                              />
+                          ))}
                 </div>
 
                 <SectionLabel className="mt-6">Profile</SectionLabel>
                 <div className="space-y-0.5">
-                    {nav.profile.map((item) => (
-                        <NavItem
-                            key={item.key}
-                            item={decorate(item)}
-                            active={item.key === activeKey}
-                            onClick={onNavClick}
-                        />
-                    ))}
+                    {!initialized
+                        ? Array.from({ length: 3 }).map((_, i) => (
+                              <NavItemSkeleton key={i} />
+                          ))
+                        : nav.profile.map((item) => (
+                              <NavItem
+                                  key={item.key}
+                                  item={decorate(item)}
+                                  active={item.key === activeKey}
+                                  onClick={onNavClick}
+                              />
+                          ))}
                 </div>
             </nav>
 
             <UpgradeCard />
         </>
+    );
+}
+
+function NavItemSkeleton() {
+    return (
+        <div className="flex items-center gap-3 px-2 py-1.5 animate-pulse">
+            <span className="h-4 w-4 rounded-sm bg-secondary shrink-0" />
+            <span className="h-2.5 w-24 rounded-full bg-secondary" />
+        </div>
     );
 }
 
@@ -370,7 +392,7 @@ function UpgradeCard() {
     }
 
     return (
-        <div className="rounded-lg border border-border bg-card p-3 m-2">
+        <div className="rounded-lg border border-orange-200 bg-brand-soft p-3 m-2">
             <div className="flex items-center gap-2 text-[12px] font-medium">
                 <SparklesIcon className="text-orange-600 h-3.5 w-3.5" />
                 <span>{isPremium ? "You're on Pro" : "Upgrade to Pro"}</span>

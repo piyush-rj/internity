@@ -19,16 +19,23 @@ import unpauseListing from "../controllers/listing-controllers/controller.listin
 
 const router: RouterType = Router();
 
-// Public feed first — no auth required.
 router.get("/", listListings);
 
-// Admin routes registered before catch-all "/:id" so "admin" isn't treated
-// as a listing id.
-router.get("/admin/list", requireAdmin, adminListListings);
-router.post("/admin/:id/take-down", requireAdmin, adminTakeDownListing);
-router.post("/admin/:id/restore", requireAdmin, adminRestoreListing);
+// admin routes registered before /:id catch-all
+router.get("/admin/list", requireAuth, requireAdmin, adminListListings);
+router.post(
+    "/admin/:id/take-down",
+    requireAuth,
+    requireAdmin,
+    adminTakeDownListing,
+);
+router.post(
+    "/admin/:id/restore",
+    requireAuth,
+    requireAdmin,
+    adminRestoreListing,
+);
 
-// Everything else requires auth.
 router.get("/mine", requireAuth, listMyListings);
 router.get("/:id", getListing);
 router.post("/", requireAuth, createListing);

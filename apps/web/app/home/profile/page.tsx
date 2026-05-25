@@ -15,9 +15,6 @@ import { useMeStore } from "@/src/store/useMeStore";
 
 export default function ProfilePage() {
     const role = useMeStore((s) => s.me?.role);
-    // Employers landing on /home/profile need a personal-details editor —
-    // company-level fields (name, website, verification) live on
-    // /home/company. The student profile editor below is irrelevant for them.
     if (role === "EMPLOYER") return <EmployerProfileEditor />;
 
     return <StudentProfile />;

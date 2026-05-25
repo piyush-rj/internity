@@ -5,10 +5,7 @@ import type { ConversationPeer } from "types";
 import { usePresenceStore } from "@/src/store/usePresenceStore";
 import { ChatAvatar } from "./ChatAvatar";
 
-/**
- * Sticky top bar above the chat thread. Shows the peer's avatar, name, and
- * live presence subtitle.
- */
+// sticky top bar with peer avatar, name, and live presence
 export function ConversationHeader({
     peer,
 }: {
@@ -26,8 +23,6 @@ export function ConversationHeader({
             </header>
         );
     }
-    // Live store wins over the REST snapshot — peer presence flips the
-    // instant a USER_PRESENCE event lands.
     const peerWithLivePresence: ConversationPeer = livePresence
         ? {
               ...peer,
@@ -49,9 +44,7 @@ export function ConversationHeader({
 }
 
 function PresenceSubtitle({ peer }: { peer: ConversationPeer }) {
-    // Force a re-render every minute so "Last seen Xm ago" keeps walking
-    // forward even when no presence event arrives. Idle when the peer is
-    // online — the label is static.
+    // tick once a minute so "last seen Xm ago" stays current
     const [, setTick] = useState(0);
     useEffect(() => {
         if (peer.isOnline) return;
@@ -77,7 +70,7 @@ function PresenceSubtitle({ peer }: { peer: ConversationPeer }) {
     );
 }
 
-/** Compact "5m ago", "2h ago", "yesterday", or a date for the chat header. */
+// compact last-seen label for the chat header
 function formatLastSeen(iso: string): string {
     const then = new Date(iso).getTime();
     if (Number.isNaN(then)) return "recently";

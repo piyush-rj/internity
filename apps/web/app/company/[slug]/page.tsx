@@ -72,8 +72,6 @@ export default function PublicCompanyPage({
     );
 }
 
-/* ----------------------------- main view ------------------------------ */
-
 function CompanyDetailView({ company }: { company: CompanyDetail }) {
     const openListings = company.listings.filter((l) => !l.closedAt);
     const closedListings = company.listings.filter((l) => l.closedAt);
@@ -82,7 +80,7 @@ function CompanyDetailView({ company }: { company: CompanyDetail }) {
         <div className="space-y-8">
             <Hero company={company} />
 
-            <section className="rounded-2xl border border-border bg-card overflow-hidden">
+            <section className="rounded-lg border border-border bg-card overflow-hidden">
                 <header className="flex items-center justify-between gap-3 px-6 py-4 border-b border-border">
                     <div>
                         <h2 className="text-[15px] font-semibold">
@@ -114,7 +112,7 @@ function CompanyDetailView({ company }: { company: CompanyDetail }) {
             </section>
 
             {closedListings.length > 0 && (
-                <section className="rounded-2xl border border-border bg-card overflow-hidden">
+                <section className="rounded-lg border border-border bg-card overflow-hidden">
                     <header className="px-6 py-4 border-b border-border">
                         <h2 className="text-[14px] font-semibold text-muted-foreground">
                             Recently closed
@@ -135,7 +133,7 @@ function CompanyDetailView({ company }: { company: CompanyDetail }) {
 
 function Hero({ company }: { company: CompanyDetail }) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
             <div className="flex items-start gap-5">
                 <Logo name={company.name} logoUrl={company.logoUrl} />
                 <div className="flex-1 min-w-0">
@@ -257,8 +255,6 @@ function PublicListingRow({
     );
 }
 
-/* -------------------------------- bits -------------------------------- */
-
 function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     if (logoUrl) {
         return (
@@ -327,7 +323,7 @@ function ModeBadge({ mode }: { mode: Listing["mode"] }) {
 function PageSkeleton() {
     return (
         <div className="space-y-8 animate-pulse">
-            <div className="rounded-2xl border border-border bg-card p-8">
+            <div className="rounded-lg border border-border bg-card p-8">
                 <div className="flex items-start gap-5">
                     <div className="h-20 w-20 rounded-lg bg-secondary shrink-0" />
                     <div className="flex-1 space-y-3">
@@ -337,14 +333,14 @@ function PageSkeleton() {
                     </div>
                 </div>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-8 h-40" />
+            <div className="rounded-lg border border-border bg-card p-8 h-40" />
         </div>
     );
 }
 
 function NotFound({ message }: { message: string | null }) {
     return (
-        <div className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
+        <div className="rounded-lg border border-border bg-card px-6 py-16 text-center">
             <h1 className="text-[20px] font-semibold">Company not found</h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
                 {message ??

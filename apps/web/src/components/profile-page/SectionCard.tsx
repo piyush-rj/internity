@@ -1,12 +1,7 @@
 import type { ReactNode } from "react";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Card shell every section on the profile page lives in. Provides a header
- * row (title + optional action) and a body slot below a divider.
- *
- * Accepts an `id` so the sidebar's onStepClick can scrollIntoView() to it.
- */
+// card shell wrapping each profile-page section with header and body
 export function SectionCard({
     id,
     title,

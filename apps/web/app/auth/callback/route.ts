@@ -1,11 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/src/lib/supabase/server";
 
-/**
- * OAuth callback. Supabase redirects here with `?code=...` after the user
- * approves on the provider (Google). We exchange the code for a session
- * (cookies get set), then bounce them to the desired post-login page.
- */
+// exchanges the oauth code from supabase for a session and redirects
 export async function GET(request: NextRequest) {
     const { searchParams, origin } = new URL(request.url);
     const code = searchParams.get("code");

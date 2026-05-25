@@ -126,8 +126,6 @@ export default function AdminFoundersPage() {
     );
 }
 
-/* ------------------------------ Sub-views -------------------------------- */
-
 function SearchInput({
     value,
     onChange,
@@ -185,7 +183,7 @@ function FounderRow({
                         {fullName || founder.user.name || founder.user.email}
                     </span>
                     {founder.user.isBanned && (
-                        <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9.5px] font-medium">
+                        <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-red-100 text-red-700 text-[9.5px] font-medium">
                             <AlertTriangle className="h-2.5 w-2.5" />
                             Disabled
                         </span>
@@ -211,7 +209,7 @@ function CompanyStatus({ status }: { status: CompanyVerificationStatus }) {
     return (
         <span
             className={cn(
-                "shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-medium",
+                "shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-medium",
                 cfg.classes,
             )}
         >

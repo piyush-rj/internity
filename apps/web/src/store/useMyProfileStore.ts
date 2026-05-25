@@ -13,13 +13,7 @@ type State = {
     reset: () => void;
 };
 
-/**
- * Shared cache of the calling user's StudentProfile.
- *
- * Multiple components (profile page, navbar completion pill, dashboards)
- * need this data; using a store keeps them on a single fetch instead of
- * each mounting its own.
- */
+// shared cache of the calling user's student profile
 export const useMyProfileStore = create<State>((set, get) => {
     async function load() {
         set({ loading: true, error: null });
@@ -27,8 +21,6 @@ export const useMyProfileStore = create<State>((set, get) => {
             const { profile } = await studentApi.get_me();
             set({ profile, loading: false, initialized: true });
         } catch (err) {
-            // 404 just means "no profile yet" — not an error, that's a
-            // valid initial state for new users.
             if (err instanceof ApiClientError && err.status === 404) {
                 set({ profile: null, loading: false, initialized: true });
                 return;

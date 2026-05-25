@@ -1,10 +1,6 @@
 import type { ChatMessage } from "types";
 
-/**
- * A single message bubble's display state. Server-confirmed messages have
- * `clientId === undefined`; optimistic bubbles carry a non-empty `clientId`
- * until the server echoes back a MESSAGE_CREATED with the same id.
- */
+// message bubble; optimistic bubbles carry clientId until server echo
 export type Bubble = ChatMessage & { clientId?: string };
 
 export type DayGroup = {
@@ -64,12 +60,7 @@ export function makeClientId(): string {
     return `local-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-/**
- * Reconcile an inbound MESSAGE_CREATED with the optimistic state:
- *   - if `clientId` matches one of our pending bubbles, replace it,
- *   - otherwise (peer's message, or a self-message from another tab) append,
- *     skipping duplicates by id.
- */
+// reconciles inbound message with optimistic bubbles by clientId or id
 export function mergeIncoming(
     prev: Bubble[],
     message: ChatMessage,

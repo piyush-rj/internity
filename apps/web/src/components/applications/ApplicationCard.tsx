@@ -50,7 +50,7 @@ export function StatusBadge({ status }: { status: ApplicationStatus }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10.5px] font-medium",
+                "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
                 s.wrap,
             )}
         >
@@ -60,12 +60,7 @@ export function StatusBadge({ status }: { status: ApplicationStatus }) {
     );
 }
 
-/**
- * Tiny "Seen by company" indicator shown alongside the status badge once the
- * founder has opened their applicants page for this listing. Hidden once the
- * status has moved beyond APPLIED — at that point the status itself already
- * implies the founder has engaged.
- */
+// seen-by-company indicator shown next to APPLIED status
 export function SeenBadge({
     status,
     seenAt,
@@ -78,7 +73,7 @@ export function SeenBadge({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+                "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
                 "bg-neutral-100 text-neutral-600 border-neutral-200",
             )}
             title={`Founder viewed your application`}

@@ -59,7 +59,6 @@ export const useSavedStore = create<SavedStore>((set, get) => {
         save: async (listing) => {
             const id = listing.id;
             if (get().savedIds[id]) return;
-            // Optimistic insert
             const optimistic: SavedItem = {
                 listingId: id,
                 createdAt: new Date().toISOString(),
@@ -72,7 +71,6 @@ export const useSavedStore = create<SavedStore>((set, get) => {
             try {
                 await savedApi.save(id);
             } catch (err) {
-                // Roll back on failure
                 set((s) => {
                     const next = { ...s.savedIds };
                     delete next[id];
@@ -100,7 +98,6 @@ export const useSavedStore = create<SavedStore>((set, get) => {
             try {
                 await savedApi.unsave(listingId);
             } catch (err) {
-                // Roll back on failure
                 set((s) => ({
                     savedIds: { ...s.savedIds, [listingId]: true },
                     items: prevItems,

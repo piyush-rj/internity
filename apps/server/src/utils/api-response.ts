@@ -92,18 +92,7 @@ export class NotFound extends ApiError {
     }
 }
 
-/**
- * Single catch-block translator for controllers. Maps ApiError, ZodError, and
- * common Prisma error codes to user-friendly responses; falls back to a
- * generic 500 for anything unknown (and logs to console for debugging).
- *
- * Usage:
- *   try { ... } catch (err) { handleApiError(err, api); }
- *
- * Keeps every controller's catch-block to a single line and ensures unique
- * constraint / not-found / fk-violation errors never leak as "Internal
- * server error" to the user.
- */
+// translates apierror, zoderror, and prisma errors into api responses
 export function handleApiError(err: unknown, api: ResponseWriter): void {
     if (err instanceof ApiError) {
         api.fail(err.status, err.code, err.message);
@@ -117,8 +106,6 @@ export function handleApiError(err: unknown, api: ResponseWriter): void {
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
         switch (err.code) {
             case "P2002": {
-                // Unique constraint — surface the conflicting field if Prisma
-                // reports it so users can fix the right input.
                 const target = (err.meta?.target as string[] | undefined) ?? [];
                 const field = target.length > 0 ? target.join(", ") : "value";
                 api.fail(
@@ -129,7 +116,6 @@ export function handleApiError(err: unknown, api: ResponseWriter): void {
                 return;
             }
             case "P2025":
-                // Record not found (update/delete missing row).
                 api.fail(
                     404,
                     "NOT_FOUND",
@@ -137,7 +123,6 @@ export function handleApiError(err: unknown, api: ResponseWriter): void {
                 );
                 return;
             case "P2003":
-                // Foreign key constraint failed.
                 api.fail(
                     400,
                     "INVALID_REFERENCE",
@@ -145,7 +130,6 @@ export function handleApiError(err: unknown, api: ResponseWriter): void {
                 );
                 return;
             case "P2014":
-                // Required relation violation.
                 api.fail(
                     400,
                     "INVALID_RELATION",
@@ -154,7 +138,6 @@ export function handleApiError(err: unknown, api: ResponseWriter): void {
                 return;
         }
     }
-    // Unknown — log full error server-side, send a clean generic message.
     console.error(err);
     api.internalError();
 }

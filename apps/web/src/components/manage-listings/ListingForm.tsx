@@ -7,6 +7,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
+import { CityCombobox } from "@/src/components/ui/CityCombobox";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
     listingApi,
@@ -63,8 +64,6 @@ const MAX_SCREENING_QUESTIONS = 5;
 const SCREENING_QUESTION_MAX = 200;
 
 export type ListingFormHandle = {
-    /** Merge a template's fields into the form. Empty user-filled fields
-     *  are overwritten; non-empty ones are preserved. */
     applyTemplate: (template: ListingTemplate) => void;
 };
 
@@ -97,15 +96,9 @@ export const ListingForm = forwardRef(function ListingForm(
         onCreated,
         onSaved,
     }: {
-        /** Required when creating; ignored in edit mode (the listing's
-         *  company is immutable). */
         companyId: string;
-        /** Edit mode — pre-fills the form and switches submit to
-         *  `listingApi.update`. */
         initial?: Listing | null;
-        /** Create-mode callback — receives the new listing's id. */
         onCreated?: (id: string) => void | Promise<void>;
-        /** Edit-mode callback — receives the saved listing. */
         onSaved?: (listing: Listing) => void | Promise<void>;
     },
     ref: ForwardedRef<ListingFormHandle>,
@@ -211,8 +204,6 @@ export const ListingForm = forwardRef(function ListingForm(
         setSaving(true);
         try {
             if (isEdit && initial) {
-                // Edit mode — companyId is immutable, so we strip it from
-                // the update payload.
                 const { companyId: _omit, ...updateInput } = input;
                 void _omit;
                 const { listing } = await listingApi.update(
@@ -226,10 +217,6 @@ export const ListingForm = forwardRef(function ListingForm(
                 await onCreated?.(listing.id);
             }
         } catch (err) {
-            // Backend's verification gate returns 403 FORBIDDEN with a
-            // user-friendly message — surface it verbatim so the founder
-            // sees "Your company isn't approved by admin yet…" not
-            // "FORBIDDEN".
             toast.error(
                 err instanceof ApiClientError
                     ? err.message
@@ -264,33 +251,43 @@ export const ListingForm = forwardRef(function ListingForm(
                 </Field>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Work mode" required>
-                        <SegmentedRadio
-                            value={form.mode}
-                            onChange={(v) => set("mode", v as WorkMode)}
-                            options={[
-                                { value: "REMOTE", label: "Remote" },
-                                { value: "HYBRID", label: "Hybrid" },
-                                { value: "ONSITE", label: "On-site" },
-                            ]}
-                        />
+                        <div className="space-y-2">
+                            <SegmentedRadio
+                                value={form.mode}
+                                onChange={(v) => set("mode", v as WorkMode)}
+                                options={[
+                                    { value: "REMOTE", label: "Remote" },
+                                    { value: "HYBRID", label: "Hybrid" },
+                                    { value: "ONSITE", label: "On-site" },
+                                ]}
+                            />
+                            <label className="inline-flex items-center gap-2 text-[12.5px] text-muted-foreground cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={form.mode === "REMOTE"}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            set("mode", "REMOTE");
+                                            set("city", "");
+                                        } else {
+                                            set("mode", "ONSITE");
+                                        }
+                                    }}
+                                    className="h-3.5 w-3.5 accent-brand"
+                                />
+                                Work from home (remote only)
+                            </label>
+                        </div>
                     </Field>
-                    <Field
-                        label="City"
-                        required={form.mode !== "REMOTE"}
-                        hint={
-                            form.mode === "REMOTE"
-                                ? "Optional for remote roles."
-                                : undefined
-                        }
-                    >
-                        <input
-                            type="text"
-                            value={form.city}
-                            onChange={(e) => set("city", e.target.value)}
-                            placeholder="Bengaluru"
-                            className={inputCls()}
-                        />
-                    </Field>
+                    {form.mode !== "REMOTE" && (
+                        <Field label="City" required>
+                            <CityCombobox
+                                value={form.city}
+                                onChange={(v) => set("city", v)}
+                                placeholder="Bengaluru"
+                            />
+                        </Field>
+                    )}
                 </div>
             </Section>
 
@@ -467,8 +464,6 @@ export const ListingForm = forwardRef(function ListingForm(
     );
 });
 
-/* -------------------------------- helpers -------------------------------- */
-
 function Section({
     title,
     children,
@@ -477,8 +472,8 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="space-y-3">
-            <h3 className="text-[13px] font-semibold text-foreground">
+        <section className="rounded-lg border border-border bg-card p-5 space-y-4">
+            <h3 className="text-[14px] font-semibold text-foreground border-b border-border pb-3">
                 {title}
             </h3>
             <div className="space-y-3">{children}</div>
@@ -486,11 +481,7 @@ function Section({
     );
 }
 
-/**
- * Editor for screening questions. Up to MAX_SCREENING_QUESTIONS rows, each
- * capped at SCREENING_QUESTION_MAX chars. Submission filters out blank
- * rows so the founder can leave an empty slot during editing.
- */
+// editor for up to MAX_SCREENING_QUESTIONS screening questions
 function ScreeningQuestionsEditor({
     questions,
     onChange,

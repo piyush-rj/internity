@@ -8,10 +8,7 @@ import {
 import { NotificationType, prisma } from "../../../db.ts";
 import { notifyMany } from "../../../services/notifications.ts";
 
-/**
- * Admin-only restore. Clears the takedown columns and notifies the company
- * members so the founder knows their listing is back online.
- */
+// admin-only listing restore that clears takedown columns and notifies members
 export default async function adminRestoreListing(
     req: Request,
     res: Response,
@@ -35,7 +32,6 @@ export default async function adminRestoreListing(
         });
         if (!listing) throw new NotFound("Listing not found");
         if (!listing.takenDownAt) {
-            // Idempotent: already live, just respond OK.
             api.ok({ listing }, "Listing is already live");
             return;
         }

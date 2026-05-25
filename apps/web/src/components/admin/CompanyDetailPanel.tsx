@@ -28,12 +28,7 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Right-side overlay showing a company + founder in full. Per the Slice 1
- * decisions, the only admin actions surfaced here are Approve and Reject.
- * Listing takedowns / account suspensions live on their dedicated section
- * pages (Listings / Founders).
- */
+// right-side overlay showing a company and founder with admin actions
 export function CompanyDetailPanel({
     companyId,
     onClose,
@@ -75,7 +70,6 @@ export function CompanyDetailPanel({
         fetchDetail();
     }, [companyId, fetchDetail]);
 
-    // Esc to close.
     useEffect(() => {
         if (!companyId) return;
         function onKey(e: KeyboardEvent) {
@@ -146,8 +140,6 @@ export function CompanyDetailPanel({
     );
 }
 
-/* ------------------------------ Content body ----------------------------- */
-
 function DetailContent({
     detail,
     onMutated,
@@ -159,60 +151,75 @@ function DetailContent({
     const liveListings = detail.listings.filter((l) => !l.closedAt);
 
     return (
-        <div className="px-5 py-5 space-y-5">
-            <CompanyHeader detail={detail} />
-            {owner?.user.isBanned && owner.user.banReason && (
-                <BannedNotice reason={owner.user.banReason} />
-            )}
-            <StatusActions detail={detail} onMutated={onMutated} />
-            {owner && (
-                <FounderBanActions
-                    user={owner.user}
-                    onMutated={onMutated}
-                />
-            )}
-            <Section title="Company">
-                <Facts>
-                    {detail.foundingYear && (
-                        <Fact
-                            Icon={Calendar}
-                            label="Founded"
-                            value={String(detail.foundingYear)}
-                        />
-                    )}
-                    {detail.size && (
-                        <Fact Icon={Users} label="Team" value={detail.size} />
-                    )}
-                    {detail.city && (
-                        <Fact
-                            Icon={MapPin}
-                            label="Location"
-                            value={detail.city}
-                        />
-                    )}
-                    {detail.industry && (
-                        <Fact
-                            Icon={Building2}
-                            label="Industry"
-                            value={detail.industry}
-                        />
-                    )}
-                </Facts>
-                <Links
-                    linkedinUrl={detail.linkedinUrl}
-                    website={detail.website}
-                />
-                {detail.about && (
-                    <p className="text-[12.5px] leading-relaxed text-foreground/90">
-                        {detail.about}
-                    </p>
+        <div className="px-6 divide-y divide-border">
+            <div className="py-5 space-y-3">
+                <CompanyHeader detail={detail} />
+                {owner?.user.isBanned && owner.user.banReason && (
+                    <BannedNotice reason={owner.user.banReason} />
                 )}
-            </Section>
+            </div>
+            <div className="py-5 space-y-3">
+                <StatusActions detail={detail} onMutated={onMutated} />
+                {owner && (
+                    <FounderBanActions
+                        user={owner.user}
+                        onMutated={onMutated}
+                    />
+                )}
+            </div>
+            <div className="py-5">
+                <Section title="Company">
+                    <Facts>
+                        {detail.foundingYear && (
+                            <Fact
+                                Icon={Calendar}
+                                label="Founded"
+                                value={String(detail.foundingYear)}
+                            />
+                        )}
+                        {detail.size && (
+                            <Fact
+                                Icon={Users}
+                                label="Team"
+                                value={detail.size}
+                            />
+                        )}
+                        {detail.city && (
+                            <Fact
+                                Icon={MapPin}
+                                label="Location"
+                                value={detail.city}
+                            />
+                        )}
+                        {detail.industry && (
+                            <Fact
+                                Icon={Building2}
+                                label="Industry"
+                                value={detail.industry}
+                            />
+                        )}
+                    </Facts>
+                    <Links
+                        linkedinUrl={detail.linkedinUrl}
+                        website={detail.website}
+                    />
+                    {detail.about && (
+                        <p className="text-[12.5px] leading-relaxed text-foreground/90">
+                            {detail.about}
+                        </p>
+                    )}
+                </Section>
+            </div>
 
-            {owner && <FounderSection member={owner} />}
+            {owner && (
+                <div className="py-5">
+                    <FounderSection member={owner} />
+                </div>
+            )}
 
             {detail.members.length > 1 && (
-                <Section title={`Team (${detail.members.length})`}>
+                <div className="py-5">
+                    <Section title={`Team (${detail.members.length})`}>
                     <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
                         {detail.members.map((m) => (
                             <li
@@ -233,17 +240,19 @@ function DetailContent({
                             </li>
                         ))}
                     </ul>
-                </Section>
+                    </Section>
+                </div>
             )}
 
-            <Section
-                title={`Listings (${detail._count.listings})`}
-                subtitle={
-                    liveListings.length > 0
-                        ? `${liveListings.length} live`
-                        : "No live listings"
-                }
-            >
+            <div className="py-5">
+                <Section
+                    title={`Listings (${detail._count.listings})`}
+                    subtitle={
+                        liveListings.length > 0
+                            ? `${liveListings.length} live`
+                            : "No live listings"
+                    }
+                >
                 {detail.listings.length === 0 ? (
                     <EmptyHint
                         Icon={Briefcase}
@@ -280,12 +289,11 @@ function DetailContent({
                         ))}
                     </ul>
                 )}
-            </Section>
+                </Section>
+            </div>
         </div>
     );
 }
-
-/* ------------------------------- Sub-views ------------------------------- */
 
 function CompanyHeader({ detail }: { detail: AdminCompanyDetail }) {
     return (
@@ -358,7 +366,6 @@ function StatusActions({
     const [note, setNote] = useState(detail.rejectionNote ?? "");
     const [busy, setBusy] = useState(false);
 
-    // Reset whenever we look at a different company.
     useEffect(() => {
         setMode("idle");
         setNote(detail.rejectionNote ?? "");
@@ -454,19 +461,18 @@ function StatusActions({
         <div className="flex items-center justify-end gap-2">
             <Button
                 type="button"
-                variant="exec-light"
+                variant="outline"
                 onClick={() => setMode("rejecting")}
                 disabled={busy}
-                className="h-9 px-3 text-[12.5px] cursor-pointer text-red-700 hover:bg-red-50"
+                className="h-9 px-3 text-[12.5px] cursor-pointer border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300"
             >
                 Reject
             </Button>
             <Button
                 type="button"
-                variant="exec-dark"
                 onClick={approve}
                 disabled={busy}
-                className="h-9 px-3 text-[12.5px] cursor-pointer bg-emerald-700 hover:bg-emerald-800"
+                className="h-9 px-3 text-[12.5px] cursor-pointer bg-emerald-700 text-white border-transparent hover:bg-emerald-800"
             >
                 {busy
                     ? "Saving…"
@@ -478,10 +484,6 @@ function StatusActions({
     );
 }
 
-/**
- * Sticky red banner shown at the top of the panel when the company's primary
- * founder is currently banned, surfacing the reason the admin gave.
- */
 function BannedNotice({ reason }: { reason: string }) {
     return (
         <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[12.5px]">
@@ -496,11 +498,7 @@ function BannedNotice({ reason }: { reason: string }) {
     );
 }
 
-/**
- * Deactivate / Reactivate action row. Sits below the approve/reject status
- * actions. Deactivating prompts for a reason via ConfirmDialog and blocks
- * login + hides the founder's listings. Reactivating is one-click.
- */
+// founder deactivate/reactivate action row with confirm dialog
 function FounderBanActions({
     user,
     onMutated,
@@ -513,7 +511,6 @@ function FounderBanActions({
     const [busy, setBusy] = useState(false);
     const { confirm, dialogProps } = useConfirm();
 
-    // Reset whenever we look at a different founder.
     useEffect(() => {
         setMode("idle");
         setReason("");
@@ -701,8 +698,6 @@ function FounderSection({
     );
 }
 
-/* ----------------------------- Pure helpers ------------------------------ */
-
 function Section({
     title,
     subtitle,
@@ -860,7 +855,7 @@ function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
 
 function EmptyHint({ Icon, text }: { Icon: typeof Mail; text: string }) {
     return (
-        <div className="rounded-lg border border-dashed border-border px-3 py-6 text-center text-[12px] text-muted-foreground">
+        <div className="rounded-lg border border-dashed border-stone-200 bg-stone-50 px-3 py-6 text-center text-[12px] text-muted-foreground">
             <Icon className="mx-auto h-4 w-4 mb-1.5" />
             {text}
         </div>

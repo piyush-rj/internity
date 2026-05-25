@@ -24,7 +24,7 @@ import setCompanyVerification from "../controllers/company-controllers/controlle
 import adminListCompanies from "../controllers/company-controllers/controller.company.admin_list.ts";
 import adminGetCompany from "../controllers/company-controllers/controller.company.admin_get.ts";
 
-/** Inline middleware: only company members may pass; `ownerOnly` restricts further. */
+// middleware that allows only company members or owners
 function requireCompanyMember(opts: { ownerOnly?: boolean } = {}) {
     return async (
         req: Request,
@@ -61,8 +61,7 @@ router.use(requireAuth);
 
 router.post("/", createCompany);
 
-// Admin routes — must come BEFORE the catch-all "/:slug" so the "admin"
-// segment isn't treated as a slug.
+// admin routes registered before /:slug catch-all
 router.get("/admin/list", requireAdmin, adminListCompanies);
 router.get("/admin/:id", requireAdmin, adminGetCompany);
 

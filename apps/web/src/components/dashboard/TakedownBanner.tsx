@@ -5,11 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import { useMyListings } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Sticky banner shown to founders when one or more of their listings have
- * been taken down by admin. Aggregates across listings so the founder can't
- * miss it even if they don't open the manage-listings tab.
- */
+// banner warning founders about admin-taken-down listings
 export function TakedownBanner() {
     const { items, loading } = useMyListings();
     if (loading) return null;

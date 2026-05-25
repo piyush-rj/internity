@@ -2,11 +2,7 @@ import type { ListingListFilters, ListingType, WorkMode } from "@/src/lib/api";
 
 export const PAGE_SIZE = 20;
 
-/**
- * Parse the URL search params into a `ListingListFilters` object the
- * backend understands. Empty / invalid values are dropped so the request
- * URL stays clean.
- */
+// parses url search params into a listing filters object
 export function filtersFromSearchParams(
     sp: URLSearchParams | null,
     overrides: { type?: ListingType } = {},

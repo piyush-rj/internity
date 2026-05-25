@@ -59,24 +59,28 @@ export default function AdminOverviewPage() {
                         value={stats?.totalStudents}
                         loading={loading}
                         icon={PiGraduationCapFill}
+                        tone="stone"
                     />
                     <StatCard
                         label="Founders"
                         value={stats?.totalFounders}
                         loading={loading}
                         icon={PiUsersThreeFill}
+                        tone="zinc"
                     />
                     <StatCard
                         label="Live listings"
                         value={stats?.totalLiveListings}
                         loading={loading}
                         icon={PiBriefcaseFill}
+                        tone="brand"
                     />
                     <StatCard
                         label="Applications today"
                         value={stats?.applicationsToday}
                         loading={loading}
                         icon={PiFileTextFill}
+                        tone="stone"
                     />
                 </div>
             )}
@@ -89,21 +93,38 @@ function StatCard({
     value,
     loading,
     icon: Icon,
+    tone = "stone",
 }: {
     label: string;
     value: number | undefined;
     loading: boolean;
     icon: React.ComponentType<{ className?: string }>;
+    tone?: "stone" | "zinc" | "brand";
 }) {
+    const surface =
+        tone === "brand"
+            ? "border-orange-200 bg-brand-soft"
+            : tone === "zinc"
+              ? "border-zinc-200 bg-zinc-50"
+              : "border-stone-200 bg-stone-50";
+    const iconWrap =
+        tone === "brand"
+            ? "ring-orange-200 bg-white text-orange-700"
+            : "ring-border/70 bg-white text-foreground/70";
     return (
         <div
             className={cn(
-                "rounded-xl border border-border bg-card px-4 py-3.5",
-                "shadow-xs",
+                "rounded-lg border px-4 py-3.5 shadow-xs",
+                surface,
             )}
         >
             <div className="flex items-center gap-3">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-border/70 bg-secondary text-foreground/70 shrink-0">
+                <span
+                    className={cn(
+                        "flex h-12 w-12 items-center justify-center rounded-lg ring-1 shrink-0",
+                        iconWrap,
+                    )}
+                >
                     <Icon className="h-5 w-5" />
                 </span>
                 <div className="min-w-0">

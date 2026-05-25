@@ -2,7 +2,6 @@ import { create } from "zustand";
 
 interface AuthDialogState {
     open: boolean;
-    /** Where to send the user after successful sign-in. */
     nextPath: string;
     openDialog: (nextPath?: string) => void;
     closeDialog: () => void;

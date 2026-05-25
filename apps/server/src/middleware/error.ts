@@ -2,14 +2,7 @@ import type { ErrorRequestHandler } from "express";
 import { ZodError } from "zod";
 import { ApiError, ResponseWriter } from "../utils/api-response.ts";
 
-/**
- * Global Express error handler.
- *
- * Converts thrown `ApiError`s and `ZodError`s into the standard JSON envelope
- * so the frontend always sees `{ success: false, error: { code, message } }`
- * — never Express's default HTML 500. Pair with `express-async-errors` so
- * async-thrown errors propagate here too.
- */
+// converts thrown apierror and zoderror into the standard json envelope
 export const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {
     const api = new ResponseWriter(res);
 

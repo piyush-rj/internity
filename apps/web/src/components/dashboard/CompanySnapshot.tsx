@@ -57,37 +57,28 @@ export function CompanySnapshot() {
                     />
                 </dl>
 
-                <div className="mt-4 flex items-center gap-2">
-                    <Link href="/home/company" className="flex-1">
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                    <Link href="/home/company">
                         <Button
                             type="button"
                             variant="exec-light"
                             className="w-full h-9 text-[12.5px] cursor-pointer"
                         >
                             <Pencil className="h-3.5 w-3.5" />
-                            Manage company
+                            Manage
+                        </Button>
+                    </Link>
+                    <Link href="/home/manage-listings/new">
+                        <Button
+                            type="button"
+                            variant="exec-dark"
+                            className="w-full h-9 text-[12.5px] cursor-pointer"
+                        >
+                            <Plus className="h-3.5 w-3.5" />
+                            New listing
                         </Button>
                     </Link>
                 </div>
-            </div>
-
-            <div className="rounded-md border border-border bg-card/90 backdrop-blur-sm shadow-xs p-4 transition-shadow duration-200 hover:shadow-sm">
-                <div className="flex items-center gap-2 text-[12.5px] font-semibold">
-                    Post a new listing
-                </div>
-                <p className="mt-1.5 text-[12px] text-muted-foreground leading-relaxed">
-                    Reach verified students with skills that match your role.
-                </p>
-                <Link href="/home/manage-listings/new" className="block mt-3">
-                    <Button
-                        type="button"
-                        variant="exec-dark"
-                        className="w-full h-9 text-[12.5px] cursor-pointer"
-                    >
-                        <Plus className="h-3.5 w-3.5" />
-                        New listing
-                    </Button>
-                </Link>
             </div>
         </section>
     );

@@ -72,8 +72,6 @@ export default function PublicStudentPage({
     );
 }
 
-/* ----------------------------- main view ------------------------------ */
-
 function ProfileView({ profile }: { profile: PublicStudentProfile }) {
     const fullName =
         `${profile.firstName ?? ""}${profile.lastName ? " " + profile.lastName : ""}`.trim() ||
@@ -203,7 +201,7 @@ function ProfileView({ profile }: { profile: PublicStudentProfile }) {
                         {profile.skills.map((s) => (
                             <span
                                 key={s.skill.id}
-                                className="inline-flex items-center h-7 px-2.5 rounded-full border border-border bg-secondary/40 text-[12.5px]"
+                                className="inline-flex items-center h-7 px-2.5 rounded-lg border border-border bg-secondary/40 text-[12.5px]"
                             >
                                 {s.skill.name}
                             </span>
@@ -250,7 +248,7 @@ function ProfileView({ profile }: { profile: PublicStudentProfile }) {
                         {profile.languages.map((l) => (
                             <span
                                 key={l.id}
-                                className="inline-flex items-center h-7 px-2.5 rounded-full border border-border bg-secondary/40 text-[12.5px]"
+                                className="inline-flex items-center h-7 px-2.5 rounded-lg border border-border bg-secondary/40 text-[12.5px]"
                             >
                                 {l.name}
                                 {l.proficiency ? ` · ${l.proficiency}/5` : ""}
@@ -271,7 +269,7 @@ function Hero({
     name: string;
 }) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+        <section className="rounded-lg border border-border bg-card p-6 sm:p-8">
             <div className="flex items-start gap-5">
                 <Avatar name={name} image={profile.user.image ?? null} />
                 <div className="flex-1 min-w-0">
@@ -349,8 +347,6 @@ function Hero({
     );
 }
 
-/* -------------------------------- bits -------------------------------- */
-
 function Section({
     title,
     children,
@@ -359,7 +355,7 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-2xl border border-border bg-card p-6">
+        <section className="rounded-lg border border-border bg-card p-6">
             <h2 className="text-[14px] font-semibold tracking-tight mb-3">
                 {title}
             </h2>
@@ -415,7 +411,7 @@ function Fact({
 function PageSkeleton() {
     return (
         <div className="space-y-6 animate-pulse">
-            <div className="rounded-2xl border border-border bg-card p-8">
+            <div className="rounded-lg border border-border bg-card p-8">
                 <div className="flex items-start gap-5">
                     <div className="h-20 w-20 rounded-full bg-secondary shrink-0" />
                     <div className="flex-1 space-y-3">
@@ -424,15 +420,15 @@ function PageSkeleton() {
                     </div>
                 </div>
             </div>
-            <div className="rounded-2xl border border-border bg-card p-6 h-32" />
-            <div className="rounded-2xl border border-border bg-card p-6 h-32" />
+            <div className="rounded-lg border border-border bg-card p-6 h-32" />
+            <div className="rounded-lg border border-border bg-card p-6 h-32" />
         </div>
     );
 }
 
 function NotFound({ message }: { message: string | null }) {
     return (
-        <div className="rounded-2xl border border-border bg-card px-6 py-16 text-center">
+        <div className="rounded-lg border border-border bg-card px-6 py-16 text-center">
             <h1 className="text-[20px] font-semibold">Profile not found</h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
                 {message ??

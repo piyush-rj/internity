@@ -77,7 +77,6 @@ export function EducationSection({
             await studentApi.remove_education(id);
             await onSaved();
         } catch {
-            /* ignore */
         }
     }
 
@@ -220,8 +219,6 @@ export function EducationSection({
         </SectionCard>
     );
 }
-
-/* ---------------------------- shared bits ---------------------------- */
 
 export function AddButton({ onClick }: { onClick: () => void }) {
     return (

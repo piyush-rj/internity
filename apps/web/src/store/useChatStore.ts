@@ -1,15 +1,5 @@
 import { create } from "zustand";
 
-/**
- * In-memory mirror of "unread message counts" per conversation for the
- * currently signed-in user. Kept in sync by:
- *   - initial seed from GET /chat/conversations,
- *   - +1 on every inbound `message_created` from someone else,
- *   - cleared when this user marks the conversation read.
- *
- * The sidebar badge derives its total from `unreadByConv`; the messages page
- * uses the per-conv counts to show pills next to each conversation.
- */
 type State = {
     unreadByConv: Record<string, number>;
 };
@@ -45,7 +35,7 @@ export const useChatStore = create<State & Actions>((set) => ({
     reset: () => set({ unreadByConv: {} }),
 }));
 
-/** Derived total for the sidebar badge. */
+// total unread for the sidebar badge
 export function selectTotalUnread(s: { unreadByConv: Record<string, number> }) {
     let total = 0;
     for (const k in s.unreadByConv) total += s.unreadByConv[k] ?? 0;

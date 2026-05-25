@@ -32,11 +32,15 @@ export default function NewListingPage() {
                 Back to my listings
             </Link>
 
-            <section className="rounded-xl border border-border bg-card p-6">
+            <section className="mx-auto max-w-3xl">
                 {loading ? (
-                    <FormSkeleton />
+                    <div className="rounded-lg border border-border bg-card p-6">
+                        <FormSkeleton />
+                    </div>
                 ) : !company ? (
-                    <NoCompany />
+                    <div className="rounded-lg border border-border bg-card p-6">
+                        <NoCompany />
+                    </div>
                 ) : status === "APPROVED" ? (
                     <div className="space-y-4">
                         <TemplatePicker
@@ -51,9 +55,13 @@ export default function NewListingPage() {
                         />
                     </div>
                 ) : status === "PENDING" ? (
-                    <PendingNotice />
+                    <div className="rounded-lg border border-border bg-card p-6">
+                        <PendingNotice />
+                    </div>
                 ) : (
-                    <RejectedNotice note={company.rejectionNote} />
+                    <div className="rounded-lg border border-border bg-card p-6">
+                        <RejectedNotice note={company.rejectionNote} />
+                    </div>
                 )}
             </section>
         </EmptySection>

@@ -22,11 +22,7 @@ import { listingApi, type AdminListingListItem } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Right-side overlay for a single admin-side listing. Lets admin take it
- * down (with a required reason) or restore it. Mirrors the visual language
- * of CompanyDetailPanel.
- */
+// right-side overlay for an admin listing with takedown/restore actions
 export function ListingDetailPanel({
     listing,
     onClose,
@@ -38,7 +34,6 @@ export function ListingDetailPanel({
 }) {
     const open = !!listing;
 
-    // Esc to close.
     useEffect(() => {
         if (!open) return;
         function onKey(e: KeyboardEvent) {
@@ -161,7 +156,7 @@ function DetailContent({
                         {listing.skillTagsRaw.map((t) => (
                             <span
                                 key={t}
-                                className="rounded-full bg-secondary px-2 py-0.5 text-[10.5px] text-foreground"
+                                className="rounded-md bg-secondary px-2 py-0.5 text-[10.5px] text-foreground"
                             >
                                 {t}
                             </span>
@@ -299,7 +294,6 @@ function ModerationActions({
     const [reason, setReason] = useState("");
     const [busy, setBusy] = useState(false);
 
-    // Reset state whenever the focused listing changes.
     useEffect(() => {
         setMode("idle");
         setReason("");
@@ -527,11 +521,7 @@ function formatDate(iso: string): string {
     });
 }
 
-/**
- * Centered modal wrapping ListingForm in edit mode. Used by the admin
- * moderation overlay so admins can fix typos or de-spam content. Portal'd to
- * `document.body` so it escapes the right-side overlay's stacking context.
- */
+// modal wrapping ListingForm in edit mode for admin overlay
 function EditListingDialog({
     open,
     listing,
@@ -543,7 +533,6 @@ function EditListingDialog({
     onClose: () => void;
     onSaved: () => Promise<void> | void;
 }) {
-    // Esc to close.
     useEffect(() => {
         if (!open) return;
         function onKey(e: KeyboardEvent) {

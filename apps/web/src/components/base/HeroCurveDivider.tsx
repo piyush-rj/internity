@@ -54,7 +54,7 @@ export function HeroCurveDivider() {
                 <div
                     className={cn(
                         "flex items-center gap-1 p-1.5",
-                        "rounded-2xl border border-border bg-card",
+                        "rounded-lg border border-border bg-card",
                         "shadow-[0_10px_32px_-12px_rgba(15,23,42,0.18)]",
                     )}
                 >

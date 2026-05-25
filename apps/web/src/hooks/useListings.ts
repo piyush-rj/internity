@@ -19,11 +19,7 @@ export type ListingsState = {
     refetch: () => Promise<void>;
 };
 
-/**
- * Hook around GET /listing — accepts the same filter shape the backend takes
- * (type / q / city / mode / skills / stipendMin / durationMax / partTime / page / pageSize).
- * Re-fetches whenever the filter changes.
- */
+// hook around GET /listing that refetches when filters change
 export function useListings(filters?: ListingListFilters): ListingsState {
     const [page, setPage] = useState<Paginated<ListingWithCompany> | null>(
         null,
@@ -31,7 +27,6 @@ export function useListings(filters?: ListingListFilters): ListingsState {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ApiClientError | Error | null>(null);
 
-    // Serialize filters so the effect only re-runs when meaningful inputs change.
     const filterKey = JSON.stringify(filters ?? {});
 
     const fetchListings = useCallback(async () => {

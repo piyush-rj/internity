@@ -3,13 +3,6 @@
 import { create } from "zustand";
 import type { ListingWithCompany } from "@/src/lib/api";
 
-/**
- * Tracks the student's current multi-apply selection across the browse page.
- * Stored at module scope (not in the route) so selection survives navigation
- * within /home/internships and /home/jobs — students can flip between tabs
- * and keep their picks. Cleared explicitly on dialog close or successful
- * apply.
- */
 interface MultiSelectState {
     selected: Map<string, ListingWithCompany>;
     add: (listing: ListingWithCompany) => void;

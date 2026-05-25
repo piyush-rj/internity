@@ -10,17 +10,7 @@ type ConfirmOptions = Omit<
 
 type ConfirmState = ConfirmOptions & { busy: boolean };
 
-/**
- * Imperative confirmation API.
- *
- *   const { confirm, dialogProps } = useConfirm();
- *   const ok = await confirm({ title: "Delete?", variant: "destructive" });
- *   if (ok) await doDelete();
- *
- * Render `<ConfirmDialog {...dialogProps} />` anywhere in the component
- * tree. Re-promises if the same dialog is open and `confirm()` is called
- * again (rare).
- */
+// imperative confirmation api returning a promise of the user's choice
 export function useConfirm() {
     const [state, setState] = useState<ConfirmState | null>(null);
     const resolverRef = useRef<((value: boolean) => void) | null>(null);
@@ -33,8 +23,6 @@ export function useConfirm() {
     }, []);
 
     const confirm = useCallback((opts: ConfirmOptions): Promise<boolean> => {
-        // If a previous prompt is still open and unresolved, treat it as
-        // implicitly cancelled — callers shouldn't double-stack confirms.
         if (resolverRef.current) {
             resolverRef.current(false);
         }

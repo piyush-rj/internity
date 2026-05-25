@@ -7,10 +7,7 @@ import { AuthFlow } from "@/src/components/auth/AuthFlow";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Global sign-in dialog. Mount once at the root of the app; open it from
- * anywhere via `useAuthDialog.getState().openDialog(nextPath)`.
- */
+// global sign-in dialog opened via useAuthDialog
 export function AuthDialog() {
     const open = useAuthDialog((s) => s.open);
     const nextPath = useAuthDialog((s) => s.nextPath);
@@ -36,7 +33,7 @@ export function AuthDialog() {
                     className={cn(
                         "fixed left-1/2 top-1/2 z-[101] w-[calc(100%-2rem)] max-w-[400px]",
                         "-translate-x-1/2 -translate-y-1/2",
-                        "rounded-2xl bg-white",
+                        "rounded-lg bg-white",
                         "shadow-[0_24px_48px_-12px_rgba(15,23,42,0.25)]",
                         "ring-1 ring-black/5",
                         "data-[starting-style]:opacity-0 data-[ending-style]:opacity-0",

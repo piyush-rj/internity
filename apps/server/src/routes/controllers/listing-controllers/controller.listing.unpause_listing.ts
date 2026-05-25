@@ -7,7 +7,7 @@ import {
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-/** Clears pausedAt so the listing accepts applications again. Idempotent. */
+// clears pausedAt so the listing accepts applications again
 export default async function unpauseListing(
     req: Request,
     res: Response,

@@ -5,15 +5,7 @@ import { useRouter } from "next/navigation";
 import { useMeStore } from "@/src/store/useMeStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
-/**
- * Gates the admin content area. Renders a faithful content skeleton during
- * hydration so a hard refresh shows page structure, not "Loading…". The
- * surrounding shell (sidebar + topbar) is rendered by the layout, not by
- * this guard, so it's visible immediately.
- *
- * Sources for admin status: User.role === "ADMIN" OR email in ADMIN_EMAILS
- * env. Computed server-side and surfaced on MeResponse.isAdmin.
- */
+// gates admin content with a skeleton during hydration
 export function AdminGuard({ children }: { children: React.ReactNode }) {
     const router = useRouter();
     const session = useUserSessionStore((s) => s.session);
@@ -39,7 +31,6 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
         router,
     ]);
 
-    // Hydration window or pre-/auth-me — show the skeleton.
     if (!sessionInitialized) return <ContentSkeleton />;
     if (!session?.user) return null;
     if (!meInitialized || meLoading) return <ContentSkeleton />;
@@ -48,12 +39,6 @@ export function AdminGuard({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
 }
 
-/**
- * Generic shape for the "header + tabs/search + list of rows" pattern that
- * every admin section currently follows (approvals, listings, founders).
- * Keep this representative — not too short, not too tall — so the layout
- * doesn't jump when real data lands.
- */
 function ContentSkeleton() {
     return (
         <section className="px-6 py-6 space-y-4 animate-pulse">

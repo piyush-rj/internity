@@ -8,11 +8,7 @@ import { prisma } from "../../../db.ts";
 import { manager } from "../../../socket/socket.connection_manager.ts";
 import { MESSAGE_TYPE } from "types";
 
-/**
- * Bumps the caller's `lastReadAt` for this conversation to now and broadcasts
- * a `conversation_read` to the other side of the thread so their sent-tick
- * indicators flip to "read".
- */
+// marks the conversation read for the caller and broadcasts to participants
 export default async function markConversationRead(
     req: Request,
     res: Response,

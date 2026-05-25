@@ -32,7 +32,7 @@ export function ResumeMock() {
                 }}
                 className={cn(
                     "absolute left-0 top-2 w-[118%] overflow-hidden",
-                    "rounded-2xl border border-border bg-background",
+                    "rounded-lg border border-border bg-background",
                     "shadow-[0_30px_80px_-30px_rgba(15,23,42,0.28)]",
                 )}
             >

@@ -20,8 +20,6 @@ const Body = z.object({
     perks: z.array(z.string()).default([]),
     preferences: z.array(z.string()).default([]),
     skillTagsRaw: z.array(z.string()).default([]),
-    // 0-5 short questions, each capped at 200 chars to keep apply screens
-    // honest with the "no long forms" principle.
     screeningQuestions: z
         .array(z.string().min(1).max(200))
         .max(5, "Up to 5 screening questions")
@@ -72,8 +70,6 @@ export default async function createListing(
             );
         }
 
-        // Listings live for 30 days. The founder can renew to bump this
-        // forward; we cap visibility on the public surfaces using this field.
         const expiresAt = new Date(Date.now() + LISTING_TTL_MS);
 
         const data: Prisma.ListingUncheckedCreateInput = {

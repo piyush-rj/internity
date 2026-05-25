@@ -67,11 +67,7 @@ export function AdminSidebar() {
     );
 }
 
-/**
- * Inner admin sidebar (brand + nav). Shared between the desktop aside and
- * the mobile drawer; `onNavigate` lets the drawer close when the user
- * picks a destination.
- */
+// inner admin sidebar shared by desktop aside and mobile drawer
 export function AdminSidebarBody({
     onNavigate,
 }: {

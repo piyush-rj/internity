@@ -33,14 +33,7 @@ function toAppSession(
     return { user: sessionUser };
 }
 
-/**
- * Mirrors Supabase auth state into the Zustand session store so existing
- * components (NavBar, UserMenu, Sidebar, etc.) keep working without each
- * having to subscribe to Supabase directly.
- *
- * Also resets useMeStore on sign-out so a logged-out tab doesn't keep
- * stale profile data in memory.
- */
+// mirrors supabase auth state into the zustand session store
 export function SessionSetter() {
     const setSession = useUserSessionStore((s) => s.setSession);
     const resetMe = useMeStore((s) => s.reset);

@@ -54,7 +54,6 @@ export class ChatSocket {
 
         const justCameOnline = manager.register(user.id, ws);
         if (justCameOnline) {
-            // Don't block the connection on the presence side-effects.
             void this.announcePresence(user.id, true);
         }
 
@@ -79,11 +78,7 @@ export class ChatSocket {
         });
     }
 
-    /**
-     * Persist the new presence state and fan it out to every user who
-     * shares a conversation with `userId`. Swallows DB errors so a flaky
-     * write never crashes the socket lifecycle.
-     */
+    // persists presence and fans it out to conversation peers
     private async announcePresence(
         userId: string,
         isOnline: boolean,
@@ -226,11 +221,7 @@ export class ChatSocket {
         });
     }
 
-    /**
-     * The two humans on this thread. Returned as a 2-element array (with a
-     * dedupe for the theoretical self-conversation case) so the connection
-     * manager can fan-out without further filtering.
-     */
+    // returns the deduped participant ids on a conversation
     private participantIds(conv: ConversationParticipants): string[] {
         return conv.studentId === conv.recruiterId
             ? [conv.studentId]

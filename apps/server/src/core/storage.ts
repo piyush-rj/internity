@@ -1,11 +1,3 @@
-/**
- * MinIO / S3 object storage.
- *
- * Presigned PUTs let the browser upload directly. Presigned GETs cover
- * short-lived downloads. `publicUrlFor` builds the permanent URL once a
- * reverse proxy / CDN serves the bucket.
- */
-
 import { randomUUID } from "node:crypto";
 import {
     DeleteObjectCommand,
@@ -23,8 +15,6 @@ const s3 = new S3Client({
         accessKeyId: config.MINIO_ACCESS_KEY,
         secretAccessKey: config.MINIO_SECRET_KEY,
     },
-    // MinIO requires path-style addressing — the default virtual-host style
-    // doesn't work without DNS plumbing.
     forcePathStyle: true,
 });
 
@@ -32,7 +22,7 @@ export function bucket(): string {
     return config.MINIO_BUCKET;
 }
 
-/** `kind` is one of AssetKind values, lowercased into a folder prefix. */
+// returns an object key with a kind-prefixed user folder and uuid
 export function buildObjectKey(kind: string, userId: string): string {
     return `${kind.toLowerCase()}/${userId}/${randomUUID()}`;
 }

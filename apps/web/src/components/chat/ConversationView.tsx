@@ -20,18 +20,13 @@ import {
     type Bubble,
 } from "./chat-utils";
 
-/**
- * Right-pane chat view for a single conversation. Owns message state +
- * read-pointer state for the active conversation; relies on the layout-wide
- * WS provider for the underlying socket.
- */
+// right-pane chat view for a single conversation
 export function ConversationView({
     conversationId,
     conversation,
     socket,
 }: {
     conversationId: string;
-    /** Header + profile-card metadata; may be null while the list is loading. */
     conversation: ConversationListItem | null;
     socket: ChatSocket;
 }) {
@@ -53,9 +48,6 @@ export function ConversationView({
     });
     const scrollRef = useRef<HTMLDivElement | null>(null);
 
-    // Reset the peer-read marker whenever we switch conversations or the
-    // server-side last-read pointer moves. setState-during-render (instead of
-    // an effect) avoids the cascading-render lint error.
     if (
         peerReadSync.conversationId !== conversationId ||
         peerReadSync.peerLastReadAt !== peerLastReadAt
@@ -66,7 +58,6 @@ export function ConversationView({
 
     const loading = loadedConvId !== conversationId;
 
-    // ----- load history when the conversation changes ------------------
     useEffect(() => {
         let cancelled = false;
         chatApi
@@ -91,7 +82,6 @@ export function ConversationView({
         };
     }, [conversationId]);
 
-    // ----- live updates over the socket --------------------------------
     useEffect(() => {
         return socket.addListener((msg) => {
             if (msg.type === MESSAGE_TYPE.MESSAGE_CREATED) {
@@ -99,8 +89,6 @@ export function ConversationView({
                 setMessages((prev) =>
                     mergeIncoming(prev, msg.message, msg.clientId),
                 );
-                // If we're viewing this conv and the new message came from
-                // someone else, mark it read so the peer's tick flips.
                 if (msg.message.senderId !== meId) {
                     clearUnread(conversationId);
                     chatApi.mark_read(conversationId).catch(() => {});
@@ -113,7 +101,6 @@ export function ConversationView({
         });
     }, [socket, conversationId, meId, clearUnread]);
 
-    // Autoscroll to the bottom when the message list grows.
     useEffect(() => {
         const el = scrollRef.current;
         if (!el) return;
@@ -151,7 +138,6 @@ export function ConversationView({
         [peerReadAt],
     );
 
-    // Only employers have a public student profile to link to.
     const viewProfileHref =
         meRole === "EMPLOYER" && peer ? `/student/${peer.id}` : null;
 

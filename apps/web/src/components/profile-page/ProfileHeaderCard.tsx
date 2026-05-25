@@ -20,7 +20,7 @@ import { useMeStore } from "@/src/store/useMeStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
 
-const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
 export function ProfileHeaderCard({
@@ -202,7 +202,6 @@ function Avatar({ pct, displayName }: { pct: number; displayName: string }) {
                 </div>
             </div>
 
-            {/* Hover edit overlay — click anywhere on the avatar to open file picker. */}
             <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
@@ -280,7 +279,7 @@ function formatDob(iso: string): string {
     }
 }
 
-/** Direct PUT to S3-compatible presigned URL. */
+// direct put to s3-compatible presigned url
 function putToPresignedUrl(url: string, file: File): Promise<void> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();

@@ -1,10 +1,5 @@
 import type { ListingType, WorkMode } from "@/src/lib/api";
 
-/**
- * Curated role templates for first-time founders. Picked from the spec's
- * sample roles. Picking a template pre-fills the listing form's editable
- * fields; the founder can override anything afterwards.
- */
 export type ListingTemplate = {
     key: string;
     label: string;
@@ -32,7 +27,6 @@ const COMMON_QUESTIONS = [
 ];
 
 export const LISTING_TEMPLATES: ListingTemplate[] = [
-    // ---------- Technical ----------
     {
         key: "ai-developer",
         label: "AI Developer",
@@ -149,7 +143,6 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         skillTags: ["Playwright", "Cypress", "Testing", "TypeScript"],
         screeningQuestions: COMMON_QUESTIONS,
     },
-    // ---------- Design & Product ----------
     {
         key: "ui-ux-designer",
         label: "UI/UX Designer",
@@ -223,7 +216,6 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         skillTags: ["Research", "Interviewing", "Analytics", "Writing"],
         screeningQuestions: COMMON_QUESTIONS,
     },
-    // ---------- Marketing & Content ----------
     {
         key: "marketing-specialist",
         label: "Marketing Specialist",
@@ -315,7 +307,6 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         skillTags: ["Social Media", "Copywriting", "Community", "Analytics"],
         screeningQuestions: COMMON_QUESTIONS,
     },
-    // ---------- Business & Analytics ----------
     {
         key: "sales-bd",
         label: "Sales / BD",

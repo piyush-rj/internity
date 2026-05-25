@@ -12,19 +12,13 @@ export type ConfirmDialogProps = {
     description?: string;
     confirmLabel?: string;
     cancelLabel?: string;
-    /** "destructive" paints the confirm action red; "default" uses brand orange. */
     variant?: "default" | "destructive";
-    /** Set while the confirm action is in-flight so the buttons disable. */
     busy?: boolean;
     onCancel: () => void;
     onConfirm: () => void | Promise<void>;
 };
 
-/**
- * Centered modal confirmation dialog. Portal'd to `document.body` so it
- * escapes any local stacking context and z-indexes above the sticky topbar.
- * Esc + click-outside cancel; Enter confirms the primary action.
- */
+// centered modal confirmation dialog portalled to body
 export function ConfirmDialog({
     open,
     title,

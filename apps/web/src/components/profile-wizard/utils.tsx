@@ -126,7 +126,7 @@ export function inputCls(invalid?: boolean): string {
         "w-full h-10 rounded-lg border bg-background px-3",
         "text-[14px] text-foreground placeholder:text-muted-foreground/70",
         "transition-colors outline-none",
-        "focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+        "focus:border-brand/40 focus:ring-3 focus:ring-brand/15",
         invalid ? "border-destructive/60" : "border-border",
     );
 }

@@ -68,8 +68,6 @@ function ConversationRow({
     active: boolean;
     onSelect: () => void;
 }) {
-    // Live unread count from the store; falls back to the value the API
-    // returned so the badge is correct on first paint.
     const unread = useChatStore(
         (s) => s.unreadByConv[item.id] ?? item.unreadCount,
     );
@@ -103,9 +101,6 @@ function ConversationRow({
                                 {formatRelative(item.lastMessageAt)}
                             </span>
                         </div>
-                        {/* <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
-                            {item.listingTitle} · {item.companyName}
-                        </div> */}
                         <div className="mt-1 flex items-center gap-2">
                             {item.lastMessagePreview ? (
                                 <div

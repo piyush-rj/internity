@@ -17,9 +17,6 @@ export default async function getListing(
             include: {
                 company: true,
                 skills: { include: { skill: true } },
-                // Surface the poster's name + LinkedIn so the public detail
-                // page can render a "Posted by" trust signal next to the
-                // company. Email/phone deliberately excluded for privacy.
                 postedBy: {
                     select: {
                         id: true,
@@ -39,8 +36,6 @@ export default async function getListing(
             },
         });
         if (!l) throw new NotFound();
-        // Hidden from public surfaces: admin takedowns, founder pauses,
-        // expired listings, and listings whose poster is banned.
         if (l.takenDownAt) throw new NotFound();
         if (l.pausedAt) throw new NotFound();
         if (l.expiresAt && l.expiresAt.getTime() <= Date.now()) {

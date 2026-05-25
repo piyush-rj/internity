@@ -1,12 +1,3 @@
-/**
- * WSClient — typed browser WebSocket with auto-reconnect.
- *
- * One persistent connection per instance. The auth token is fetched fresh
- * on every (re)connect so a long-lived client survives token rotation. The
- * client never gives up on transient drops; close code 1000 (normal) or
- * 4401 (unauthorized) are the only terminal states.
- */
-
 import { MESSAGE_TYPE, type ClientMessage, type ServerMessage } from "types";
 
 export type WSStatus = "connecting" | "open" | "closed";
@@ -18,13 +9,9 @@ const INITIAL_RECONNECT_DELAY_MS = 1_000;
 const MAX_RECONNECT_DELAY_MS = 30_000;
 
 export type WSClientOptions = {
-    /** Fully qualified WS URL, e.g. `ws://localhost:8081/api/v1/chat/ws`. */
     url: string;
-    /** Called before each (re)connect — returns the current Supabase token. */
     getToken: () => Promise<string | null>;
-    /** Notified on every status transition. */
     onStatus?: (status: WSStatus) => void;
-    /** Notified for every inbound message. */
     onMessage?: (msg: ServerMessage) => void;
 };
 
@@ -39,14 +26,13 @@ export class WSClient {
         void this.connect();
     }
 
-    /** Send a typed client message. Drops silently if not open. */
+    // sends a typed client message; drops silently if not open
     send(msg: Exclude<ClientMessage, { type: MESSAGE_TYPE.AUTH }>): void {
         const ws = this.ws;
         if (!ws || ws.readyState !== WebSocket.OPEN) return;
         try {
             ws.send(JSON.stringify(msg));
         } catch {
-            // Socket dying mid-send — the close handler will react.
         }
     }
 
@@ -57,7 +43,7 @@ export class WSClient {
         };
     }
 
-    /** Tear the client down. No further reconnects after this. */
+    // tears the client down with no further reconnects
     close(): void {
         this.destroyed = true;
         if (this.reconnectTimer !== null) {
@@ -81,7 +67,6 @@ export class WSClient {
         const token = await this.opts.getToken();
         if (this.destroyed) return;
         if (!token) {
-            // No session yet — leave us closed; consumer can call back later.
             this.opts.onStatus?.("closed");
             return;
         }
@@ -100,7 +85,6 @@ export class WSClient {
                     }),
                 );
             } catch {
-                // Will close — handler below kicks reconnect.
             }
         });
 
@@ -123,7 +107,6 @@ export class WSClient {
             this.ws = null;
             this.opts.onStatus?.("closed");
             if (this.destroyed) return;
-            // 1000 = our own close(); 4401 = server rejected auth.
             if (
                 ev.code === WS_CLOSE_NORMAL ||
                 ev.code === WS_CLOSE_UNAUTHORIZED
@@ -148,7 +131,7 @@ export class WSClient {
     }
 }
 
-/** Build a WS URL by swapping the protocol on the backend HTTP URL. */
+// builds a ws url by swapping the protocol on the backend http url
 export function buildSocketUrl(backendHttpUrl: string, path: string): string {
     const u = new URL(backendHttpUrl);
     u.protocol = u.protocol === "https:" ? "wss:" : "ws:";

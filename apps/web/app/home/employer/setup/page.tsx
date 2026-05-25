@@ -32,12 +32,7 @@ export default function EmployerSetupPage() {
     const existingCompany = memberships[0]?.company ?? null;
     const isRejected = existingCompany?.verificationStatus === "REJECTED";
 
-    // Resume mid-setup:
-    //  - REJECTED → stay on the company step so the founder can edit & resubmit.
-    //  - APPROVED / PENDING (already submitted) → bounce to dashboard, the
-    //    navbar pill is now the source of truth for their status.
-    //  - No company yet → land them on profile or company depending on what's
-    //    already saved.
+    // resume mid-setup based on existing profile and company state
     useEffect(() => {
         if (loading || bootstrapped) return;
         if (profile && existingCompany) {
@@ -73,7 +68,7 @@ export default function EmployerSetupPage() {
                     {!isRejected && <Stepper current={step} />}
                 </header>
 
-                <div className="rounded-2xl border border-border bg-card p-6 sm:p-8">
+                <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
                     {loading && !bootstrapped ? (
                         <FormSkeleton />
                     ) : step === "profile" ? (
@@ -97,8 +92,6 @@ export default function EmployerSetupPage() {
         </div>
     );
 }
-
-/* --------------------------------- Stepper -------------------------------- */
 
 function Stepper({ current }: { current: Step }) {
     return (
@@ -147,8 +140,6 @@ function StepPill({
         </span>
     );
 }
-
-/* ------------------------------ Profile step ----------------------------- */
 
 function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
     const [form, setForm] = useState<EmployerProfileInput>({
@@ -289,8 +280,6 @@ function ProfileStep({ onSaved }: { onSaved: () => Promise<void> }) {
         </div>
     );
 }
-
-/* ------------------------------ Company step ----------------------------- */
 
 const TEAM_SIZE_OPTIONS = ["1-10", "11-50", "51-200", "201-500", "500+"];
 
@@ -552,8 +541,6 @@ function CompanyStep({
     );
 }
 
-/* ------------------------------- helpers --------------------------------- */
-
 function RejectionBanner({ note }: { note: string }) {
     return (
         <div className="flex items-start gap-2.5 rounded-lg border border-amber-300/60 bg-amber-50 px-3.5 py-3 text-[12.5px]">
@@ -598,9 +585,6 @@ function isValidUrl(value: string): boolean {
 
 function humanizeError(err: unknown): string {
     if (err instanceof ApiClientError) {
-        // Backend already produces readable messages for SLUG_TAKEN /
-        // INVALID_REQUEST / FORBIDDEN — surface them verbatim. The Info icon
-        // / generic fallback stays for unknown shapes.
         if (err.code === "SLUG_TAKEN") {
             return "A company with this URL is already registered. Try a different one.";
         }

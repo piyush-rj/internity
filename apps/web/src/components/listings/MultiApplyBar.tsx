@@ -12,12 +12,7 @@ import { cn } from "@/src/lib/utils";
 
 const COVER_LIMIT = 150;
 
-/**
- * Floating bar pinned to the bottom of the browse pages. Appears whenever
- * the multi-select store has at least one entry and the viewer is a
- * student. Opens a small dialog with an optional shared cover note and
- * fires the batch apply endpoint.
- */
+// floating bottom bar to batch-apply across selected listings
 export function MultiApplyBar() {
     const { me } = useMe();
     const selected = useMultiSelectStore((s) => s.selected);
@@ -35,7 +30,7 @@ export function MultiApplyBar() {
                 className={cn(
                     "fixed bottom-4 left-1/2 -translate-x-1/2 z-30",
                     "rounded-full border border-border bg-background shadow-lg",
-                    "px-3 py-2 flex items-center gap-2",
+                    "px-4 py-2 flex items-center gap-2",
                 )}
             >
                 <span className="text-[12.5px] font-medium tabular-nums">
@@ -79,7 +74,6 @@ function MultiApplyDialog({
     const [coverLetter, setCoverLetter] = useState("");
     const [submitting, setSubmitting] = useState(false);
 
-    // Esc to close.
     useEffect(() => {
         if (!open) return;
         function onKey(e: KeyboardEvent) {

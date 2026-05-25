@@ -9,12 +9,7 @@ import {
 } from "@/src/components/manage-listings/listingTemplates";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Compact "Start from a template" picker shown at the top of the
- * new-listing form. First-time posters get a head start; experienced ones
- * can ignore it. Picking a template fires `onPick` with the template
- * payload — the parent decides how to merge into form state.
- */
+// compact start-from-template picker for the new-listing form
 export function TemplatePicker({
     onPick,
 }: {
@@ -30,7 +25,7 @@ export function TemplatePicker({
     );
 
     return (
-        <div className="rounded-xl border border-border bg-secondary/30 p-3.5">
+        <div className="rounded-lg border border-border bg-neutral-100 p-3.5">
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-start gap-2">
                     <Sparkles className="h-4 w-4 mt-0.5 text-orange-600 shrink-0" />

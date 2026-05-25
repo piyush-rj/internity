@@ -5,12 +5,7 @@ import { Clock } from "lucide-react";
 import { useMyListings } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Dashboard banner shown to founders when one or more of their listings have
- * expired (or are about to). Without a cron we rely on the founder seeing
- * this on next visit; per-card chips in manage-listings cover the same
- * surface. Takedowns are surfaced separately by TakedownBanner.
- */
+// dashboard banner warning founders about expired or expiring listings
 export function ListingLifecycleBanner() {
     const { items, loading } = useMyListings();
     if (loading) return null;

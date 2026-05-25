@@ -90,7 +90,6 @@ export function ExperienceStep({
             await studentApi.remove_experience(id);
             await onSaved();
         } catch {
-            /* ignore */
         }
     }
 

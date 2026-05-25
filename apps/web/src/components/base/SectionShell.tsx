@@ -10,7 +10,6 @@ export function SectionShell({
 }: {
     title: string;
     subtitle: string;
-    /** Optional secondary CTA rendered below the description. */
     cta?: { label: string; href?: string };
     children: ReactNode;
 }) {

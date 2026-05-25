@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
+import { CityCombobox } from "@/src/components/ui/CityCombobox";
 import type { CompanySize, WorkMode } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
 
@@ -107,8 +108,7 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
     const activeCount = countActive(filters);
 
     return (
-        <section className="rounded-2xl border border-border bg-card overflow-hidden">
-            {/* Quick row: search + city + mode + More toggle */}
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px_180px_auto] gap-2 p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -124,16 +124,10 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                         )}
                     />
                 </div>
-                <input
-                    type="text"
+                <CityCombobox
                     value={filters.city}
-                    onChange={(e) => set("city", e.target.value)}
-                    placeholder="City — e.g. Bengaluru"
-                    className={cn(
-                        "h-10 rounded-lg border border-border bg-background px-3",
-                        "text-[13px] placeholder:text-muted-foreground/70",
-                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-orange-500/15",
-                    )}
+                    onChange={(v) => set("city", v)}
+                    placeholder="City, e.g. Bengaluru"
                 />
                 <select
                     value={filters.mode}
@@ -174,7 +168,6 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                 </button>
             </div>
 
-            {/* Expanded: labeled fields in a clean grid */}
             {expanded && (
                 <div className="border-t border-border bg-secondary/30 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <FilterField label="Skills" hint="Comma-separated">
@@ -253,7 +246,6 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                 </div>
             )}
 
-            {/* Active state footer */}
             {activeCount > 0 && (
                 <div className="border-t border-border px-3 py-2 flex items-center justify-between gap-3">
                     <span className="text-[11.5px] text-muted-foreground">

@@ -16,11 +16,7 @@ const Body = z.object({
         .max(500, "Keep the reason under 500 characters"),
 });
 
-/**
- * Admin-only soft-removal. Sets takenDownAt/takedownReason/takenDownById
- * on the listing and notifies every member of the owning company. The
- * record is preserved so a future restore is just a column reset.
- */
+// admin-only soft removal of a listing with reason and member notification
 export default async function adminTakeDownListing(
     req: Request,
     res: Response,

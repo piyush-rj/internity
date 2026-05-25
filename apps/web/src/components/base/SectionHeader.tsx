@@ -55,7 +55,6 @@ export function SectionHeader({
             {cta && (
                 <div className={cn("mt-8", isCenter && "flex justify-center")}>
                     <Button
-                        // href={cta.href ?? "#"}
                         variant={"exec-dark"}
                         className={cn(
                             "inline-flex items-center gap-2 h-10 px-5",

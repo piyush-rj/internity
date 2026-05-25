@@ -86,7 +86,6 @@ export function EducationStep({
             await studentApi.remove_education(id);
             await onSaved();
         } catch {
-            /* ignore */
         }
     }
 

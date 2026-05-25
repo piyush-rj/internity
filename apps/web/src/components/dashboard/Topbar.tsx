@@ -22,11 +22,7 @@ type Crumb = {
     href: string;
 };
 
-/**
- * Build crumbs from the URL. "Home" always anchors to /home/dashboard; the
- * remaining segments mirror the path. /home and /home/dashboard collapse to
- * just "Home".
- */
+// builds breadcrumbs from the url
 function buildCrumbs(pathname: string): Crumb[] {
     const segments = pathname
         .replace(/^\/home\/?/, "")
@@ -77,7 +73,6 @@ export function Topbar() {
         }
     }, []);
 
-    // Global ⌘K / Ctrl+K focuses the searchbar.
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {
             if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -91,7 +86,6 @@ export function Topbar() {
         return () => window.removeEventListener("keydown", onKeyDown);
     }, []);
 
-    // Reset suggestions when the route changes (after navigating from a click).
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setOpen(false);
@@ -99,7 +93,6 @@ export function Topbar() {
         setSearch("");
     }, [pathname]);
 
-    // Close dropdown when clicking outside the searchbar.
     useEffect(() => {
         function onDocClick(e: MouseEvent) {
             if (!wrapperRef.current) return;
@@ -131,10 +124,8 @@ export function Topbar() {
             : null;
 
     return (
-        <header className="h-13 border-b border-border nav-blur sticky top-0 z-30 bg-neutral-50">
+        <header className="h-13 border-b border-border nav-blur sticky top-0 z-30 bg-card">
             <div className="h-full flex items-center justify-between gap-4 px-4 sm:px-6">
-                {/* Mobile hamburger — the desktop sidebar is hidden below
-                    lg, so this is the only way to navigate on small screens. */}
                 <button
                     type="button"
                     onClick={() => setDrawerOpen(true)}

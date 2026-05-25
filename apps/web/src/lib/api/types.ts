@@ -1,4 +1,4 @@
-// Shared shapes — keep these in sync with the Prisma schema.
+// shared shapes kept in sync with the prisma schema
 
 export type UserRole = "STUDENT" | "EMPLOYER" | "ADMIN";
 export type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";

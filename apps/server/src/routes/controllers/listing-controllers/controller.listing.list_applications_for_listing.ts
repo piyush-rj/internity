@@ -33,10 +33,7 @@ export default async function listApplicationsForListing(
         });
         if (!member) throw new Forbidden("Not a member of this company");
 
-        // The founder is opening their applicants list — stamp every unseen
-        // applicant on this listing as seen. Orthogonal to status; runs
-        // before the read below so the returned rows carry the fresh
-        // seenAt value.
+        // stamp unseen applicants as seen before returning rows
         await prisma.application.updateMany({
             where: { listingId: id, seenAt: null },
             data: { seenAt: new Date() },
@@ -64,9 +61,6 @@ export default async function listApplicationsForListing(
                                         skill: { select: { name: true } },
                                     },
                                 },
-                                // Top two educations (current first) — drives
-                                // the "College (A→Z)" sort and the structured
-                                // Education row on the applicant card.
                                 educations: {
                                     select: {
                                         institute: true,

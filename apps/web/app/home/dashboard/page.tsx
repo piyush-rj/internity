@@ -8,6 +8,14 @@ import { useMeStore } from "@/src/store/useMeStore";
 
 export default function DashboardPage() {
     const role = useMeStore((s) => s.me?.role);
+    const initialized = useMeStore((s) => s.initialized);
+
+    // Until /auth/me resolves we don't know which dashboard to render. Show
+    // a neutral skeleton instead of guessing the student layout (which then
+    // visibly swaps to the employer one once `me` loads).
+    if (!initialized) {
+        return <DashboardSkeleton />;
+    }
 
     if (role === "EMPLOYER") {
         return <EmployerDashboard />;
@@ -25,6 +33,40 @@ export default function DashboardPage() {
                     <div className="space-y-4">
                         <ProfileCompletion />
                     </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function DashboardSkeleton() {
+    return (
+        <div className="relative isolate">
+            <div className="relative mx-auto max-w-6xl py-8 px-0 space-y-6 animate-pulse">
+                <div className="flex items-end justify-between gap-3 mb-6">
+                    <div className="h-7 w-64 rounded-md bg-secondary" />
+                    <div className="h-4 w-32 rounded-md bg-secondary" />
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="rounded-xl border border-border bg-card px-5 py-4 h-23"
+                        >
+                            <div className="flex items-center gap-4">
+                                <div className="h-12 w-12 rounded-full bg-secondary shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                    <div className="h-3 w-24 rounded-full bg-secondary" />
+                                    <div className="h-5 w-12 rounded-md bg-secondary" />
+                                    <div className="h-2.5 w-32 rounded-full bg-secondary" />
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2 rounded-xl border border-border bg-card h-72" />
+                    <div className="rounded-xl border border-border bg-card h-72" />
                 </div>
             </div>
         </div>

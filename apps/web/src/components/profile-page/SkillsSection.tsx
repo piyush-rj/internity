@@ -41,15 +41,11 @@ export function SkillsSection({
         [items],
     );
 
-    // Keep the latest "added names" set in a ref so the autocomplete effect
-    // can read it without re-running every time the parent re-renders (which
-    // produces a fresh `items` array and, transitively, a fresh Set).
     const addedNamesRef = useRef(addedNames);
     useEffect(() => {
         addedNamesRef.current = addedNames;
     }, [addedNames]);
 
-    // Debounced autocomplete fetch. Only re-runs when the query text changes.
     useEffect(() => {
         const q = name.trim();
         if (q.length < 1) {
@@ -74,7 +70,6 @@ export function SkillsSection({
                 );
                 setHighlightedIndex(-1);
             } catch {
-                /* silent — autocomplete is best-effort */
             }
         }, 200);
         return () => {
@@ -83,7 +78,6 @@ export function SkillsSection({
         };
     }, [name]);
 
-    // Close the dropdown on outside click.
     useEffect(() => {
         if (!open) return;
         function onDown(e: MouseEvent) {
@@ -111,8 +105,6 @@ export function SkillsSection({
             return;
         }
 
-        // Optimistic insert first; clear input so the next skill can be typed
-        // immediately. If the request fails we'll yank the chip back out.
         const tempId = `tmp-${Math.random().toString(36).slice(2)}`;
         setPendingAdds((prev) => [...prev, { tempId, name: trimmed }]);
         setName("");
@@ -131,7 +123,6 @@ export function SkillsSection({
     }
 
     async function handleRemove(skillId: string) {
-        // Optimistic hide; restore on failure.
         setPendingRemoves((prev) => {
             const next = new Set(prev);
             next.add(skillId);
@@ -155,7 +146,6 @@ export function SkillsSection({
         }
     }
 
-    // Show "Add new: X" if the query exactly matches nothing in suggestions.
     const trimmedQuery = name.trim();
     const exactMatch = suggestions.some(
         (s) => s.name.toLowerCase() === trimmedQuery.toLowerCase(),
@@ -335,7 +325,7 @@ export function SkillsSection({
                             );
                         }
                         const chipCls = cn(
-                            "inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1 rounded-full",
+                            "inline-flex items-center gap-1.5 h-7 pl-2.5 pr-1 rounded-lg",
                             "border border-border bg-background text-[12.5px] text-foreground",
                         );
                         return (

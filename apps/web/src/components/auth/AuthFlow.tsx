@@ -28,11 +28,8 @@ const PANEL_TRANSITION = {
 };
 
 export type AuthFlowProps = {
-    /** Where to send the user when sign-in completes. */
     nextPath?: string;
-    /** Called after the flow finishes successfully (e.g. close modal). */
     onComplete?: () => void;
-    /** Slightly tighter spacing when embedded in a modal vs a full page. */
     embedded?: boolean;
 };
 
@@ -73,7 +70,6 @@ export function AuthFlow({
             setError(oauthError.message);
             setLoading(false);
         }
-        // On success the page navigates to Google — nothing else to do here.
     }
 
     async function handleSendOtp(e: React.FormEvent) {
@@ -116,7 +112,6 @@ export function AuthFlow({
             return;
         }
 
-        // Verified. Decide between onboarding (new user, no name) and finish.
         try {
             const me = await authApi.me();
             setLoading(false);
@@ -127,9 +122,6 @@ export function AuthFlow({
             }
         } catch (err) {
             setLoading(false);
-            // /auth/me failing right after verifyOtp likely means the DB
-            // trigger hasn't fired yet (rare). Send them to onboarding —
-            // the name PATCH retries lazy-link via supabaseUserId.
             if (
                 err instanceof ApiClientError &&
                 (err.status === 401 || err.status === 404)
@@ -167,10 +159,7 @@ export function AuthFlow({
 
     async function finish() {
         goTo("complete");
-        // Refresh /auth/me into the Zustand store so the dashboard sees the
-        // freshly-saved name without an extra round-trip.
         await refetchMe().catch(() => {});
-        // Brief pause to show the success state — feels intentional, not jank.
         await new Promise((r) => setTimeout(r, 350));
         onComplete?.();
         if (typeof window !== "undefined") {

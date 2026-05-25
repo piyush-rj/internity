@@ -7,15 +7,7 @@ import { useMeStore } from "@/src/store/useMeStore";
 import type { CompanyVerificationStatus } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Rounded pill in the navbar that surfaces the employer's company-verification
- * state at a glance. Mirrors the visual language of ProfileCompletionPill
- * (the student-side nudge). Hidden for students; the student pill handles them.
- *
- *   PENDING  — amber, click → dashboard ("we'll review soon")
- *   REJECTED — red,   click → /home/employer/setup (edit & resubmit)
- *   APPROVED — emerald check, no link
- */
+// navbar pill showing employer company verification status
 export function EmployerVerificationPill() {
     const me = useMeStore((s) => s.me);
     const { memberships, loading } = useMyEmployer();
@@ -34,7 +26,7 @@ function Pill({ status }: { status: CompanyVerificationStatus }) {
 
     const className = cn(
         "inline-flex items-center gap-1.5",
-        "h-8 px-3 rounded-full",
+        "h-8 px-3 rounded-lg",
         "text-[12px] font-medium",
         "transition-colors",
         cfg.classes,

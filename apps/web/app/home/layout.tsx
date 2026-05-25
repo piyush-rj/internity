@@ -1,3 +1,4 @@
+import { AppliedBootstrap } from "@/src/components/dashboard/AppliedBootstrap";
 import { BreadcrumbProvider } from "@/src/components/dashboard/BreadcrumbContext";
 import { MeBootstrap } from "@/src/components/dashboard/MeBootstrap";
 import { RoleGate } from "@/src/components/dashboard/RoleGate";
@@ -13,9 +14,10 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full bg-neutral-100">
             <MeBootstrap />
             <SavedBootstrap />
+            <AppliedBootstrap />
             <RoleGate />
             <Sidebar />
             <div className="flex-1 min-w-0 flex flex-col">
@@ -23,7 +25,9 @@ export default function DashboardLayout({
                     <UnreadChatsBootstrap />
                     <BreadcrumbProvider>
                         <Topbar />
-                        <main className="flex-1">{children}</main>
+                        <main className="flex-1 bg-neutral-100">
+                            {children}
+                        </main>
                     </BreadcrumbProvider>
                 </WebSocketProvider>
             </div>

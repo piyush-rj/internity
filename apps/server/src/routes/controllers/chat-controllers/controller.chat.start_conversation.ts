@@ -7,19 +7,7 @@ const Body = z.object({
     applicationId: z.string().min(1),
 });
 
-/**
- * Employer-initiated chat. Idempotent — calling twice for any application
- * sharing the same (student, recruiter) pair returns the same conversation.
- *
- * Authorisation: the caller must be a company member of the listing that
- * received the application. The actual recruiter on the other end is the
- * listing's `postedBy` (which may be a different company member than the
- * caller, e.g. a manager helping out the team).
- *
- * On the first call we also stamp `Application.conversationId` so future
- * lookups can fan applications into their thread without re-joining the
- * Application/Listing chain.
- */
+// idempotently starts or returns an existing conversation for an application
 export default async function startConversation(
     req: Request,
     res: Response,
@@ -57,10 +45,6 @@ export default async function startConversation(
         const studentId = application.studentId;
         const recruiterId = application.listing.postedById;
 
-        // Find-or-create by pair. `upsert` against the composite unique index
-        // is a single round-trip and survives concurrent first-message-from-
-        // each-side races (whichever wins the insert, the other sees the
-        // existing row).
         const conversation = await prisma.conversation.upsert({
             where: { studentId_recruiterId: { studentId, recruiterId } },
             create: { studentId, recruiterId },
@@ -68,8 +52,6 @@ export default async function startConversation(
             select: { id: true },
         });
 
-        // Backfill the link on the application if it hasn't been wired yet —
-        // typically true on first start, no-op otherwise.
         if (application.conversationId !== conversation.id) {
             await prisma.application.update({
                 where: { id: application.id },

@@ -29,10 +29,6 @@ export default async function listMyListings(
             },
         });
 
-        // Prisma's _count can only return ONE count per relation, so we
-        // follow up with a groupBy for the "seen" subset and merge it into
-        // each listing's _count payload. Used by the founder dashboard's
-        // "Applications seen" stat card.
         const listingIds = rows.map((r) => r.id);
         const seenCounts =
             listingIds.length > 0

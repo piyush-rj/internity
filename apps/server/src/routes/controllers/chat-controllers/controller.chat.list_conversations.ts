@@ -2,16 +2,7 @@ import type { Request, Response } from "express";
 import { ResponseWriter } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-/**
- * Returns every conversation the caller participates in — either as the
- * student side or the recruiter side. Listing context is aggregated from
- * `Application.conversationId`: the most-recent application's title becomes
- * the primary subtitle, and we surface a count of any extras so the UI can
- * render "Frontend Engineer + 2 more".
- *
- * Unread counts are computed per conversation against the caller's
- * lastReadAt. Single pass — no per-conversation Promise.all of counts.
- */
+// lists every conversation the caller participates in with unread counts
 export default async function listConversations(
     req: Request,
     res: Response,
@@ -54,8 +45,6 @@ export default async function listConversations(
                 orderBy: { createdAt: "desc" },
                 select: { body: true },
             },
-            // Most recent application drives the primary listingTitle. We
-            // additionally count the rest so the UI can show "+ N more".
             applications: {
                 orderBy: { appliedAt: "desc" },
                 select: {
@@ -84,8 +73,6 @@ export default async function listConversations(
             const peerLastRead =
                 c.reads.find((r) => r.userId === peer.id)?.lastReadAt ?? null;
 
-            // Most-recent application drives the primary listing label;
-            // older roles surface as a count for "+ N more".
             const primary = c.applications[0]?.listing ?? null;
             const otherRolesCount = Math.max(0, c.applications.length - 1);
 
@@ -101,9 +88,6 @@ export default async function listConversations(
 
             return {
                 id: c.id,
-                // applicationId preserved on the response purely so any
-                // client still keying off it can resolve to *an* application
-                // in this thread (the most recent one).
                 applicationId: c.applications[0]?.id ?? null,
                 listingId: primary?.id ?? null,
                 listingTitle: primary?.title ?? null,

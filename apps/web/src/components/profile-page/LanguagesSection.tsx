@@ -77,7 +77,6 @@ export function LanguagesSection({
             await studentApi.remove_language(id);
             await onSaved();
         } catch {
-            /* ignore */
         }
     }
 

@@ -40,9 +40,6 @@ export function EmployerStatsRow() {
     const now = Date.now();
     const openListings = listings.filter((l) => !l.closedAt).length;
     const closedListings = listings.length - openListings;
-    // "Expired" = past its 30-day expiry, not closed, not removed by admin.
-    // Reuses the same rule used by the public browse filter and the
-    // founder-side lifecycle banner.
     const expiredListings = listings.filter(
         (l) =>
             !l.closedAt &&
@@ -77,13 +74,47 @@ export function EmployerStatsRow() {
             href: "/home/manage-listings",
         },
         {
+            label: "Applicants",
+            value: listingsLoading ? "—" : String(totalApplicants),
+            caption: listingsLoading
+                ? "Loading"
+                : totalApplicants === 0
+                  ? "No one yet"
+                  : "Across all roles",
+            delta: listingsLoading
+                ? null
+                : totalApplicants > 0
+                  ? { label: `${totalApplicants} total`, direction: "up" }
+                  : null,
+            icon: PiFileTextFill,
+            href: "/home/applicants",
+        },
+        {
+            label: "Applications seen",
+            value: listingsLoading ? "—" : String(totalSeen),
+            caption: listingsLoading
+                ? "Loading"
+                : totalApplicants === 0
+                  ? "Nothing to review"
+                  : `${totalSeen} of ${totalApplicants} reviewed`,
+            delta: listingsLoading
+                ? null
+                : totalSeen > 0
+                  ? { label: "Reviewed", direction: "up" }
+                  : totalApplicants > 0
+                    ? { label: "Unseen", direction: "down" }
+                    : null,
+            icon: PiEyeFill,
+            href: "/home/applicants",
+        },
+        {
             label: "Expired",
             value: listingsLoading ? "—" : String(expiredListings),
             caption: listingsLoading
                 ? "Loading"
                 : expiredListings === 0
                   ? "None expired"
-                  : `Renew to relist`,
+                  : "Renew to relist",
             delta: listingsLoading
                 ? null
                 : expiredListings > 0
@@ -109,40 +140,6 @@ export function EmployerStatsRow() {
             href: "/home/manage-listings",
         },
         {
-            label: "Applicants",
-            value: listingsLoading ? "—" : String(totalApplicants),
-            caption: listingsLoading
-                ? "Loading"
-                : totalApplicants === 0
-                  ? "No one yet"
-                  : "Across all roles",
-            delta: listingsLoading
-                ? null
-                : totalApplicants > 0
-                  ? { label: `${totalApplicants} total`, direction: "up" }
-                  : null,
-            icon: PiFileTextFill,
-            href: "/home/applicants",
-        },
-        {
-            label: "Applications seen",
-            value: listingsLoading ? "—" : String(totalSeen),
-            caption: listingsLoading
-                ? "Loading"
-                : totalApplicants === 0
-                  ? "Nothing to see"
-                  : `${totalSeen} of ${totalApplicants} total`,
-            delta: listingsLoading
-                ? null
-                : totalSeen > 0
-                  ? { label: "Reviewed", direction: "up" }
-                  : totalApplicants > 0
-                    ? { label: "Unseen", direction: "down" }
-                    : null,
-            icon: PiEyeFill,
-            href: "/home/applicants",
-        },
-        {
             label: "Team",
             value: membersLoading ? "—" : String(members.length),
             caption: membersLoading
@@ -161,7 +158,7 @@ export function EmployerStatsRow() {
     ];
 
     return (
-        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <section className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {stats.map((s) => (
                 <StatCard key={s.label} stat={s} />
             ))}
@@ -175,12 +172,12 @@ function StatCard({ stat }: { stat: Stat }) {
         <Link
             href={stat.href}
             className={cn(
-                "group relative rounded-xl border border-border bg-card/90 backdrop-blur-sm px-4 py-3.5",
+                "group relative rounded-xl border border-border bg-card/90 backdrop-blur-sm px-5 py-4",
                 "shadow-xs transition-all duration-200 ease-out",
                 "ring-0 ring-foreground/0 hover:ring-2 hover:ring-foreground/10",
             )}
         >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
                 <span className="relative shrink-0">
                     <span
                         className={cn(
@@ -208,15 +205,15 @@ function StatCard({ stat }: { stat: Stat }) {
                     )}
                 </span>
                 <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-2">
-                        <span className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
-                            {stat.label}
+                    <span className="text-[10.5px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {stat.label}
+                    </span>
+                    <div className="mt-1 flex items-baseline gap-2">
+                        <span className="text-[26px] font-semibold tracking-tight tabular-nums leading-none">
+                            {stat.value}
                         </span>
                     </div>
-                    <div className="mt-0.5 text-[22px] font-semibold tracking-tight tabular-nums leading-none">
-                        {stat.value}
-                    </div>
-                    <div className="mt-1 text-[11.5px] text-muted-foreground truncate">
+                    <div className="mt-1.5 text-[11.5px] text-muted-foreground truncate">
                         {stat.caption}
                     </div>
                 </div>

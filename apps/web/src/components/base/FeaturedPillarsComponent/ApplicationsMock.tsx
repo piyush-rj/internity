@@ -116,7 +116,7 @@ export function ApplicationsMock() {
                 }}
                 className={cn(
                     "w-[125%] overflow-hidden",
-                    "rounded-2xl border border-border bg-background",
+                    "rounded-lg border border-border bg-background",
                     "shadow-[0_30px_70px_-30px_rgba(15,23,42,0.22)]",
                 )}
             >

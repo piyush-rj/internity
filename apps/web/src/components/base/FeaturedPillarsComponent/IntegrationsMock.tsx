@@ -32,26 +32,17 @@ type Cell =
 const GRID_COLS = 5;
 const GRID_ROWS = 6;
 
-// Hand-placed cells so the grid reads exactly like the reference: a few filled
-// logo tiles surrounded by ghost-card placeholders that hint at the rest of
-// the catalog.
 const cells: Cell[] = [
-    // Row 0
     { kind: "logo", col: 3, row: 0, brand: "shopify" },
-    // Row 1
     { kind: "empty", col: 1, row: 1 },
     { kind: "logo", col: 2, row: 1, brand: "slack" },
     { kind: "logo", col: 5, row: 1, brand: "wordpress" },
-    // Row 2
     { kind: "logo", col: 3, row: 2, brand: "gtm" },
-    // Row 3
     { kind: "logo", col: 1, row: 3, brand: "sequence" },
     { kind: "logo", col: 4, row: 3, brand: "strapi" },
-    // Row 4
     { kind: "empty", col: 2, row: 4 },
     { kind: "logo", col: 3, row: 4, brand: "mailtrap" },
     { kind: "empty", col: 5, row: 4 },
-    // Row 5
     { kind: "empty", col: 1, row: 5 },
     { kind: "logo", col: 2, row: 5, brand: "zapier" },
     { kind: "empty", col: 4, row: 5 },
@@ -67,12 +58,10 @@ export function IntegrationsMock() {
                 "mask-intersect [-webkit-mask-composite:source-in]",
             )}
         >
-            {/* container with a fixed aspect ratio so each grid cell stays a perfect square */}
             <div
                 className="relative w-full"
                 style={{ aspectRatio: `${GRID_COLS} / ${GRID_ROWS}` }}
             >
-                {/* graph-paper grid lines — drawn at the same cadence as the css grid below */}
                 <div
                     aria-hidden
                     className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,23,42,0.07)_1px,transparent_1px),linear-gradient(to_bottom,rgba(15,23,42,0.07)_1px,transparent_1px)]"
@@ -81,7 +70,6 @@ export function IntegrationsMock() {
                     }}
                 />
 
-                {/* gap-less grid so each css cell aligns 1:1 with a graph-paper square */}
                 <div
                     className="absolute inset-0 grid"
                     style={{
@@ -95,9 +83,6 @@ export function IntegrationsMock() {
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         const popDelay = 0.18 + distance * 0.06;
 
-                        // every cell occupies a full grid square; the visual tile is centered
-                        // inside it at ~72% size, so it floats in the middle of the square
-                        // and never crosses the underlying graph-paper lines.
                         if (cell.kind === "empty") {
                             return (
                                 <div
@@ -117,7 +102,7 @@ export function IntegrationsMock() {
                                             delay: popDelay,
                                             ease: [0.22, 1, 0.36, 1],
                                         }}
-                                        className="h-[72%] w-[72%] rounded-2xl border border-border/60 bg-background/40"
+                                        className="h-[72%] w-[72%] rounded-lg border border-border/60 bg-background/40"
                                     />
                                 </div>
                             );

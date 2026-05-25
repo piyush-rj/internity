@@ -5,27 +5,13 @@ import {
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-/**
- * Platform-wide counters for the admin overview dashboard.
- *
- *   totalStudents     — User.role === STUDENT
- *   totalFounders     — User.role === EMPLOYER
- *   totalLiveListings — same "live" predicate as the public browse: open,
- *                       not paused, not taken down, not past expiry.
- *   applicationsToday — applications with appliedAt >= start of today (UTC).
- *
- * Counts run in parallel — even the slow ones complete in tens of ms with a
- * properly-indexed table; the dashboard re-fetches on every visit so this
- * doesn't need to be cached.
- */
+// returns platform-wide counters for the admin overview dashboard
 export default async function getAdminStats(
     req: Request,
     res: Response,
 ): Promise<void> {
     const api = new ResponseWriter(res);
     try {
-        // Start of today in UTC. Cleaner than local time, and the dashboard
-        // is admin-facing — UTC is the right anchor.
         const startOfTodayUTC = new Date();
         startOfTodayUTC.setUTCHours(0, 0, 0, 0);
 

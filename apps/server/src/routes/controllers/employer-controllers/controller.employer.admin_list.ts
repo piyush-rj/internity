@@ -13,11 +13,7 @@ const Query = z.object({
     pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-/**
- * Admin-only list of founders (every user with an EmployerProfile). Search
- * spans firstName/lastName/jobTitle, the user's name/email, and the
- * company name they belong to. Used by /admin/founders.
- */
+// admin-only paginated list of employer profiles with search
 export default async function adminListFounders(
     req: Request,
     res: Response,

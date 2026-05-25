@@ -7,6 +7,7 @@ import { Plus } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ApplicantCard } from "@/src/components/applicants/ApplicantCard";
 import { useListingApplicants } from "@/src/hooks/useListingApplicants";
+import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { useMyListings } from "@/src/hooks/useMyListings";
 import type { ApplicantWithStudent } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
@@ -40,9 +41,10 @@ function ApplicantsView() {
     const queriedId = searchParams?.get("listingId") ?? null;
 
     const { items: listings, loading: listingsLoading } = useMyListings();
+    const { memberships } = useMyEmployer();
+    const companyName = memberships[0]?.company.name ?? "";
 
-    // Resolve which listing's applicants to show. Prefer the URL param if
-    // valid, otherwise default to the first listing.
+    // resolve which listing's applicants to show, preferring the url param
     const activeListingId = useMemo(() => {
         if (listings.length === 0) return null;
         if (queriedId && listings.some((l) => l.id === queriedId))
@@ -50,8 +52,7 @@ function ApplicantsView() {
         return listings[0]?.id ?? null;
     }, [listings, queriedId]);
 
-    // Keep the URL in sync with the resolved choice so back-nav works as
-    // expected and shareable links land on the right listing.
+    // keep the url in sync with the resolved choice
     useEffect(() => {
         if (!activeListingId) return;
         if (queriedId === activeListingId) return;
@@ -69,8 +70,7 @@ function ApplicantsView() {
         updateStatus,
     } = useListingApplicants(activeListingId);
 
-    // Default to skill-match sort when the listing has tags; otherwise the
-    // founder probably just wants chronological order.
+    // default to skill-match sort when the listing has tags
     const [sort, setSort] = useState<SortKey>("applied_desc");
     useEffect(() => {
         setSort(skillTagsRaw.length > 0 ? "match_desc" : "applied_desc");
@@ -79,6 +79,11 @@ function ApplicantsView() {
     const sortedItems = useMemo(
         () => sortApplicants(items, sort, skillTagsRaw),
         [items, sort, skillTagsRaw],
+    );
+
+    const activeListingTitle = useMemo(
+        () => listings.find((l) => l.id === activeListingId)?.title ?? "",
+        [listings, activeListingId],
     );
 
     return (
@@ -130,6 +135,8 @@ function ApplicantsView() {
                                                 screeningQuestions
                                             }
                                             listingSkillTags={skillTagsRaw}
+                                            listingTitle={activeListingTitle}
+                                            companyName={companyName}
                                             onUpdateStatus={updateStatus}
                                         />
                                     </li>
@@ -170,12 +177,7 @@ function SortPicker({
     );
 }
 
-/**
- * Computes a sorted copy of `items` based on `sort`. Skill-match score is
- * the overlap between listing tags (`tags`) and student skills (both
- * normalised). Stable for predictable UX — same input → same order on
- * repeat renders.
- */
+// returns a sorted copy of items based on sort, scoring by tag overlap
 function sortApplicants(
     items: ApplicantWithStudent[],
     sort: SortKey,
@@ -208,7 +210,6 @@ function sortApplicants(
             arr.sort((a, b) => {
                 const ac = applicantCollege(a);
                 const bc = applicantCollege(b);
-                // Empty colleges sink to the bottom.
                 if (!ac && !bc) return 0;
                 if (!ac) return 1;
                 if (!bc) return -1;

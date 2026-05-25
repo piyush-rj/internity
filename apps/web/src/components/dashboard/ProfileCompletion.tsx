@@ -9,8 +9,6 @@ import {
 import { useMyProfile } from "@/src/hooks/useMyProfile";
 import { cn } from "@/src/lib/utils";
 
-// Sections that count toward completion (everything except the read-only
-// "summary" tab, which isn't something the user actively fills in).
 const editableSteps = stepsConfig.filter((s) => s.key !== "summary");
 
 export function ProfileCompletion() {
@@ -26,9 +24,6 @@ export function ProfileCompletion() {
                     <h2 className="text-[15px] font-semibold">
                         Complete your profile
                     </h2>
-                    {/* <p className="mt-1 text-[11px] text-muted-foreground">
-                        A complete profile gets 3× more recruiter views.
-                    </p> */}
                 </div>
                 <span className="rounded-full bg-orange-50 px-2 py-0.5 text-[11.5px] font-semibold text-orange-600 ring-1 ring-orange-100 tabular-nums">
                     {loading ? "—/—" : `${completed}/${total}`}
@@ -77,8 +72,6 @@ function StepRow({
     label: string;
     done: boolean;
 }) {
-    // Basics edits live inside the summary card; everything else has its own
-    // scroll target on /home/profile.
     const anchor =
         stepKey === "basics" ? "profile-summary" : `profile-${stepKey}`;
     return (

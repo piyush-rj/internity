@@ -9,9 +9,7 @@ import { verifyToken } from "../core/jwt.ts";
 import { prisma, type UserRole } from "../db.ts";
 import { isAdminUser } from "../config/config.ts";
 
-/** 403 thrown when a banned user tries to authenticate. Code is distinct
- *  from FORBIDDEN so the frontend can show a tailored message + a sign-out
- *  flow rather than treating it as a permissions issue. */
+// 403 error thrown for banned users with a distinct code from forbidden
 class AccountDisabled extends ApiError {
     constructor(reason: string | null) {
         super(
@@ -22,7 +20,6 @@ class AccountDisabled extends ApiError {
 }
 
 export type AuthUser = {
-    /** public.User.id (cuid). */
     id: string;
     name: string | null;
     email: string | null;
@@ -78,9 +75,7 @@ export async function requireAuth(
 
         if (!user) throw new Unauthorized();
 
-        // Banned users are blocked from every authenticated endpoint with a
-        // tailored 403. Admins are exempt as a sanity guard so they can
-        // never accidentally lock themselves out via the ban toggle.
+        // banned users are blocked except admins
         if (user.isBanned && user.role !== "ADMIN") {
             throw new AccountDisabled(user.banReason);
         }
@@ -122,12 +117,7 @@ export function requireRole(...roles: UserRole[]) {
     };
 }
 
-/**
- * Admin gate. Accepts either UserRole.ADMIN OR an email in the ADMIN_EMAILS
- * env list — this lets us bootstrap admins without a DB write or a separate
- * admin table. See packages/database/.../auth.ts for the matching frontend
- * check used to gate the /admin UI.
- */
+// middleware that allows only admin role or whitelisted admin emails
 export function requireAdmin(
     req: Request,
     res: Response,

@@ -7,13 +7,7 @@ import {
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-/**
- * Admin-only company detail. Returns the company plus every team member
- * (with employerProfile attached so the overlay can show real names + job
- * titles) and a snapshot of the company's listings (live + recently closed).
- * Used by the admin verification queue overlay AND by the founders/listings
- * sections that come later in Slice 3.
- */
+// admin-only company detail with members and recent listings snapshot
 export default async function adminGetCompany(
     req: Request,
     res: Response,

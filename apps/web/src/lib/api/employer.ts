@@ -46,8 +46,6 @@ export type CompanyMemberWithUser = CompanyMember & {
     user: Pick<User, "id" | "name" | "email" | "image">;
 };
 
-/* ---------------------------- Admin shapes -------------------------------- */
-
 export type AdminCompanyListItem = Company & {
     _count: { members: number; listings: number };
     members: Array<{

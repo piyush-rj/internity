@@ -22,11 +22,7 @@ const Body = z.object({
         .optional(),
 });
 
-/**
- * Admin-only. Transitions a Company between PENDING ↔ APPROVED/REJECTED and
- * notifies every member of the company. Edit-and-resubmit (REJECTED → PENDING)
- * is handled separately in controller.company.update, not here.
- */
+// admin-only transition of company verification status and notify members
 export default async function setCompanyVerification(
     req: Request,
     res: Response,

@@ -6,11 +6,7 @@ import { cn } from "@/src/lib/utils";
 
 export type ChatFilter = "all" | "unread";
 
-/**
- * The "All ⌄" chip + dropdown in the chat sidebar header. Stays
- * presentational — the parent owns filter state and the mark-all-read
- * handler.
- */
+// chip and dropdown in chat sidebar header for filter and mark-all-read
 export function ChatFilterMenu({
     filter,
     onFilterChange,

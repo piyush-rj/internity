@@ -9,15 +9,10 @@ import { NotificationType, Prisma, prisma } from "../../../db.ts";
 import { notifyMany } from "../../../services/notifications.ts";
 
 const Body = z.object({
-    // Cover letter is optional and capped at 150 chars per the spec —
-    // 1-click apply is the default; a short note is a nice-to-have.
     coverLetter: z
         .string()
         .max(150, "Keep your cover note under 150 characters")
         .optional(),
-    // Parallel to Listing.screeningQuestions. Required when the listing has
-    // any questions — see the runtime check below for the count-match
-    // enforcement so we can produce a tailored error message.
     screeningAnswers: z
         .array(z.string().max(500, "Keep each answer under 500 characters"))
         .optional(),
@@ -82,9 +77,6 @@ export default async function applyToListing(
 
     const coverLetter = body.coverLetter?.trim() || null;
 
-    // Screening answers must line up exactly with the listing's questions.
-    // Trimmed; empty answers are rejected so a student can't bypass the
-    // questionnaire by submitting blanks.
     const submittedAnswers = (body.screeningAnswers ?? []).map((a) => a.trim());
     if (found.screeningQuestions.length > 0) {
         if (submittedAnswers.length !== found.screeningQuestions.length) {
@@ -100,9 +92,6 @@ export default async function applyToListing(
             }
         }
     } else if (submittedAnswers.length > 0) {
-        // No questions on the listing but answers were supplied — drop them
-        // silently rather than reject; the student likely raced a question
-        // removal.
         submittedAnswers.length = 0;
     }
 

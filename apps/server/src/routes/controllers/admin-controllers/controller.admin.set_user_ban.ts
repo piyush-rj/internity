@@ -18,20 +18,7 @@ const Body = z.object({
         .optional(),
 });
 
-/**
- * Admin-only. Flips `User.isBanned` (with an optional `reason`) so the
- * target user is hard-blocked from the platform on their next request —
- * see middleware/auth.ts. Banning also hides their listings from public
- * surfaces via the postedBy.isBanned filter on the public listing
- * endpoints.
- *
- *   POST /admin/user/:id/ban     body: { banned: true,  reason: "..." }
- *   POST /admin/user/:id/ban     body: { banned: false }
- *
- * Notifies the affected user with a GENERIC notification documenting the
- * decision — they probably won't see it (they can't log in) but the audit
- * trail lives in the notifications table.
- */
+// admin-only ban or unban toggle for a user with an optional reason
 export default async function setUserBan(
     req: Request,
     res: Response,
@@ -42,7 +29,6 @@ export default async function setUserBan(
         if (!id) throw new InvalidRequest("Missing user id");
         const body = Body.parse(req.body);
 
-        // Don't let an admin ban themselves accidentally.
         if (req.user!.id === id) {
             throw new InvalidRequest("You can't disable your own account.");
         }
@@ -83,8 +69,6 @@ export default async function setUserBan(
             },
         });
 
-        // Best-effort notification. They probably can't log in to see it
-        // but it lives in the audit trail.
         if (body.banned) {
             await notify({
                 userId: id,

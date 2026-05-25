@@ -2,11 +2,6 @@
 
 import { cn } from "@/src/lib/utils";
 
-/**
- * Placeholder bubbles shown while the message history is loading. Alternating
- * sides + varied widths so it reads as a real conversation rather than a flat
- * loading bar.
- */
 const ROWS: { side: "left" | "right"; width: string }[] = [
     { side: "left", width: "w-32" },
     { side: "right", width: "w-40" },

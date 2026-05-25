@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { AlertTriangle, ChevronRight, Trash2 } from "lucide-react";
+import { AlertTriangle, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import {
     PiBriefcase,
     PiClock,
@@ -68,82 +68,156 @@ export function MyListingCard({
         }
     }
 
+    const applicants = listing._count?.applications ?? 0;
+    const unseen = Math.max(
+        0,
+        applicants - (listing._count?.applicationsSeen ?? 0),
+    );
+
     return (
-        <div className="flex items-start gap-4 px-5 py-4 hover:bg-secondary/40 transition-colors">
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                    {takenDown ? (
-                        <span className="text-[14px] font-medium text-muted-foreground line-through truncate">
-                            {listing.title}
-                        </span>
-                    ) : (
-                        <Link
-                            href={`/home/listings/${listing.id}`}
-                            className="text-[14px] font-medium text-foreground truncate hover:underline"
-                        >
-                            {listing.title}
-                        </Link>
+        <article
+            className={cn(
+                "rounded-lg border border-border bg-card p-5",
+                "hover:shadow-sm transition-shadow",
+                takenDown && "border-red-200 bg-red-50/30",
+            )}
+        >
+            <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                        {takenDown ? (
+                            <span className="text-[16px] font-semibold text-muted-foreground line-through truncate">
+                                {listing.title}
+                            </span>
+                        ) : (
+                            <Link
+                                href={`/home/listings/${listing.id}`}
+                                className="text-[16px] font-semibold text-foreground truncate hover:text-orange-600 transition-colors"
+                            >
+                                {listing.title}
+                            </Link>
+                        )}
+                        <TypeBadge type={listing.type} />
+                        <ModeBadge mode={listing.mode} />
+                        <StatusBadge
+                            closed={closed}
+                            takenDown={takenDown}
+                            paused={paused}
+                            expired={expired}
+                        />
+                        {expiringSoon && (
+                            <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                                Expires {formatExpiresAt(listing.expiresAt)}
+                            </span>
+                        )}
+                    </div>
+
+                    {takenDown && listing.takedownReason && (
+                        <div className="mt-2 flex items-start gap-1.5 text-[11.5px] text-red-700">
+                            <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
+                            <span className="leading-snug">
+                                <span className="font-medium">
+                                    Removed by admin:
+                                </span>{" "}
+                                {listing.takedownReason}
+                            </span>
+                        </div>
                     )}
-                    <TypeBadge type={listing.type} />
-                    <ModeBadge mode={listing.mode} />
-                    <StatusBadge
-                        closed={closed}
-                        takenDown={takenDown}
-                        paused={paused}
-                        expired={expired}
-                    />
-                    {expiringSoon && (
-                        <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
-                            Expires {formatExpiresAt(listing.expiresAt)}
-                        </span>
+
+                    {listing.description && (
+                        <p className="mt-2 text-[12.5px] leading-relaxed text-muted-foreground line-clamp-2">
+                            {listing.description}
+                        </p>
                     )}
-                </div>
-                {takenDown && listing.takedownReason && (
-                    <div className="mt-2 flex items-start gap-1.5 text-[11.5px] text-red-700">
-                        <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0" />
-                        <span className="leading-snug">
-                            <span className="font-medium">
-                                Removed by admin:
-                            </span>{" "}
-                            {listing.takedownReason}
+
+                    <ul className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12.5px] text-foreground/80">
+                        <li>
+                            <ApplicantsLink
+                                listingId={listing.id}
+                                applicants={applicants}
+                                unseen={unseen}
+                            />
+                        </li>
+                        {(listing.stipendMin || listing.stipendMax) && (
+                            <li className="inline-flex items-center gap-1.5 tabular-nums">
+                                <PiCurrencyInr className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span>
+                                    {formatStipend(
+                                        listing.stipendMin,
+                                        listing.stipendMax,
+                                    )}{" "}
+                                    /mo
+                                </span>
+                            </li>
+                        )}
+                        {listing.durationMonths && (
+                            <li className="inline-flex items-center gap-1.5 tabular-nums">
+                                <PiClock className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span>
+                                    {listing.durationMonths} month
+                                    {listing.durationMonths === 1 ? "" : "s"}
+                                </span>
+                            </li>
+                        )}
+                        {(listing.city || listing.mode === "REMOTE") && (
+                            <li className="inline-flex items-center gap-1.5">
+                                <PiMapPin className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span className="truncate max-w-50">
+                                    {listing.mode === "REMOTE"
+                                        ? "Work from home"
+                                        : listing.city}
+                                </span>
+                            </li>
+                        )}
+                        {listing.openings && (
+                            <li className="inline-flex items-center gap-1.5 tabular-nums">
+                                <PiBriefcase className="h-3.5 w-3.5 text-muted-foreground" />
+                                <span>
+                                    {listing.openings}{" "}
+                                    {listing.openings === 1
+                                        ? "opening"
+                                        : "openings"}
+                                </span>
+                            </li>
+                        )}
+                    </ul>
+
+                    {listing.skillTagsRaw.length > 0 && (
+                        <div className="mt-3 flex flex-wrap gap-1.5">
+                            {listing.skillTagsRaw.slice(0, 6).map((skill) => (
+                                <span
+                                    key={skill}
+                                    className="inline-flex items-center px-2 py-0.5 rounded-md bg-secondary/60 text-foreground/80 text-[11px]"
+                                >
+                                    {skill}
+                                </span>
+                            ))}
+                            {listing.skillTagsRaw.length > 6 && (
+                                <span className="text-[11px] text-muted-foreground self-center">
+                                    +{listing.skillTagsRaw.length - 6} more
+                                </span>
+                            )}
+                        </div>
+                    )}
+
+                    <div className="mt-3 flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                        <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 font-medium">
+                            <PiClock className="h-3 w-3" />
+                            Posted {timeAgo(listing.createdAt)}
                         </span>
                     </div>
-                )}
-                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground">
-                    <Meta
-                        icon={<PiUsers className="h-3 w-3" />}
-                        text={`${listing._count?.applications ?? 0} applicants`}
-                        href={`/home/applicants?listingId=${listing.id}`}
-                    />
-                    {(listing.stipendMin || listing.stipendMax) && (
-                        <Meta
-                            icon={<PiCurrencyInr className="h-3 w-3" />}
-                            text={`${formatStipend(listing.stipendMin, listing.stipendMax)}/mo`}
-                        />
-                    )}
-                    {listing.durationMonths && (
-                        <Meta
-                            icon={<PiClock className="h-3 w-3" />}
-                            text={`${listing.durationMonths} months`}
-                        />
-                    )}
-                    {listing.city && (
-                        <Meta
-                            icon={<PiMapPin className="h-3 w-3" />}
-                            text={listing.city}
-                        />
-                    )}
-                    {listing.openings && (
-                        <Meta
-                            icon={<PiBriefcase className="h-3 w-3" />}
-                            text={`${listing.openings} ${listing.openings === 1 ? "opening" : "openings"}`}
-                        />
-                    )}
                 </div>
             </div>
 
             {!takenDown && (
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="mt-4 pt-3 border-t border-border flex items-center justify-end gap-1.5 flex-wrap">
+                    <Link
+                        href={`/home/manage-listings/${listing.id}`}
+                        className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg text-[12px] font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
+                    >
+                        <Pencil className="h-3 w-3" />
+                        Edit
+                    </Link>
                     {expired ? (
                         <Button
                             type="button"
@@ -223,7 +297,7 @@ export function MyListingCard({
                         aria-label="Delete listing"
                         disabled={!!busy}
                         className={cn(
-                            "h-8 w-8 inline-flex items-center justify-center rounded-md",
+                            "h-8 w-8 inline-flex items-center justify-center rounded-lg",
                             "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
                             "transition-colors disabled:opacity-50",
                         )}
@@ -233,7 +307,35 @@ export function MyListingCard({
                 </div>
             )}
             <ConfirmDialog {...dialogProps} />
-        </div>
+        </article>
+    );
+}
+
+function ApplicantsLink({
+    listingId,
+    applicants,
+    unseen,
+}: {
+    listingId: string;
+    applicants: number;
+    unseen: number;
+}) {
+    return (
+        <Link
+            href={`/home/applicants?listingId=${listingId}`}
+            className="inline-flex items-center gap-1.5 text-foreground hover:text-orange-600 transition-colors font-medium"
+        >
+            <PiUsers className="h-3.5 w-3.5 text-muted-foreground" />
+            <span>
+                {applicants} {applicants === 1 ? "applicant" : "applicants"}
+            </span>
+            {unseen > 0 && (
+                <span className="inline-flex items-center justify-center min-w-4 h-4 px-1 rounded-md bg-orange-500 text-white text-[10px] font-semibold tabular-nums">
+                    {unseen} new
+                </span>
+            )}
+            <ChevronRight className="h-3 w-3" />
+        </Link>
     );
 }
 
@@ -335,35 +437,6 @@ function ModeBadge({ mode }: { mode: MyListing["mode"] }) {
     );
 }
 
-function Meta({
-    icon,
-    text,
-    href,
-}: {
-    icon: React.ReactNode;
-    text: string;
-    href?: string;
-}) {
-    const content = (
-        <span className="inline-flex items-center gap-1">
-            {icon}
-            {text}
-            {href && <ChevronRight className="h-2.5 w-2.5" />}
-        </span>
-    );
-    if (href) {
-        return (
-            <Link
-                href={href}
-                className="hover:text-foreground transition-colors"
-            >
-                {content}
-            </Link>
-        );
-    }
-    return content;
-}
-
 function formatStipend(min: number | null, max: number | null): string {
     if (min && max && min !== max)
         return `₹${formatNum(min)}–${formatNum(max)}`;
@@ -374,4 +447,14 @@ function formatStipend(min: number | null, max: number | null): string {
 function formatNum(n: number): string {
     if (n >= 1000) return `${(n / 1000).toFixed(0)}k`;
     return String(n);
+}
+
+function timeAgo(iso: string): string {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (days <= 0) return "today";
+    if (days === 1) return "yesterday";
+    if (days < 7) return `${days}d ago`;
+    if (days < 30) return `${Math.floor(days / 7)}w ago`;
+    return `${Math.floor(days / 30)}mo ago`;
 }

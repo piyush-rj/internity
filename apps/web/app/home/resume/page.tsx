@@ -11,7 +11,7 @@ import { useMyProfile } from "@/src/hooks/useMyProfile";
 import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
-const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
 const ACCEPTED_TYPE = "application/pdf";
 
 export default function ResumePage() {
@@ -56,14 +56,9 @@ export default function ResumePage() {
                 contentType: file.type,
                 sizeBytes: file.size,
             });
-            // Some backends auto-update the profile on confirm; others don't.
-            // Try patching the profile explicitly so the URL is visible
-            // regardless. Swallow validation errors so we don't double-report.
             try {
                 await studentApi.update({ resumeUrl: getUrl });
-            } catch {
-                /* best-effort */
-            }
+            } catch {}
             await refetch();
         } catch (err) {
             setError(
@@ -278,7 +273,7 @@ function NoProfile() {
     );
 }
 
-/** Direct PUT to S3-compatible presigned URL with progress tracking. */
+// uploads file via put to a presigned url with progress tracking
 function putToPresignedUrl(
     url: string,
     file: File,

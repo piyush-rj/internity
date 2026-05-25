@@ -4,17 +4,9 @@ import { useEffect, useRef } from "react";
 import { ArrowUp, Plus } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
-/** Cap on textarea auto-grow (px). Beyond this, it scrolls internally. */
 const MAX_HEIGHT_PX = 140;
 
-/**
- * Bottom-of-thread composer. A `+` button (attachments, placeholder for now),
- * an auto-growing pill input, and a circular send button that lives INSIDE
- * the pill — appears only when there's draft text.
- *
- * The composer has no background of its own; whatever surface it sits on
- * shows through.
- */
+// bottom-of-thread chat composer with autogrow textarea
 export function Composer({
     draft,
     onDraftChange,
@@ -31,7 +23,6 @@ export function Composer({
     const taRef = useRef<HTMLTextAreaElement>(null);
     const hasText = draft.trim().length > 0;
 
-    // Resize on every keystroke — shrink first via "auto" so deletes work too.
     useEffect(() => {
         const el = taRef.current;
         if (!el) return;

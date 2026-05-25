@@ -4,14 +4,7 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Slide-from-left mobile drawer that hosts an arbitrary nav body (home or
- * admin). Portal'd to `document.body` to escape any local stacking context,
- * and uses z-[100]/[101] so it covers the topbar (z-30) and any sticky
- * content. Esc + backdrop-click close it; `onClose` is also fired when the
- * inner nav reports a navigation (so picking a destination collapses the
- * drawer naturally).
- */
+// slide-from-left mobile nav drawer portalled to body
 export function MobileNavDrawer({
     open,
     onClose,
@@ -21,13 +14,10 @@ export function MobileNavDrawer({
 }: {
     open: boolean;
     onClose: () => void;
-    /** Sidebar body. The body should call `onClose` (passed via render-prop
-     *  or its own `onNavigate`) when the user picks a destination. */
     children: React.ReactNode;
     width?: number;
     ariaLabel?: string;
 }) {
-    // Esc to close.
     useEffect(() => {
         if (!open) return;
         function onKey(e: KeyboardEvent) {
@@ -37,8 +27,6 @@ export function MobileNavDrawer({
         return () => window.removeEventListener("keydown", onKey);
     }, [open, onClose]);
 
-    // Lock body scroll while the drawer is open so backdrop swipes don't
-    // double-scroll the underlying page.
     useEffect(() => {
         if (!open) return;
         const prev = document.body.style.overflow;
@@ -48,7 +36,6 @@ export function MobileNavDrawer({
         };
     }, [open]);
 
-    // Wait until mounted in the browser before portalling.
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
         setMounted(true);

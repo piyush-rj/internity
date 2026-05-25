@@ -3,11 +3,7 @@ import type { Conversation, ConversationRead, Message, User } from "../db.ts";
 
 export type { Conversation, ConversationRead, Message, User };
 
-/**
- * Slim view of a conversation — just what the socket code needs to authorise
- * a message: the two participating user ids. No listing/company joins, since
- * the chat thread now lives on the (student, recruiter) pair directly.
- */
+// minimal conversation shape with participant ids for authorisation
 export type ConversationParticipants = {
     id: string;
     studentId: string;
@@ -98,13 +94,7 @@ export class SocketDbService {
         });
     }
 
-    /**
-     * Every other user that shares at least one Conversation with `userId`.
-     * After the conversation-per-pair migration this is a direct lookup on
-     * the Conversation table — no Application/Listing/CompanyMember walk.
-     * Used to fan-out presence-change events to anyone who can see this
-     * user in their chat list.
-     */
+    // returns user ids that share a conversation with the given user
     static async getConversationPeerUserIds(userId: string): Promise<string[]> {
         const rows = await prisma.conversation.findMany({
             where: {

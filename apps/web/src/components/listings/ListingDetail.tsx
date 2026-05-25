@@ -70,7 +70,7 @@ export function ListingDetail({
                                 {listing.skillTagsRaw.map((skill) => (
                                     <span
                                         key={skill}
-                                        className="rounded-full border border-border bg-secondary/40 px-2.5 py-1 text-[12px]"
+                                        className="rounded-md border border-border bg-secondary/40 px-2.5 py-1 text-[12px]"
                                     >
                                         {skill}
                                     </span>
@@ -81,7 +81,7 @@ export function ListingDetail({
                 </article>
 
                 <aside className="lg:sticky lg:top-16 lg:self-start space-y-4">
-                    <div className="rounded-xl border border-border bg-card p-4 space-y-3">
+                    <div className="rounded-lg border border-border border-t-2 border-t-orange-300 bg-card p-4 space-y-3">
                         {hasKeyDetails && <KeyDetails listing={listing} />}
                         <div
                             className={
@@ -113,9 +113,6 @@ function PostedByCard({
 }: {
     postedBy: ListingDetailType["postedBy"] | null | undefined;
 }) {
-    // Defense in depth: if the backend ever ships a listing without the
-    // postedBy join (regression / older payload), render nothing instead of
-    // crashing the whole detail page.
     if (!postedBy) return null;
     const ep = postedBy.employerProfile;
     const founderName =

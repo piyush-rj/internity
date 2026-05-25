@@ -6,7 +6,10 @@ import { Check, X } from "lucide-react";
 import { listingApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Button } from "@/src/components/ui/button";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { useMe } from "@/src/hooks/useMe";
+import { useAppliedStore } from "@/src/store/useAppliedStore";
+import { useMyProfileStore } from "@/src/store/useMyProfileStore";
 import { cn } from "@/src/lib/utils";
 
 const COVER_LIMIT = 150;
@@ -98,8 +101,6 @@ export function ApplyCard({
     );
 }
 
-/* ------------------------------- Dialog ---------------------------------- */
-
 type Step = "questions" | "cover";
 
 function ApplyDialog({
@@ -116,6 +117,14 @@ function ApplyDialog({
     onApplied: () => Promise<void> | void;
 }) {
     const hasQuestions = screeningQuestions.length > 0;
+    const profile = useMyProfileStore((s) => s.profile);
+    const profileInitialized = useMyProfileStore((s) => s.initialized);
+    const initProfile = useMyProfileStore((s) => s.init);
+    const markApplied = useAppliedStore((s) => s.markApplied);
+
+    useEffect(() => {
+        if (open && !profileInitialized) void initProfile();
+    }, [open, profileInitialized, initProfile]);
 
     const [coverLetter, setCoverLetter] = useState<string>("");
     const [answers, setAnswers] = useState<string[]>(() =>
@@ -125,10 +134,8 @@ function ApplyDialog({
         hasQuestions ? "questions" : "cover",
     );
     const [submitting, setSubmitting] = useState<boolean>(false);
+    const [showResumeWarning, setShowResumeWarning] = useState<boolean>(false);
 
-    // Reset the form and the step pointer whenever the dialog opens fresh.
-    // Also keeps the `answers` array length in lock-step with the listing's
-    // questions if the founder edited them while the dialog was closed.
     useEffect(() => {
         if (!open) return;
         setStep(hasQuestions ? "questions" : "cover");
@@ -138,7 +145,6 @@ function ApplyDialog({
         });
     }, [open, hasQuestions, screeningQuestions]);
 
-    // Esc to close (when not submitting).
     useEffect(() => {
         if (!open) return;
         function onKey(e: KeyboardEvent) {
@@ -148,8 +154,6 @@ function ApplyDialog({
         return () => window.removeEventListener("keydown", onKey);
     }, [open, onClose, submitting]);
 
-    // Render nothing until mounted in the browser — createPortal needs
-    // document.body, which doesn't exist during SSR.
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
         setMounted(true);
@@ -183,7 +187,7 @@ function ApplyDialog({
         setStep("cover");
     }
 
-    async function submit() {
+    function onApplyClick() {
         if (overCover) {
             toast.error(
                 `Keep your cover note under ${COVER_LIMIT} characters.`,
@@ -202,6 +206,14 @@ function ApplyDialog({
             );
             return;
         }
+        if (profileInitialized && !profile?.resumeUrl) {
+            setShowResumeWarning(true);
+            return;
+        }
+        void submit();
+    }
+
+    async function submit() {
         setSubmitting(true);
         try {
             await listingApi.apply(listingId, {
@@ -210,6 +222,7 @@ function ApplyDialog({
                     ? answers.map((a) => a.trim())
                     : undefined,
             });
+            markApplied(listingId);
             await onApplied();
             toast.success("Application sent.");
             setCoverLetter("");
@@ -248,14 +261,6 @@ function ApplyDialog({
                         <h2 className="text-[14px] font-semibold">
                             Apply to this listing
                         </h2>
-                        {/* {hasQuestions && (
-                            <div className="text-[11px] text-muted-foreground mt-0.5">
-                                Step {step === "questions" ? 1 : 2} of 2 ·{" "}
-                                {step === "questions"
-                                    ? "Screening questions"
-                                    : "Cover note"}
-                            </div>
-                        )} */}
                     </div>
                     <button
                         type="button"
@@ -405,7 +410,7 @@ function ApplyDialog({
                             <Button
                                 type="button"
                                 variant="exec-dark"
-                                onClick={submit}
+                                onClick={onApplyClick}
                                 disabled={submitting || !coverReady}
                                 className="h-9 px-3 text-[12.5px] cursor-pointer"
                             >
@@ -415,6 +420,19 @@ function ApplyDialog({
                     )}
                 </footer>
             </div>
+            <ConfirmDialog
+                open={showResumeWarning}
+                title="Apply without a resume?"
+                description="You haven't uploaded a resume to your profile. Most employers expect one. Continue with only your cover letter?"
+                confirmLabel="Apply anyway"
+                cancelLabel="Add resume first"
+                busy={submitting}
+                onCancel={() => setShowResumeWarning(false)}
+                onConfirm={async () => {
+                    setShowResumeWarning(false);
+                    await submit();
+                }}
+            />
         </>,
         document.body,
     );

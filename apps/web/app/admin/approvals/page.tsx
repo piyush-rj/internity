@@ -29,8 +29,7 @@ export default function AdminApprovalsPage() {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    // 250ms debounce on the search box — avoids a request on every keystroke
-    // while keeping the UI feeling responsive.
+    // debounce the search box
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => {
         if (timer.current) clearTimeout(timer.current);
@@ -129,8 +128,6 @@ export default function AdminApprovalsPage() {
         </>
     );
 }
-
-/* ------------------------------ Sub-views -------------------------------- */
 
 function Tabs({
     current,

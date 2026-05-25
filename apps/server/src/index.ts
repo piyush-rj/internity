@@ -11,8 +11,7 @@ import v1 from "./routes/routes.ts";
 const app = express();
 const server = createServer(app);
 
-// Render/Vercel/etc. terminate TLS at a reverse proxy. Without this, req.ip
-// reports the proxy and req.protocol stays "http" behind HTTPS.
+// trust reverse proxy so req.ip and req.protocol are correct
 app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "1mb" }));
@@ -28,10 +27,7 @@ app.use(errorHandler);
 
 new ChatSocket(server, "/api/v1/chat/ws");
 
-// Reset any presence rows the connection manager doesn't know about — a
-// previous process crash leaves them stuck at isOnline=true otherwise.
-// In-memory presence is authoritative; we only persist it for the chat
-// header's last-seen UI.
+// reset stale presence rows from a previous crashed process
 prisma.user
     .updateMany({
         where: { isOnline: true },

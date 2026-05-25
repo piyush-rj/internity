@@ -129,8 +129,6 @@ export default function AdminListingsPage() {
     );
 }
 
-/* ------------------------------ Sub-views -------------------------------- */
-
 function Tabs({
     current,
     onSelect,
@@ -270,7 +268,7 @@ function Chip({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9.5px] font-medium shrink-0",
+                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[9.5px] font-medium shrink-0",
                 classes,
             )}
         >

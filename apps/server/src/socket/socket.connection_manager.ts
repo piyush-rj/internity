@@ -4,11 +4,7 @@ import type { ServerMessage } from "types";
 class ConnectionManager {
     private readonly sockets: Map<string, Set<CustomWS>> = new Map();
 
-    /**
-     * Add a socket for a user. Returns `true` if this was the *first* socket
-     * for that user (i.e. they just came online), so the caller can fire a
-     * presence-change side effect exactly once per online-session.
-     */
+    // registers a socket and returns true if user just came online
     register(userId: string, ws: CustomWS): boolean {
         let bucket = this.sockets.get(userId);
         const wasOffline = !bucket || bucket.size === 0;
@@ -20,11 +16,7 @@ class ConnectionManager {
         return wasOffline;
     }
 
-    /**
-     * Remove a socket. Returns `true` if this was the *last* socket for the
-     * user (now offline), so the caller knows to fire a goes-offline side
-     * effect. A user with another open tab stays online.
-     */
+    // unregisters a socket and returns true if user went offline
     unregister(userId: string, ws: CustomWS): boolean {
         const bucket = this.sockets.get(userId);
         if (!bucket) return false;

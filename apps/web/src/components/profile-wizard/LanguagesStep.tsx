@@ -80,7 +80,6 @@ export function LanguagesStep({
             await studentApi.remove_language(id);
             await onSaved();
         } catch {
-            /* ignore */
         }
     }
 

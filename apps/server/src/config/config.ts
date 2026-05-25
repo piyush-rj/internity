@@ -1,8 +1,7 @@
 import "dotenv/config";
 import { z } from "zod";
 
-// Render (and most PaaS providers) inject the bind port as `PORT`. Prefer it
-// over our own `SERVER_PORT` so the same code runs locally and in production.
+// prefer PORT injected by paas providers over SERVER_PORT
 if (process.env.PORT && !process.env.SERVER_PORT) {
     process.env.SERVER_PORT = process.env.PORT;
 }
@@ -11,11 +10,9 @@ const schema = z.object({
     SERVER_PORT: z.coerce.number().int().positive().default(8081),
     DATABASE_URL: z.string().url(),
 
-    // Supabase Auth — used to verify Supabase-issued JWTs.
     SUPABASE_URL: z.string().url(),
     SUPABASE_JWT_SECRET: z.string().min(1),
 
-    // MinIO / S3.
     MINIO_ENDPOINT: z.string().url(),
     MINIO_PUBLIC_ENDPOINT: z.string().url().optional(),
     MINIO_ACCESS_KEY: z.string().min(1),
@@ -23,18 +20,22 @@ const schema = z.object({
     MINIO_BUCKET: z.string().min(1),
     MINIO_REGION: z.string().default("us-east-1"),
 
-    // Razorpay — optional, /payment endpoints surface a clear error if missing.
     SERVER_RAZORPAY_ID: z.string().optional(),
     SERVER_RAZORPAY_SECRET: z.string().optional(),
 
     CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
-    // Comma-separated list of admin emails. Any user who signs in with an
-    // email in this list is treated as an admin (in addition to anyone whose
-    // User.role is ADMIN in the DB). ADMIN_EMAIL (singular) is also accepted
-    // as a convenience and merged with the plural one.
     ADMIN_EMAILS: z.string().optional().default(""),
     ADMIN_EMAIL: z.string().optional().default(""),
+
+    // Google OAuth for Calendar / Meet link generation. All optional so dev
+    // doesn't break without the integration; the schedule controller falls
+    // back to the paste-link flow when these are missing.
+    GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
+    GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
+    GOOGLE_OAUTH_REDIRECT_URI: z.string().url().optional(),
+    OAUTH_STATE_SECRET: z.string().optional(),
+    APP_URL: z.string().url().default("http://localhost:3000"),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -55,7 +56,7 @@ export const ADMIN_EMAIL_SET: ReadonlySet<string> = new Set(
         .filter(Boolean),
 );
 
-/** Treat the user as an admin if their email is whitelisted OR their role is ADMIN. */
+// true if the user has admin role or a whitelisted email
 export function isAdminUser(user: {
     role: string;
     email: string | null;

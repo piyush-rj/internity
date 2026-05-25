@@ -14,12 +14,7 @@ import {
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 
-/**
- * Edit-your-employer-profile surface at /home/profile when viewer is an
- * employer. Edits the personal employer fields only — first/last name,
- * phone, job title, LinkedIn. Company-level fields (name, website,
- * verification, etc.) live on /home/company and are not touched here.
- */
+// edit employer personal profile surface at /home/profile
 export function EmployerProfileEditor() {
     const { profile, loading, refetch } = useMyEmployer();
     const me = useMeStore((s) => s.me);
@@ -108,8 +103,6 @@ function ProfileCard({
     );
 }
 
-/* ------------------------------ Read view -------------------------------- */
-
 function ReadView({
     profile,
     accountEmail,
@@ -166,8 +159,6 @@ function Fact({
     );
 }
 
-/* ------------------------------ Edit form -------------------------------- */
-
 type FormState = {
     firstName: string;
     lastName: string;
@@ -194,7 +185,6 @@ function EditForm({
         jobTitle: profile?.jobTitle ?? "",
         linkedinUrl: profile?.linkedinUrl ?? "",
     });
-    // Re-seed when profile arrives async (first-time-empty → loaded mid-edit).
     useEffect(() => {
         if (!profile) return;
         setForm({
@@ -347,8 +337,6 @@ function EditForm({
         </div>
     );
 }
-
-/* -------------------------------- helpers -------------------------------- */
 
 function Skeleton() {
     return (

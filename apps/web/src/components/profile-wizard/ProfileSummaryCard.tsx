@@ -50,14 +50,12 @@ export function ProfileSummaryCard({
                 "rounded-xl border border-border bg-card p-5 sm:p-6",
             )}
         >
-            {/* Avatar + completion ring */}
             <CompletionAvatar
                 pct={pct}
                 initial={initial}
                 imageUrl={session?.user?.image ?? null}
             />
 
-            {/* Identity + facts */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                     <h2 className="text-[20px] sm:text-[22px] font-semibold tracking-tight uppercase text-foreground truncate">
@@ -110,7 +108,6 @@ export function ProfileSummaryCard({
                 </dl>
             </div>
 
-            {/* Missing details CTA */}
             {missingCount > 0 && firstMissingStep && (
                 <MissingDetailsCard
                     label={firstMissingLabel ?? "Add details"}

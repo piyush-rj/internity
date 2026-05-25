@@ -20,7 +20,7 @@ export type StudentProfileInput = {
     lastName?: string;
     phone?: string;
     city?: string;
-    dob?: string; // ISO
+    dob?: string; // iso
     gender?: Gender;
     bio?: string;
     resumeUrl?: string | null;
@@ -42,8 +42,8 @@ export type ExperienceInput = {
     company: string;
     title: string;
     location?: string;
-    startDate: string; // ISO
-    endDate?: string; // ISO
+    startDate: string; // iso
+    endDate?: string; // iso
     current?: boolean;
     description?: string;
 };

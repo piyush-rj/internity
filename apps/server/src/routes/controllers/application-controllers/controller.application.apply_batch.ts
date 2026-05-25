@@ -13,7 +13,6 @@ const Body = z.object({
         .array(z.string().min(1))
         .min(1, "Pick at least one listing to apply to")
         .max(50, "Too many — apply to 50 listings at a time at most"),
-    // Shared note across every selected listing. Same cap as single-apply.
     coverLetter: z
         .string()
         .max(150, "Keep your cover note under 150 characters")
@@ -32,12 +31,7 @@ type SkipReason =
 
 type Skip = { listingId: string; reason: SkipReason };
 
-/**
- * Batch-apply to multiple listings in one call. Each listing is evaluated
- * independently; the response carries `created` (Application[]) and `skipped`
- * (per-listing reasons) so the UI can show a precise toast like
- * "Applied to 5 · 2 already applied · 1 closed".
- */
+// applies to multiple listings in one call returning created and skipped
 export default async function applyBatch(
     req: Request,
     res: Response,
@@ -124,8 +118,6 @@ export default async function applyBatch(
                 continue;
             }
             if (l.screeningQuestions.length > 0) {
-                // Batch apply doesn't collect per-listing answers; tell the
-                // student to apply to these one-by-one.
                 skipped.push({ listingId: id, reason: "SCREENING_REQUIRED" });
                 continue;
             }
@@ -136,8 +128,6 @@ export default async function applyBatch(
             });
         }
 
-        // Bulk-create. createMany returns count, not rows; we follow up with a
-        // findMany so notifications can pick the right metadata.
         if (created.length > 0) {
             try {
                 await prisma.application.createMany({
@@ -154,16 +144,14 @@ export default async function applyBatch(
                     err instanceof Prisma.PrismaClientKnownRequestError &&
                     err.code === "P2002"
                 ) {
-                    // Race vs single-apply on the same listing — fall through
-                    // and let the per-listing notification step ignore them.
+                    // race with single-apply, ignore
                 } else {
                     throw err;
                 }
             }
         }
 
-        // Notify each company's members. Grouped so multi-apply doesn't spam
-        // the same recruiter with N near-identical notifications.
+        // group notifications by company to avoid spamming recruiters
         if (created.length > 0) {
             const byCompany = new Map<
                 string,

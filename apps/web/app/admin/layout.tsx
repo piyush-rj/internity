@@ -9,12 +9,12 @@ export default function AdminLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="flex min-h-screen w-full">
+        <div className="flex min-h-screen w-full bg-neutral-100">
             <MeBootstrap />
             <AdminSidebar />
             <div className="flex-1 min-w-0 flex flex-col">
                 <AdminTopbar />
-                <main className="flex-1">
+                <main className="flex-1 bg-neutral-100">
                     <AdminGuard>{children}</AdminGuard>
                 </main>
             </div>

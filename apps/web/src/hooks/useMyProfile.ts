@@ -11,10 +11,7 @@ export type ProfileState = {
     refetch: () => Promise<void>;
 };
 
-/**
- * Thin wrapper around the shared profile store. Triggers init on mount so
- * the first consumer drives the fetch and later mounts get the cached value.
- */
+// wrapper around the shared profile store that inits on mount
 export function useMyProfile(): ProfileState {
     const profile = useMyProfileStore((s) => s.profile);
     const loading = useMyProfileStore((s) => s.loading);

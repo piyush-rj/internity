@@ -4,9 +4,7 @@ import { IoCheckmarkCircle, IoCheckmarkCircleOutline } from "react-icons/io5";
 import { cn } from "@/src/lib/utils";
 import { formatTime, type Bubble } from "./chat-utils";
 
-/**
- * A single message row — bubble + time + (if mine) read tick.
- */
+// single message bubble row with time and read tick
 export function MessageBubble({
     message,
     ownId,
@@ -57,10 +55,6 @@ export function MessageBubble({
     );
 }
 
-/**
- * Outline tick while the message is in transit OR delivered-but-not-read;
- * filled tick once the peer has read it.
- */
 function ReadTick({ pending, read }: { pending: boolean; read: boolean }) {
     const Icon =
         pending || !read ? IoCheckmarkCircleOutline : IoCheckmarkCircle;

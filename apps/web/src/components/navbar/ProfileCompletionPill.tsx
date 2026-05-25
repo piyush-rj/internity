@@ -7,14 +7,7 @@ import { useMeStore } from "@/src/store/useMeStore";
 import { useMyProfileStore } from "@/src/store/useMyProfileStore";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Rounded pill in the navbar nudging students to finish their profile.
- * Shows the completion percentage as a small conic ring.
- *
- * Visible only for STUDENT users whose role is confirmed and whose
- * profile completion is below 100%. Hidden for employers (their nudge
- * lives in the toast / RoleGate redirect to /home/employer/setup).
- */
+// navbar pill nudging students to finish profile
 export function ProfileCompletionPill() {
     const me = useMeStore((s) => s.me);
     const profile = useMyProfileStore((s) => s.profile);

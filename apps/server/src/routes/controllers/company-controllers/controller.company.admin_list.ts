@@ -14,12 +14,7 @@ const Query = z.object({
     pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
 
-/**
- * Admin-only list of companies, filtered by verification status and free-text
- * search across name / slug / website / linkedin / city / member emails+names.
- * Returns a paginated envelope plus per-row counts that the admin queue UI
- * uses (live listing count, member count).
- */
+// admin-only paginated list of companies with status filter and search
 export default async function adminListCompanies(
     req: Request,
     res: Response,
@@ -67,7 +62,6 @@ export default async function adminListCompanies(
             ];
         }
 
-        // PENDING first (most actionable), then most-recently submitted.
         const orderBy: Prisma.CompanyOrderByWithRelationInput[] = q.status
             ? [{ submittedAt: "desc" }, { createdAt: "desc" }]
             : [{ submittedAt: "desc" }];

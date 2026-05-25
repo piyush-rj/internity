@@ -43,8 +43,7 @@ export default async function updateListing(
             select: { companyId: true },
         });
         if (!found) throw new NotFound();
-        // Admins can edit any listing for moderation (typo / spam cleanup);
-        // everyone else must be a member of the owning company.
+        // admins can edit any listing for moderation
         if (!isAdminUser(req.user!)) {
             const member = await prisma.companyMember.findUnique({
                 where: {

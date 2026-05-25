@@ -1,10 +1,6 @@
 "use client";
 
-/**
- * Centered day label that sticks to the top of the scroll viewport while its
- * group's messages are visible. As messages from one day scroll past, the
- * next group's divider naturally takes over the top slot.
- */
+// sticky centered day divider for chat messages
 export function DayDivider({ label }: { label: string }) {
     return (
         <div className="sticky top-2 z-10 flex justify-center my-3 pointer-events-none">

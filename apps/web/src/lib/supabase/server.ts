@@ -20,8 +20,6 @@ export async function createClient() {
                             cookieStore.set(name, value, options),
                         );
                     } catch {
-                        // setAll called from a Server Component — middleware
-                        // handles session refresh, so silently ignore.
                     }
                 },
             },

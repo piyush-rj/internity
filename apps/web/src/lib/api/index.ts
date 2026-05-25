@@ -50,4 +50,15 @@ export {
 export { paymentApi, type CreateOrderResponse } from "./payment";
 export { chatApi, type ChatMessage, type ConversationListItem } from "./chat";
 export { adminApi, type AdminPlatformStats } from "./admin";
+export {
+    interviewApi,
+    type Interview,
+    type InterviewWithRelations,
+    type InterviewType,
+    type InterviewStatus,
+    type MyInterviewsResponse,
+    type ScheduleInterviewInput,
+    type InterviewParty,
+    type InterviewListing,
+} from "./interview";
 export { ApiClientError } from "../apiClient";

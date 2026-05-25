@@ -81,7 +81,6 @@ export function ProjectsSection({
             await studentApi.remove_project(id);
             await onSaved();
         } catch {
-            /* ignore */
         }
     }
 

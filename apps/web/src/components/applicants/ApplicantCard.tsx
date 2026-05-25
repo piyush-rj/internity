@@ -1,11 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Check, ChevronDown, ChevronUp, MessageSquare, X } from "lucide-react";
+import {
+    CalendarClock,
+    Check,
+    ChevronDown,
+    ChevronUp,
+    MessageSquare,
+    Trophy,
+    X,
+} from "lucide-react";
 import {
     PiArrowSquareOut,
     PiClock,
@@ -22,6 +31,7 @@ import {
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
+import { ScheduleInterviewDialog } from "./ScheduleInterviewDialog";
 
 type DecidedStatus = Exclude<ApplicationStatus, "WITHDRAWN">;
 
@@ -46,19 +56,22 @@ export function ApplicantCard({
     applicant,
     screeningQuestions = [],
     listingSkillTags = [],
+    listingTitle = "",
+    companyName = "",
     onUpdateStatus,
 }: {
     applicant: ApplicantWithStudent;
-    /** Listing-level questions paired by index with applicant.screeningAnswers. */
     screeningQuestions?: string[];
-    /** Listing-level skill tags — used to compute the skill-match badge. */
     listingSkillTags?: string[];
+    listingTitle?: string;
+    companyName?: string;
     onUpdateStatus: (id: string, status: DecidedStatus) => Promise<void>;
 }) {
     const router = useRouter();
     const [expanded, setExpanded] = useState(false);
     const [busy, setBusy] = useState(false);
     const [messaging, setMessaging] = useState(false);
+    const [scheduling, setScheduling] = useState(false);
 
     const { student } = applicant;
     const profile = student.studentProfile;
@@ -91,8 +104,6 @@ export function ApplicantCard({
         if (messaging || isWithdrawn) return;
         setMessaging(true);
         try {
-            // start_conversation takes the application id, not the student
-            // id — backend resolves the recruiter side from the application.
             const { id } = await chatApi.start_conversation(applicant.id);
             router.push(`/home/messages?cid=${id}`);
         } catch (err) {
@@ -106,9 +117,6 @@ export function ApplicantCard({
         }
     }
 
-    // Defensive ?? — the backend may ship payloads where the relations
-    // arrays are absent (older API shape, partial responses); we render an
-    // empty Skills / Education row rather than crashing the page.
     const primaryEducation = profile?.educations?.[0] ?? null;
     const skills = profile?.skills ?? [];
     const projects = profile?.projects ?? [];
@@ -121,56 +129,66 @@ export function ApplicantCard({
         experiences.length > 0;
 
     return (
+        <>
         <div className="px-5 py-4 hover:bg-secondary/30 transition-colors">
-            {/* ---- Head: avatar + name + status + match badge ---- */}
             <div className="flex items-start gap-4">
                 <Avatar name={displayName} image={student.image ?? null} />
                 <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center gap-2 flex-wrap">
-                        <Link
-                            href={`/student/${student.id}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[14px] font-semibold truncate hover:underline hover:text-orange-600 transition-colors"
-                        >
-                            {displayName}
-                        </Link>
+                    <div className="flex items-center gap-3 flex-wrap">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                            <Link
+                                href={`/student/${student.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[14px] font-semibold truncate hover:underline hover:text-orange-600 transition-colors"
+                            >
+                                {displayName}
+                            </Link>
+                            {match && (
+                                <MatchBadge
+                                    matched={match.matched}
+                                    total={match.total}
+                                />
+                            )}
+                            {applicant.seenAt &&
+                                applicant.status === "APPLIED" && (
+                                    <span className="text-[10.5px] text-muted-foreground">
+                                        · Seen
+                                    </span>
+                                )}
+                        </div>
                         {isWithdrawn ? (
                             <StatusPill status={applicant.status} />
                         ) : (
-                            <select
-                                value={applicant.status}
-                                onChange={(e) =>
-                                    changeStatus(
-                                        e.target.value as DecidedStatus,
-                                    )
-                                }
-                                disabled={busy}
-                                className={cn(
-                                    "h-7 rounded-md border px-2 pr-6 text-[11px] font-medium appearance-none",
-                                    "outline-none focus:ring-3 focus:ring-orange-200/60 cursor-pointer",
-                                    statusStyles[applicant.status],
-                                )}
-                            >
-                                {statusOptions.map((opt) => (
-                                    <option key={opt.value} value={opt.value}>
-                                        {opt.label}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
-                        {match && (
-                            <MatchBadge
-                                matched={match.matched}
-                                total={match.total}
-                            />
-                        )}
-                        {applicant.seenAt &&
-                            applicant.status === "APPLIED" && (
-                                <span className="text-[10.5px] text-muted-foreground">
-                                    · Seen
+                            <label className="ml-auto shrink-0 flex items-center gap-2">
+                                <span className="text-[11px] text-muted-foreground">
+                                    Change status:
                                 </span>
-                            )}
+                                <select
+                                    value={applicant.status}
+                                    onChange={(e) =>
+                                        changeStatus(
+                                            e.target.value as DecidedStatus,
+                                        )
+                                    }
+                                    disabled={busy}
+                                    className={cn(
+                                        "h-7 rounded-md border px-2 pr-6 text-[11px] font-medium appearance-none",
+                                        "outline-none focus:ring-3 focus:ring-orange-200/60 cursor-pointer",
+                                        statusStyles[applicant.status],
+                                    )}
+                                >
+                                    {statusOptions.map((opt) => (
+                                        <option
+                                            key={opt.value}
+                                            value={opt.value}
+                                        >
+                                            {opt.label}
+                                        </option>
+                                    ))}
+                                </select>
+                            </label>
+                        )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
@@ -198,7 +216,6 @@ export function ApplicantCard({
                 </div>
             </div>
 
-            {/* ---- Structured rows ---- */}
             <dl className="mt-4 sm:ml-14 space-y-2 text-[12.5px]">
                 <Row label="Education">
                     {primaryEducation ? (
@@ -224,7 +241,6 @@ export function ApplicantCard({
                 </Row>
             </dl>
 
-            {/* ---- Footer: expand + actions ---- */}
             <div className="mt-3 sm:ml-14 flex flex-wrap items-center gap-x-3 gap-y-2">
                 {hasExpandableContent && (
                     <button
@@ -265,41 +281,18 @@ export function ApplicantCard({
                             <X className="h-3 w-3" />
                             Reject
                         </button>
-                        <button
-                            type="button"
-                            onClick={startChat}
-                            disabled={messaging || isWithdrawn}
-                            className={cn(
-                                "inline-flex items-center gap-1 h-8 px-3 rounded-md text-[12px] font-medium text-white",
-                                "bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20",
-                                "disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
-                            )}
-                        >
-                            <MessageSquare className="h-3 w-3" />
-                            {messaging ? "Opening…" : "Send message"}
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => changeStatus("SHORTLISTED")}
-                            disabled={
-                                busy || applicant.status === "SHORTLISTED"
-                            }
-                            className={cn(
-                                "inline-flex items-center gap-1 h-8 px-3 rounded-md text-[12px] font-medium",
-                                "border border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100",
-                                "disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
-                            )}
-                        >
-                            <Check className="h-3 w-3" />
-                            {applicant.status === "SHORTLISTED"
-                                ? "Shortlisted"
-                                : "Shortlist"}
-                        </button>
+                        <NextStepsMenu
+                            currentStatus={applicant.status}
+                            busy={busy || messaging || isWithdrawn}
+                            messaging={messaging}
+                            onSchedule={() => setScheduling(true)}
+                            onStartChat={startChat}
+                            onAdvanceStatus={changeStatus}
+                        />
                     </div>
                 )}
             </div>
 
-            {/* ---- Expanded panel ---- */}
             {expanded && (
                 <div className="mt-3 sm:ml-14 space-y-3">
                     {applicant.screeningAnswers.length > 0 && (
@@ -386,10 +379,20 @@ export function ApplicantCard({
                 </div>
             )}
         </div>
+
+        <ScheduleInterviewDialog
+            open={scheduling}
+            applicant={applicant}
+            companyName={companyName}
+            listingTitle={listingTitle}
+            onClose={() => setScheduling(false)}
+            onScheduled={() => {
+                void onUpdateStatus(applicant.id, "INTERVIEW").catch(() => {});
+            }}
+        />
+        </>
     );
 }
-
-/* -------------------------------- helpers -------------------------------- */
 
 function expandLabel(applicant: ApplicantWithStudent): string {
     const bits: string[] = [];
@@ -436,7 +439,7 @@ function MatchBadge({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+                "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
                 strong
                     ? "bg-orange-50 text-orange-700 border-orange-200"
                     : "bg-neutral-50 text-neutral-600 border-neutral-200",
@@ -522,7 +525,7 @@ function SkillChips({
                     <span
                         key={s}
                         className={cn(
-                            "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                            "rounded-md px-2 py-0.5 text-[11px] font-medium",
                             matched
                                 ? "bg-orange-100 text-orange-800"
                                 : "bg-secondary text-foreground/80",
@@ -643,11 +646,7 @@ function formatTotalExperience(
     return `${years}y ${rem}m`;
 }
 
-/**
- * Returns null when the listing has no skill tags. Otherwise reports
- * {matched, total} where total = listing tag count and matched = count of
- * listing tags also present in the student's skill list (case-insensitive).
- */
+// returns matched/total skill match between student and listing tags
 function computeMatch(
     studentSkills: Array<{ skill: { name: string } }>,
     listingTags: string[],
@@ -661,4 +660,204 @@ function computeMatch(
         if (studentSet.has(t.trim().toLowerCase())) matched += 1;
     }
     return { matched, total: listingTags.length };
+}
+
+/* ------------------------------ NextStepsMenu ----------------------------- */
+
+// Returns the natural pipeline progression for a given status, or null when
+// there's no automatic "next step" beyond what the dropdown's other actions
+// already cover.
+function nextStepFor(status: ApplicationStatus): {
+    label: string;
+    target: DecidedStatus;
+} | null {
+    if (status === "APPLIED") return { label: "Shortlist", target: "SHORTLISTED" };
+    if (status === "SHORTLISTED") return { label: "Mark as hired", target: "HIRED" };
+    if (status === "INTERVIEW") return { label: "Mark as hired", target: "HIRED" };
+    return null;
+}
+
+function NextStepsMenu({
+    currentStatus,
+    busy,
+    messaging,
+    onSchedule,
+    onStartChat,
+    onAdvanceStatus,
+}: {
+    currentStatus: ApplicationStatus;
+    busy: boolean;
+    messaging: boolean;
+    onSchedule: () => void;
+    onStartChat: () => void;
+    onAdvanceStatus: (next: DecidedStatus) => void;
+}) {
+    const [open, setOpen] = useState(false);
+    const [pos, setPos] = useState<{ top: number; right: number } | null>(null);
+    const triggerRef = useRef<HTMLButtonElement | null>(null);
+    const menuRef = useRef<HTMLDivElement | null>(null);
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    // anchor the floating menu to the trigger using fixed positioning so the
+    // applicants list's overflow:hidden doesn't clip it
+    useLayoutEffect(() => {
+        if (!open) return;
+        const r = triggerRef.current?.getBoundingClientRect();
+        if (!r) return;
+        setPos({ top: r.bottom + 4, right: window.innerWidth - r.right });
+    }, [open]);
+
+    // close on outside-click and on Escape
+    useEffect(() => {
+        if (!open) return;
+        function onClick(e: MouseEvent) {
+            const t = e.target as Node | null;
+            if (!t) return;
+            if (triggerRef.current?.contains(t)) return;
+            if (menuRef.current?.contains(t)) return;
+            setOpen(false);
+        }
+        function onKey(e: KeyboardEvent) {
+            if (e.key === "Escape") setOpen(false);
+        }
+        function onScroll() {
+            setOpen(false);
+        }
+        window.addEventListener("mousedown", onClick);
+        window.addEventListener("keydown", onKey);
+        window.addEventListener("scroll", onScroll, true);
+        window.addEventListener("resize", onScroll);
+        return () => {
+            window.removeEventListener("mousedown", onClick);
+            window.removeEventListener("keydown", onKey);
+            window.removeEventListener("scroll", onScroll, true);
+            window.removeEventListener("resize", onScroll);
+        };
+    }, [open]);
+
+    const advance = nextStepFor(currentStatus);
+
+    return (
+        <>
+            <button
+                ref={triggerRef}
+                type="button"
+                onClick={() => setOpen((v) => !v)}
+                disabled={busy}
+                aria-haspopup="menu"
+                aria-expanded={open}
+                className={cn(
+                    "inline-flex items-center gap-1 h-8 px-3 rounded-md text-[12px] font-medium text-white",
+                    "bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20",
+                    "disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
+                )}
+            >
+                Next Steps
+                {open ? (
+                    <ChevronUp className="h-3 w-3" />
+                ) : (
+                    <ChevronDown className="h-3 w-3" />
+                )}
+            </button>
+
+            {open && mounted && pos &&
+                createPortal(
+                    <div
+                        ref={menuRef}
+                        role="menu"
+                        style={{ top: pos.top, right: pos.right }}
+                        className={cn(
+                            "fixed z-50 w-56 rounded-md border border-border bg-white shadow-lg",
+                            "py-1 text-[12.5px]",
+                        )}
+                    >
+                        <MenuItem
+                            icon={<CalendarClock className="h-3.5 w-3.5" />}
+                            label="Schedule an interview"
+                            onClick={() => {
+                                setOpen(false);
+                                onSchedule();
+                            }}
+                        />
+                        <MenuItem
+                            icon={<MessageSquare className="h-3.5 w-3.5" />}
+                            label={messaging ? "Opening chat…" : "Start a chat"}
+                            disabled={messaging}
+                            onClick={() => {
+                                setOpen(false);
+                                onStartChat();
+                            }}
+                        />
+                        {advance && (
+                            <MenuItem
+                                icon={
+                                    advance.target === "HIRED" ? (
+                                        <Trophy className="h-3.5 w-3.5" />
+                                    ) : (
+                                        <Check className="h-3.5 w-3.5" />
+                                    )
+                                }
+                                label={advance.label}
+                                tone={
+                                    advance.target === "HIRED"
+                                        ? "success"
+                                        : "primary"
+                                }
+                                onClick={() => {
+                                    setOpen(false);
+                                    onAdvanceStatus(advance.target);
+                                }}
+                            />
+                        )}
+                    </div>,
+                    document.body,
+                )}
+        </>
+    );
+}
+
+function MenuItem({
+    icon,
+    label,
+    tone = "default",
+    disabled,
+    onClick,
+}: {
+    icon: React.ReactNode;
+    label: string;
+    tone?: "default" | "primary" | "success";
+    disabled?: boolean;
+    onClick: () => void;
+}) {
+    return (
+        <button
+            type="button"
+            role="menuitem"
+            onClick={onClick}
+            disabled={disabled}
+            className={cn(
+                "w-full flex items-center gap-2 px-3 py-2 text-left",
+                "hover:bg-secondary transition-colors disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
+                tone === "primary" && "text-orange-700",
+                tone === "success" && "text-emerald-700",
+            )}
+        >
+            <span
+                className={cn(
+                    "shrink-0",
+                    tone === "primary"
+                        ? "text-orange-600"
+                        : tone === "success"
+                          ? "text-emerald-600"
+                          : "text-muted-foreground",
+                )}
+            >
+                {icon}
+            </span>
+            {label}
+        </button>
+    );
 }

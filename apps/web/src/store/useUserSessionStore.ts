@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 export type SessionUser = {
-    id: string | null; // Supabase auth.users.id (uuid)
+    id: string | null;
     name: string | null;
     email: string | null;
     image: string | null;
@@ -14,12 +14,6 @@ export type AppSession = {
 
 interface UserSessionStoreData {
     session: AppSession;
-    /**
-     * `false` until the first Supabase session check completes after page
-     * load. Guards (AdminGuard, etc.) must wait for this before deciding to
-     * redirect, otherwise a hard refresh kicks the user out before Supabase
-     * has even read its cookie.
-     */
     initialized: boolean;
     setSession: (session: AppSession) => void;
 }

@@ -45,7 +45,7 @@ export function RolePicker({
         >
             <div
                 className={cn(
-                    "w-full max-w-lg rounded-2xl bg-card",
+                    "w-full max-w-lg rounded-lg bg-card",
                     "border border-border shadow-2xl",
                     "p-6 sm:p-8",
                 )}

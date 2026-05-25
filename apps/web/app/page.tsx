@@ -24,9 +24,6 @@ export default function Home() {
                 <SectionWrap>
                     <InternshipsSection />
                 </SectionWrap>
-                {/* <SectionWrap>
-                    <CareerToolsSection />
-                </SectionWrap> */}
             </main>
             <Footer />
         </div>

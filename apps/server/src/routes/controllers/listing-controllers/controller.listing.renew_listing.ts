@@ -9,11 +9,7 @@ import { prisma } from "../../../db.ts";
 
 const LISTING_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
-/**
- * Bumps expiresAt forward 30 days and clears closedAt so a previously-expired
- * listing is fully live again. Admin takedowns are NOT cleared — renew can't
- * undo moderation.
- */
+// bumps expiresAt 30 days forward and clears closedAt
 export default async function renewListing(
     req: Request,
     res: Response,

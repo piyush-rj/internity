@@ -15,7 +15,6 @@ export default async function listMessages(
         });
         if (!conv) throw new NotFound();
 
-        // 1:1 thread — only the two ids on the row are participants.
         if (
             conv.studentId !== req.user!.id &&
             conv.recruiterId !== req.user!.id

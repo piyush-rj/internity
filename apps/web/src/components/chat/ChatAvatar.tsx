@@ -3,11 +3,7 @@
 import Image from "next/image";
 import { cn } from "@/src/lib/utils";
 
-/**
- * Avatar used by the chat header and the conversation profile card. Two sizes
- * (`sm` for the top bar, `lg` for the centered card). Falls back to a
- * gradient initial when there's no image.
- */
+// chat avatar with sm and lg sizes, falls back to gradient initial
 export function ChatAvatar({
     name,
     image,

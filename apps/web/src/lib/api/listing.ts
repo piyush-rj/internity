@@ -94,7 +94,7 @@ export type ListingListFilters = {
     q?: string;
     city?: string;
     mode?: WorkMode;
-    skills?: string; // comma-separated
+    skills?: string;
     stipendMin?: number;
     durationMax?: number;
     partTime?: "true" | "false";
@@ -151,7 +151,6 @@ export const listingApi = {
         api.post<{ listing: Listing }>(`/listing/${id}/unpause`),
     remove: (id: string) => api.delete<{ ok: true }>(`/listing/${id}`),
 
-    // apply hangs off /listing/:id/apply
     apply: (
         listingId: string,
         input: { coverLetter?: string; screeningAnswers?: string[] },
@@ -160,7 +159,6 @@ export const listingApi = {
             `/listing/${listingId}/apply`,
             input,
         ),
-    // applicants list hangs off /listing/:id/applications
     list_applicants: (listingId: string) =>
         api.get<{
             items: ApplicantWithStudent[];
