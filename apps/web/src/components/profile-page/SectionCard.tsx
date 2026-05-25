@@ -21,7 +21,7 @@ export function SectionCard({
         <section
             id={id}
             className={cn(
-                "rounded-lg border border-border bg-neutral-50 overflow-hidden scroll-mt-20",
+                "rounded-lg border border-border bg-card overflow-hidden scroll-mt-20",
                 className,
             )}
         >

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, Building2, Check, UserCog } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { CompanyLogoUpload } from "@/src/components/company/CompanyLogoUpload";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
     companyApi,
@@ -300,6 +301,7 @@ function CompanyStep({
         industry: existing?.industry ?? "",
         size: existing?.size ?? "",
         city: existing?.city ?? "",
+        logoUrl: existing?.logoUrl ?? "",
     });
     const [slugDirty, setSlugDirty] = useState(!!existing?.slug);
     const [saving, setSaving] = useState(false);
@@ -367,6 +369,7 @@ function CompanyStep({
                     industry: form.industry.trim() || undefined,
                     size: form.size.trim(),
                     city: form.city.trim() || undefined,
+                    logoUrl: form.logoUrl.trim() || undefined,
                 };
                 await companyApi.update(existing.id, input);
                 toast.success(
@@ -493,6 +496,19 @@ function CompanyStep({
                     />
                 </Field>
             </div>
+            {existing && (
+                <Field
+                    label="Logo"
+                    hint="Shown on your public page and in listings."
+                >
+                    <CompanyLogoUpload
+                        companyId={existing.id}
+                        name={form.name || existing.name}
+                        logoUrl={form.logoUrl || null}
+                        onUploaded={(url) => set("logoUrl", url)}
+                    />
+                </Field>
+            )}
             <Field label="Industry">
                 <input
                     type="text"
