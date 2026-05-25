@@ -43,6 +43,17 @@ export function filtersFromSearchParams(
 
     if (sp.get("partTime") === "true") filters.partTime = "true";
 
+    const companySize = sp.get("companySize");
+    if (
+        companySize === "1-10" ||
+        companySize === "11-50" ||
+        companySize === "51-200" ||
+        companySize === "201-500" ||
+        companySize === "500+"
+    ) {
+        filters.companySize = companySize;
+    }
+
     const page = Number(sp.get("page"));
     if (Number.isFinite(page) && page > 1) filters.page = page;
 

@@ -9,6 +9,18 @@ import { verifyToken } from "../core/jwt.ts";
 import { prisma, type UserRole } from "../db.ts";
 import { isAdminUser } from "../config/config.ts";
 
+/** 403 thrown when a banned user tries to authenticate. Code is distinct
+ *  from FORBIDDEN so the frontend can show a tailored message + a sign-out
+ *  flow rather than treating it as a permissions issue. */
+class AccountDisabled extends ApiError {
+    constructor(reason: string | null) {
+        super(
+            reason ?? "This account has been disabled. Contact support.",
+            { status: 403, code: "ACCOUNT_DISABLED" },
+        );
+    }
+}
+
 export type AuthUser = {
     /** public.User.id (cuid). */
     id: string;
@@ -65,6 +77,13 @@ export async function requireAuth(
         }
 
         if (!user) throw new Unauthorized();
+
+        // Banned users are blocked from every authenticated endpoint with a
+        // tailored 403. Admins are exempt as a sanity guard so they can
+        // never accidentally lock themselves out via the ban toggle.
+        if (user.isBanned && user.role !== "ADMIN") {
+            throw new AccountDisabled(user.banReason);
+        }
 
         req.user = {
             id: user.id,

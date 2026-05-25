@@ -7,6 +7,8 @@ import type { IconType } from "react-icons";
 import {
     PiBookmarkSimpleFill,
     PiBriefcaseFill,
+    PiClockCountdownFill,
+    PiEyeFill,
     PiFileTextFill,
     PiUsersThreeFill,
 } from "react-icons/pi";
@@ -35,10 +37,25 @@ export function EmployerStatsRow() {
     const companyId = memberships[0]?.company.id ?? null;
     const { members, loading: membersLoading } = useCompanyMembers(companyId);
 
+    const now = Date.now();
     const openListings = listings.filter((l) => !l.closedAt).length;
     const closedListings = listings.length - openListings;
+    // "Expired" = past its 30-day expiry, not closed, not removed by admin.
+    // Reuses the same rule used by the public browse filter and the
+    // founder-side lifecycle banner.
+    const expiredListings = listings.filter(
+        (l) =>
+            !l.closedAt &&
+            !l.takenDownAt &&
+            l.expiresAt !== null &&
+            new Date(l.expiresAt).getTime() <= now,
+    ).length;
     const totalApplicants = listings.reduce(
         (sum, l) => sum + (l._count?.applications ?? 0),
+        0,
+    );
+    const totalSeen = listings.reduce(
+        (sum, l) => sum + (l._count?.applicationsSeen ?? 0),
         0,
     );
 
@@ -57,6 +74,22 @@ export function EmployerStatsRow() {
                   ? { label: "Active", direction: "up" }
                   : { label: "None open", direction: "down" },
             icon: PiBriefcaseFill,
+            href: "/home/manage-listings",
+        },
+        {
+            label: "Expired",
+            value: listingsLoading ? "—" : String(expiredListings),
+            caption: listingsLoading
+                ? "Loading"
+                : expiredListings === 0
+                  ? "None expired"
+                  : `Renew to relist`,
+            delta: listingsLoading
+                ? null
+                : expiredListings > 0
+                  ? { label: "Needs renew", direction: "down" }
+                  : { label: "All fresh", direction: "up" },
+            icon: PiClockCountdownFill,
             href: "/home/manage-listings",
         },
         {
@@ -92,6 +125,24 @@ export function EmployerStatsRow() {
             href: "/home/applicants",
         },
         {
+            label: "Applications seen",
+            value: listingsLoading ? "—" : String(totalSeen),
+            caption: listingsLoading
+                ? "Loading"
+                : totalApplicants === 0
+                  ? "Nothing to see"
+                  : `${totalSeen} of ${totalApplicants} total`,
+            delta: listingsLoading
+                ? null
+                : totalSeen > 0
+                  ? { label: "Reviewed", direction: "up" }
+                  : totalApplicants > 0
+                    ? { label: "Unseen", direction: "down" }
+                    : null,
+            icon: PiEyeFill,
+            href: "/home/applicants",
+        },
+        {
             label: "Team",
             value: membersLoading ? "—" : String(members.length),
             caption: membersLoading
@@ -110,7 +161,7 @@ export function EmployerStatsRow() {
     ];
 
     return (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <section className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {stats.map((s) => (
                 <StatCard key={s.label} stat={s} />
             ))}

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
     PiBriefcaseFill,
     PiCheckCircleFill,
+    PiHouseFill,
     PiUsersFill,
 } from "react-icons/pi";
 import { GiTie } from "react-icons/gi";
@@ -21,6 +22,12 @@ type Item = {
 };
 
 const NAV: Item[] = [
+    {
+        key: "overview",
+        label: "Overview",
+        icon: PiHouseFill,
+        href: "/admin/overview",
+    },
     {
         key: "approvals",
         label: "Approvals",

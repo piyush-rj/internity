@@ -1,5 +1,4 @@
 "use client";
-
 import {
     forwardRef,
     useImperativeHandle,
@@ -11,6 +10,7 @@ import { Button } from "@/src/components/ui/button";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
     listingApi,
+    type Listing,
     type ListingInput,
     type ListingType,
     type WorkMode,
@@ -68,17 +68,52 @@ export type ListingFormHandle = {
     applyTemplate: (template: ListingTemplate) => void;
 };
 
+function fromListing(l: Listing): FormState {
+    return {
+        type: l.type,
+        title: l.title ?? "",
+        mode: l.mode,
+        city: l.city ?? "",
+        description: l.description ?? "",
+        responsibilities: (l.responsibilities ?? []).join("\n"),
+        perks: (l.perks ?? []).join("\n"),
+        preferences: (l.preferences ?? []).join("\n"),
+        skillTags: (l.skillTagsRaw ?? []).join(", "),
+        screeningQuestions: l.screeningQuestions ?? [],
+        stipendMin: l.stipendMin != null ? String(l.stipendMin) : "",
+        stipendMax: l.stipendMax != null ? String(l.stipendMax) : "",
+        durationMonths: l.durationMonths != null ? String(l.durationMonths) : "",
+        startDate: l.startDate ? l.startDate.slice(0, 10) : "",
+        applyBy: l.applyBy ? l.applyBy.slice(0, 10) : "",
+        openings: l.openings != null ? String(l.openings) : "",
+        partTime: l.partTime ?? false,
+    };
+}
+
 export const ListingForm = forwardRef(function ListingForm(
     {
         companyId,
+        initial,
         onCreated,
+        onSaved,
     }: {
+        /** Required when creating; ignored in edit mode (the listing's
+         *  company is immutable). */
         companyId: string;
-        onCreated: (id: string) => void | Promise<void>;
+        /** Edit mode — pre-fills the form and switches submit to
+         *  `listingApi.update`. */
+        initial?: Listing | null;
+        /** Create-mode callback — receives the new listing's id. */
+        onCreated?: (id: string) => void | Promise<void>;
+        /** Edit-mode callback — receives the saved listing. */
+        onSaved?: (listing: Listing) => void | Promise<void>;
     },
     ref: ForwardedRef<ListingFormHandle>,
 ) {
-    const [form, setForm] = useState<FormState>(empty);
+    const isEdit = !!initial;
+    const [form, setForm] = useState<FormState>(() =>
+        initial ? fromListing(initial) : empty,
+    );
     const [saving, setSaving] = useState(false);
 
     function set<K extends keyof FormState>(k: K, v: FormState[K]) {
@@ -175,8 +210,21 @@ export const ListingForm = forwardRef(function ListingForm(
 
         setSaving(true);
         try {
-            const { listing } = await listingApi.create(input);
-            await onCreated(listing.id);
+            if (isEdit && initial) {
+                // Edit mode — companyId is immutable, so we strip it from
+                // the update payload.
+                const { companyId: _omit, ...updateInput } = input;
+                void _omit;
+                const { listing } = await listingApi.update(
+                    initial.id,
+                    updateInput,
+                );
+                toast.success("Listing updated.");
+                await onSaved?.(listing);
+            } else {
+                const { listing } = await listingApi.create(input);
+                await onCreated?.(listing.id);
+            }
         } catch (err) {
             // Backend's verification gate returns 403 FORBIDDEN with a
             // user-friendly message — surface it verbatim so the founder
@@ -406,7 +454,13 @@ export const ListingForm = forwardRef(function ListingForm(
                     disabled={saving}
                     className="h-10 px-4 text-[13px] cursor-pointer"
                 >
-                    {saving ? "Posting…" : "Post listing"}
+                    {saving
+                        ? isEdit
+                            ? "Saving…"
+                            : "Posting…"
+                        : isEdit
+                          ? "Save changes"
+                          : "Post listing"}
                 </Button>
             </div>
         </div>

@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, Info, MapPin, Phone, User, Users } from "lucide-react";
+import { toast } from "sonner";
+import { Calendar, Globe, Info, MapPin, Phone, User, Users } from "lucide-react";
+import { PiLinkedinLogoFill } from "react-icons/pi";
 import { studentApi, type Gender, type StudentProfile } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
@@ -16,6 +18,8 @@ type FormState = {
     dob: string;
     gender: Gender | "";
     bio: string;
+    linkedinUrl: string;
+    portfolioUrl: string;
 };
 
 const empty: FormState = {
@@ -26,6 +30,8 @@ const empty: FormState = {
     dob: "",
     gender: "",
     bio: "",
+    linkedinUrl: "",
+    portfolioUrl: "",
 };
 
 function fromProfile(p: StudentProfile | null): FormState {
@@ -38,7 +44,18 @@ function fromProfile(p: StudentProfile | null): FormState {
         dob: p.dob ? p.dob.slice(0, 10) : "",
         gender: p.gender ?? "",
         bio: p.bio ?? "",
+        linkedinUrl: p.linkedinUrl ?? "",
+        portfolioUrl: p.portfolioUrl ?? "",
     };
+}
+
+function isHttpUrl(value: string): boolean {
+    try {
+        const u = new URL(value);
+        return u.protocol === "http:" || u.protocol === "https:";
+    } catch {
+        return false;
+    }
 }
 
 export function BasicsForm({
@@ -54,7 +71,6 @@ export function BasicsForm({
     const [errors, setErrors] = useState<
         Partial<Record<keyof FormState, string>>
     >({});
-    const [submitError, setSubmitError] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
 
     useEffect(() => {
@@ -70,10 +86,24 @@ export function BasicsForm({
     async function handleSave() {
         if (!form.firstName.trim()) {
             setErrors({ firstName: "First name is required." });
+            toast.error("Please add your first name.");
+            return;
+        }
+        const linkedin = form.linkedinUrl.trim();
+        if (linkedin && !isHttpUrl(linkedin)) {
+            toast.error(
+                "LinkedIn URL doesn’t look right. Include https:// at the start.",
+            );
+            return;
+        }
+        const portfolio = form.portfolioUrl.trim();
+        if (portfolio && !isHttpUrl(portfolio)) {
+            toast.error(
+                "Portfolio URL doesn’t look right. Include https:// at the start.",
+            );
             return;
         }
         setSaving(true);
-        setSubmitError(null);
         const payload = {
             firstName: form.firstName.trim(),
             lastName: form.lastName.trim() || undefined,
@@ -82,6 +112,8 @@ export function BasicsForm({
             dob: form.dob ? new Date(form.dob).toISOString() : undefined,
             gender: form.gender || undefined,
             bio: form.bio.trim() || undefined,
+            linkedinUrl: linkedin || undefined,
+            portfolioUrl: portfolio || undefined,
         };
         try {
             if (profile) await studentApi.update(payload);
@@ -89,7 +121,7 @@ export function BasicsForm({
             await onSaved();
             onCancel?.();
         } catch (err) {
-            setSubmitError(
+            toast.error(
                 err instanceof ApiClientError
                     ? err.message
                     : "Couldn’t save. Try again.",
@@ -186,6 +218,35 @@ export function BasicsForm({
                 </Field>
             </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field
+                    label="LinkedIn URL"
+                    icon={<PiLinkedinLogoFill className="h-3.5 w-3.5" />}
+                    hint="Shown on your public profile."
+                >
+                    <input
+                        type="url"
+                        value={form.linkedinUrl}
+                        onChange={(e) => set("linkedinUrl", e.target.value)}
+                        placeholder="https://linkedin.com/in/your-handle"
+                        className={inputCls()}
+                    />
+                </Field>
+                <Field
+                    label="Portfolio link"
+                    icon={<Globe className="h-3.5 w-3.5" />}
+                    hint="Personal site, GitHub, Behance — whatever shows your work."
+                >
+                    <input
+                        type="url"
+                        value={form.portfolioUrl}
+                        onChange={(e) => set("portfolioUrl", e.target.value)}
+                        placeholder="https://yourname.dev"
+                        className={inputCls()}
+                    />
+                </Field>
+            </div>
+
             <Field
                 label="Short bio"
                 hint="A line or two recruiters see at the top of your profile."
@@ -203,13 +264,6 @@ export function BasicsForm({
                     {form.bio.length}/240
                 </div>
             </Field>
-
-            {submitError && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-[13px] text-destructive">
-                    <Info className="h-4 w-4 mt-0.5 shrink-0" />
-                    <span>{submitError}</span>
-                </div>
-            )}
 
             <div className="flex items-center justify-end gap-2 pt-3 border-t border-border">
                 {onCancel && (

@@ -25,6 +25,8 @@ model User {
   role          UserRole @default(STUDENT)
   roleConfirmed Boolean  @default(false)
   isBanned      Boolean  @default(false)
+  banReason     String?  @db.Text
+  bannedAt      DateTime?
 
   isPremium    Boolean   @default(false)
   premiumSince DateTime?
@@ -65,7 +67,9 @@ model StudentProfile {
   gender    Gender?
   bio       String?  @db.Text
 
-  resumeUrl String? // pointer to latest resume Asset.url
+  resumeUrl    String? // pointer to latest resume Asset.url
+  linkedinUrl  String?
+  portfolioUrl String?
 
   educations     Education[]
   experiences    WorkExperience[]

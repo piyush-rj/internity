@@ -25,6 +25,7 @@ export default async function getListing(
                         id: true,
                         name: true,
                         image: true,
+                        isBanned: true,
                         employerProfile: {
                             select: {
                                 firstName: true,
@@ -38,14 +39,14 @@ export default async function getListing(
             },
         });
         if (!l) throw new NotFound();
-        // Hidden from public surfaces: admin takedowns, founder pauses, and
-        // listings past their 30-day expiry. The founder learns about each
-        // case from the manage-listings UI + the in-app notifications.
+        // Hidden from public surfaces: admin takedowns, founder pauses,
+        // expired listings, and listings whose poster is banned.
         if (l.takenDownAt) throw new NotFound();
         if (l.pausedAt) throw new NotFound();
         if (l.expiresAt && l.expiresAt.getTime() <= Date.now()) {
             throw new NotFound();
         }
+        if (l.postedBy.isBanned) throw new NotFound();
         api.ok({ listing: l });
     } catch (err) {
         handleApiError(err, api);

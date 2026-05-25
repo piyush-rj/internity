@@ -32,6 +32,7 @@ export {
     uploadApi,
     type ListingInput,
     type ListingListFilters,
+    type CompanySize,
     type ApplicantWithStudent,
     type ApplicantStudentEducation,
     type ApplicantStudentProject,
@@ -48,4 +49,5 @@ export {
 } from "./notification";
 export { paymentApi, type CreateOrderResponse } from "./payment";
 export { chatApi, type ChatMessage, type ConversationListItem } from "./chat";
+export { adminApi, type AdminPlatformStats } from "./admin";
 export { ApiClientError } from "../apiClient";

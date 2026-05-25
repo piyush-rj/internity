@@ -86,7 +86,7 @@ export function ListingDetail({
                         <div
                             className={
                                 hasKeyDetails
-                                    ? "border-t border-border pt-3"
+                                    ? "pt-3"
                                     : ""
                             }
                         >

@@ -9,6 +9,12 @@ const Query = z.object({
     city: z.string().optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
     skills: z.string().optional(),
+    // Matches the dropdown options on the founder company-setup form
+    // ("1-10", "11-50", "51-200", "201-500", "500+"). Stored as a plain
+    // string on Company, so exact-match equality is the right filter.
+    companySize: z
+        .enum(["1-10", "11-50", "51-200", "201-500", "500+"])
+        .optional(),
     stipendMin: z.coerce.number().int().optional(),
     durationMax: z.coerce.number().int().optional(),
     partTime: z.enum(["true", "false"]).optional(),
@@ -31,13 +37,15 @@ export default async function listListings(
         const q = parsed.data;
 
         // Public browse only shows listings that are: open, not taken down,
-        // not paused ("Not Hiring"), and not past their 30-day expiry. The
-        // expiry constraint is nested under AND so it composes with the
-        // free-text search's own OR clause below.
+        // not paused ("Not Hiring"), not past their 30-day expiry, and
+        // whose poster hasn't been banned by admin. The expiry constraint
+        // is nested under AND so it composes with the free-text search's
+        // own OR clause below.
         const where: Prisma.ListingWhereInput = {
             closedAt: null,
             takenDownAt: null,
             pausedAt: null,
+            postedBy: { isBanned: false },
             AND: [
                 {
                     OR: [
@@ -71,6 +79,11 @@ export default async function listListings(
         if (q.skills) {
             const tags = normalize(q.skills.split(","));
             if (tags.length > 0) where.skillTagsRaw = { hasSome: tags };
+        }
+        if (q.companySize) {
+            // Direct equality on Company.size (stored as the same string
+            // the founder picked from the company-setup dropdown).
+            where.company = { size: q.companySize };
         }
 
         const [total, items] = await Promise.all([

@@ -36,12 +36,16 @@ export default async function adminGetCompany(
                                 email: true,
                                 image: true,
                                 createdAt: true,
+                                isBanned: true,
+                                banReason: true,
+                                bannedAt: true,
                                 employerProfile: {
                                     select: {
                                         firstName: true,
                                         lastName: true,
                                         phone: true,
                                         jobTitle: true,
+                                        linkedinUrl: true,
                                     },
                                 },
                             },

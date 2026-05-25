@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
@@ -29,13 +28,11 @@ export function ApplyCard({
     onApplied: () => Promise<void> | void;
 }) {
     const { me } = useMe();
-    const [open, setOpen] = useState(false);
+    const [open, setOpen] = useState<boolean>(false);
 
     if (me && me.id === postedById) {
         return (
-            <div className="rounded-lg border border-border bg-secondary/40 px-3 py-3 text-[13px] text-muted-foreground flex justify-center">
-                This is your listing.
-            </div>
+            <div></div>
         );
     }
 

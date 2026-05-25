@@ -17,12 +17,15 @@ import {
 } from "lucide-react";
 import { PiLinkedinLogoFill } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import {
+    adminApi,
     companyApi,
     type AdminCompanyDetail,
     type CompanyVerificationStatus,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
 /**
@@ -158,7 +161,16 @@ function DetailContent({
     return (
         <div className="px-5 py-5 space-y-5">
             <CompanyHeader detail={detail} />
+            {owner?.user.isBanned && owner.user.banReason && (
+                <BannedNotice reason={owner.user.banReason} />
+            )}
             <StatusActions detail={detail} onMutated={onMutated} />
+            {owner && (
+                <FounderBanActions
+                    user={owner.user}
+                    onMutated={onMutated}
+                />
+            )}
             <Section title="Company">
                 <Facts>
                     {detail.foundingYear && (
@@ -463,6 +475,187 @@ function StatusActions({
                       : "Approve"}
             </Button>
         </div>
+    );
+}
+
+/**
+ * Sticky red banner shown at the top of the panel when the company's primary
+ * founder is currently banned, surfacing the reason the admin gave.
+ */
+function BannedNotice({ reason }: { reason: string }) {
+    return (
+        <div className="flex items-start gap-2.5 rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-[12.5px]">
+            <AlertTriangle className="h-4 w-4 mt-0.5 shrink-0 text-red-700" />
+            <div className="space-y-1">
+                <div className="font-medium text-red-900">
+                    Founder account disabled
+                </div>
+                <p className="text-red-900/90 leading-relaxed">{reason}</p>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Deactivate / Reactivate action row. Sits below the approve/reject status
+ * actions. Deactivating prompts for a reason via ConfirmDialog and blocks
+ * login + hides the founder's listings. Reactivating is one-click.
+ */
+function FounderBanActions({
+    user,
+    onMutated,
+}: {
+    user: AdminCompanyDetail["members"][number]["user"];
+    onMutated: () => Promise<void>;
+}) {
+    const [mode, setMode] = useState<"idle" | "deactivating">("idle");
+    const [reason, setReason] = useState("");
+    const [busy, setBusy] = useState(false);
+    const { confirm, dialogProps } = useConfirm();
+
+    // Reset whenever we look at a different founder.
+    useEffect(() => {
+        setMode("idle");
+        setReason("");
+    }, [user.id]);
+
+    async function deactivate() {
+        const trimmed = reason.trim();
+        if (!trimmed) {
+            toast.error("Add a short reason so the founder knows why.");
+            return;
+        }
+        const ok = await confirm({
+            title: `Disable ${user.name ?? user.email ?? "this founder"}?`,
+            description:
+                "They'll be signed out and blocked from logging in. All their listings will disappear from public browse until you reactivate them.",
+            confirmLabel: "Disable account",
+            variant: "destructive",
+        });
+        if (!ok) return;
+        setBusy(true);
+        try {
+            await adminApi.set_user_ban(user.id, {
+                banned: true,
+                reason: trimmed,
+            });
+            toast.success("Account disabled.");
+            await onMutated();
+            setMode("idle");
+            setReason("");
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn't disable the account.",
+            );
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    async function reactivate() {
+        const ok = await confirm({
+            title: `Reactivate ${user.name ?? user.email ?? "this founder"}?`,
+            description:
+                "They'll be able to sign in again and their listings will reappear on public browse.",
+            confirmLabel: "Reactivate",
+        });
+        if (!ok) return;
+        setBusy(true);
+        try {
+            await adminApi.set_user_ban(user.id, { banned: false });
+            toast.success("Account reactivated.");
+            await onMutated();
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn't reactivate the account.",
+            );
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    if (user.isBanned) {
+        return (
+            <>
+                <div className="flex items-center justify-end">
+                    <Button
+                        type="button"
+                        variant="exec-dark"
+                        onClick={reactivate}
+                        disabled={busy}
+                        className="h-9 px-3 text-[12.5px] cursor-pointer bg-emerald-700 hover:bg-emerald-800"
+                    >
+                        {busy ? "Saving…" : "Reactivate founder"}
+                    </Button>
+                </div>
+                <ConfirmDialog {...dialogProps} />
+            </>
+        );
+    }
+
+    if (mode === "deactivating") {
+        return (
+            <>
+                <div className="rounded-lg border border-border bg-secondary/30 p-3 space-y-2">
+                    <label className="block text-[11.5px] font-medium">
+                        Reason (sent to the founder + shown to admins)
+                    </label>
+                    <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        rows={3}
+                        maxLength={500}
+                        placeholder="e.g. Spam listings + fake company details."
+                        className={cn(
+                            "w-full rounded-md border border-border bg-background px-3 py-2",
+                            "text-[12.5px] resize-y focus:outline-none focus:ring-2 focus:ring-brand/30",
+                        )}
+                    />
+                    <div className="flex items-center justify-end gap-2">
+                        <Button
+                            type="button"
+                            variant="exec-light"
+                            onClick={() => setMode("idle")}
+                            disabled={busy}
+                            className="h-8 px-3 text-[12px] cursor-pointer"
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            type="button"
+                            variant="exec-dark"
+                            onClick={deactivate}
+                            disabled={busy}
+                            className="h-8 px-3 text-[12px] cursor-pointer bg-red-600 hover:bg-red-700"
+                        >
+                            {busy ? "Disabling…" : "Disable account"}
+                        </Button>
+                    </div>
+                </div>
+                <ConfirmDialog {...dialogProps} />
+            </>
+        );
+    }
+
+    return (
+        <>
+            <div className="flex items-center justify-end">
+                <Button
+                    type="button"
+                    variant="exec-light"
+                    onClick={() => setMode("deactivating")}
+                    disabled={busy}
+                    className="h-9 px-3 text-[12.5px] cursor-pointer text-red-700 hover:bg-red-50"
+                >
+                    Disable founder account
+                </Button>
+            </div>
+            <ConfirmDialog {...dialogProps} />
+        </>
     );
 }
 

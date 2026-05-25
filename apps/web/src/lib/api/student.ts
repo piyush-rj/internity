@@ -24,6 +24,8 @@ export type StudentProfileInput = {
     gender?: Gender;
     bio?: string;
     resumeUrl?: string | null;
+    linkedinUrl?: string;
+    portfolioUrl?: string;
 };
 
 export type EducationInput = {

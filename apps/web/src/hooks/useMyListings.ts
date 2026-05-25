@@ -4,7 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { listingApi, type Listing } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 
-export type MyListing = Listing & { _count: { applications: number } };
+export type MyListing = Listing & {
+    _count: { applications: number; applicationsSeen: number };
+};
 
 export type MyListingsState = {
     items: MyListing[];

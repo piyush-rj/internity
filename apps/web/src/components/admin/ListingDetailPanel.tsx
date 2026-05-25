@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { toast } from "sonner";
 import {
@@ -11,10 +12,12 @@ import {
     CheckCircle2,
     Clock,
     MapPin,
+    Pencil,
     Users,
     X,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { ListingForm } from "@/src/components/manage-listings/ListingForm";
 import { listingApi, type AdminListingListItem } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
@@ -101,10 +104,25 @@ function DetailContent({
     listing: AdminListingListItem;
     onMutated: () => Promise<void> | void;
 }) {
+    const [editing, setEditing] = useState(false);
+
     return (
         <div className="px-5 py-5 space-y-5">
             <ListingHeader listing={listing} />
-            <ModerationActions listing={listing} onMutated={onMutated} />
+            <ModerationActions
+                listing={listing}
+                onMutated={onMutated}
+                onEdit={() => setEditing(true)}
+            />
+            <EditListingDialog
+                open={editing}
+                listing={listing}
+                onClose={() => setEditing(false)}
+                onSaved={async () => {
+                    setEditing(false);
+                    await onMutated();
+                }}
+            />
             {listing.takenDownAt && listing.takedownReason && (
                 <TakedownBanner reason={listing.takedownReason} />
             )}
@@ -271,9 +289,11 @@ function Badge({
 function ModerationActions({
     listing,
     onMutated,
+    onEdit,
 }: {
     listing: AdminListingListItem;
     onMutated: () => Promise<void> | void;
+    onEdit: () => void;
 }) {
     const [mode, setMode] = useState<"idle" | "taking-down">("idle");
     const [reason, setReason] = useState("");
@@ -330,7 +350,17 @@ function ModerationActions({
 
     if (takenDown) {
         return (
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-end gap-2">
+                <Button
+                    type="button"
+                    variant="exec-light"
+                    onClick={onEdit}
+                    disabled={busy}
+                    className="h-9 px-3 text-[12.5px] cursor-pointer"
+                >
+                    <Pencil className="h-3.5 w-3.5 mr-1" />
+                    Edit listing
+                </Button>
                 <Button
                     type="button"
                     variant="exec-dark"
@@ -386,7 +416,17 @@ function ModerationActions({
     }
 
     return (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
+            <Button
+                type="button"
+                variant="exec-light"
+                onClick={onEdit}
+                disabled={busy}
+                className="h-9 px-3 text-[12.5px] cursor-pointer"
+            >
+                <Pencil className="h-3.5 w-3.5 mr-1" />
+                Edit listing
+            </Button>
             <Button
                 type="button"
                 variant="exec-light"
@@ -485,4 +525,88 @@ function formatDate(iso: string): string {
         month: "short",
         year: "numeric",
     });
+}
+
+/**
+ * Centered modal wrapping ListingForm in edit mode. Used by the admin
+ * moderation overlay so admins can fix typos or de-spam content. Portal'd to
+ * `document.body` so it escapes the right-side overlay's stacking context.
+ */
+function EditListingDialog({
+    open,
+    listing,
+    onClose,
+    onSaved,
+}: {
+    open: boolean;
+    listing: AdminListingListItem;
+    onClose: () => void;
+    onSaved: () => Promise<void> | void;
+}) {
+    // Esc to close.
+    useEffect(() => {
+        if (!open) return;
+        function onKey(e: KeyboardEvent) {
+            if (e.key === "Escape") onClose();
+        }
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+    }, [open, onClose]);
+
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!open || !mounted) return null;
+
+    return createPortal(
+        <>
+            <div
+                className="fixed inset-0 z-100 bg-black/30"
+                onClick={onClose}
+                aria-hidden
+            />
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-label="Edit listing"
+                className={cn(
+                    "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-101",
+                    "w-full max-w-3xl mx-4 rounded-xl border border-border bg-background shadow-2xl",
+                    "flex flex-col max-h-[90vh]",
+                )}
+            >
+                <header className="flex items-center justify-between px-5 h-13 border-b border-border shrink-0">
+                    <div className="min-w-0">
+                        <h2 className="text-[14px] font-semibold truncate">
+                            Edit listing
+                        </h2>
+                        <div className="text-[11px] text-muted-foreground truncate">
+                            {listing.title} ·{" "}
+                            {listing.company.name}
+                        </div>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close"
+                        className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground cursor-pointer shrink-0"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </header>
+                <div className="flex-1 overflow-y-auto px-5 py-5">
+                    <ListingForm
+                        companyId={listing.companyId}
+                        initial={listing}
+                        onSaved={async () => {
+                            await onSaved();
+                        }}
+                    />
+                </div>
+            </div>
+        </>,
+        document.body,
+    );
 }

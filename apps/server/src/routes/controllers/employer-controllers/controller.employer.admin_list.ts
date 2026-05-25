@@ -89,6 +89,7 @@ export default async function adminListFounders(
                             email: true,
                             image: true,
                             createdAt: true,
+                            isBanned: true,
                             companyMemberships: {
                                 take: 1,
                                 orderBy: { joinedAt: "asc" },

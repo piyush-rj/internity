@@ -95,6 +95,8 @@ export type StudentProfile = {
     gender: Gender | null;
     bio: string | null;
     resumeUrl: string | null;
+    linkedinUrl: string | null;
+    portfolioUrl: string | null;
     educations: Education[];
     experiences: WorkExperience[];
     projects: Project[];

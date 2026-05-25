@@ -184,6 +184,12 @@ function FounderRow({
                     <span className="text-[13px] font-medium truncate">
                         {fullName || founder.user.name || founder.user.email}
                     </span>
+                    {founder.user.isBanned && (
+                        <span className="shrink-0 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 text-[9.5px] font-medium">
+                            <AlertTriangle className="h-2.5 w-2.5" />
+                            Disabled
+                        </span>
+                    )}
                     {founder.jobTitle && (
                         <span className="text-[11px] text-muted-foreground truncate">
                             · {founder.jobTitle}

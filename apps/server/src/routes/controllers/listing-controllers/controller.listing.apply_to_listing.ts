@@ -41,10 +41,12 @@ export default async function applyToListing(
             expiresAt: true,
             title: true,
             screeningQuestions: true,
+            postedBy: { select: { isBanned: true } },
         },
     });
     if (!found) throw new NotFound("Listing not found");
     if (found.takenDownAt !== null) throw new NotFound("Listing not found");
+    if (found.postedBy.isBanned) throw new NotFound("Listing not found");
     if (found.closedAt !== null) throw new InvalidRequest("Listing is closed");
     if (found.pausedAt !== null) {
         throw new InvalidRequest(

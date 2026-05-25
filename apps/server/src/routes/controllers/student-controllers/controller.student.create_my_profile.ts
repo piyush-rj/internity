@@ -14,6 +14,16 @@ const Body = z.object({
         .nullable()
         .optional(),
     bio: z.string().nullable().optional(),
+    linkedinUrl: z
+        .string()
+        .url("Enter a valid LinkedIn URL")
+        .nullable()
+        .optional(),
+    portfolioUrl: z
+        .string()
+        .url("Enter a valid portfolio URL")
+        .nullable()
+        .optional(),
 });
 
 export default async function createMyProfile(
@@ -33,6 +43,8 @@ export default async function createMyProfile(
                 dob: body.dob ?? null,
                 gender: (body.gender ?? null) as Gender | null,
                 bio: body.bio ?? null,
+                linkedinUrl: body.linkedinUrl ?? null,
+                portfolioUrl: body.portfolioUrl ?? null,
             },
         });
         api.created({ profile }, "Profile created");

@@ -87,6 +87,8 @@ export type ListingInput = {
     partTime?: boolean;
 };
 
+export type CompanySize = "1-10" | "11-50" | "51-200" | "201-500" | "500+";
+
 export type ListingListFilters = {
     type?: ListingType;
     q?: string;
@@ -96,6 +98,7 @@ export type ListingListFilters = {
     stipendMin?: number;
     durationMax?: number;
     partTime?: "true" | "false";
+    companySize?: CompanySize;
     page?: number;
     pageSize?: number;
 };
@@ -107,9 +110,14 @@ export const listingApi = {
             filters as Record<string, unknown>,
         ),
     list_mine: () =>
-        api.get<{ items: (Listing & { _count: { applications: number } })[] }>(
-            "/listing/mine",
-        ),
+        api.get<{
+            items: (Listing & {
+                _count: {
+                    applications: number;
+                    applicationsSeen: number;
+                };
+            })[];
+        }>("/listing/mine"),
     get: (id: string) =>
         api.get<{
             listing: ListingWithCompany & {

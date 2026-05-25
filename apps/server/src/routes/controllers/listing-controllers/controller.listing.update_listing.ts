@@ -2,6 +2,7 @@ import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
 import { ApiError, Forbidden, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
+import { isAdminUser } from "../../../config/config.ts";
 
 const Body = z.object({
     type: z.enum(["INTERNSHIP", "JOB"]).optional(),
@@ -42,15 +43,19 @@ export default async function updateListing(
             select: { companyId: true },
         });
         if (!found) throw new NotFound();
-        const member = await prisma.companyMember.findUnique({
-            where: {
-                companyId_userId: {
-                    companyId: found.companyId,
-                    userId: req.user!.id,
+        // Admins can edit any listing for moderation (typo / spam cleanup);
+        // everyone else must be a member of the owning company.
+        if (!isAdminUser(req.user!)) {
+            const member = await prisma.companyMember.findUnique({
+                where: {
+                    companyId_userId: {
+                        companyId: found.companyId,
+                        userId: req.user!.id,
+                    },
                 },
-            },
-        });
-        if (!member) throw new Forbidden("Not a member of this company");
+            });
+            if (!member) throw new Forbidden("Not a member of this company");
+        }
 
         const body = Body.parse(req.body);
         const data: Prisma.ListingUpdateInput = {

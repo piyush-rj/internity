@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
-import type { WorkMode } from "@/src/lib/api";
+import type { CompanySize, WorkMode } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
 
 type Filters = {
@@ -14,6 +14,7 @@ type Filters = {
     stipendMin: string;
     durationMax: string;
     partTime: boolean;
+    companySize: CompanySize | "";
 };
 
 const EMPTY: Filters = {
@@ -24,10 +25,23 @@ const EMPTY: Filters = {
     stipendMin: "",
     durationMax: "",
     partTime: false,
+    companySize: "",
 };
+
+const COMPANY_SIZE_OPTIONS: { value: CompanySize; label: string }[] = [
+    { value: "1-10", label: "1–10 (Startup)" },
+    { value: "11-50", label: "11–50 (Small)" },
+    { value: "51-200", label: "51–200 (Mid)" },
+    { value: "201-500", label: "201–500 (Large)" },
+    { value: "500+", label: "500+ (Enterprise)" },
+];
 
 function fromParams(sp: URLSearchParams | null): Filters {
     if (!sp) return EMPTY;
+    const size = sp.get("companySize");
+    const validSize = COMPANY_SIZE_OPTIONS.some((o) => o.value === size)
+        ? (size as CompanySize)
+        : "";
     return {
         q: sp.get("q") ?? "",
         city: sp.get("city") ?? "",
@@ -36,6 +50,7 @@ function fromParams(sp: URLSearchParams | null): Filters {
         stipendMin: sp.get("stipendMin") ?? "",
         durationMax: sp.get("durationMax") ?? "",
         partTime: sp.get("partTime") === "true",
+        companySize: validSize,
     };
 }
 
@@ -48,6 +63,7 @@ function toQueryString(f: Filters): string {
     if (f.stipendMin.trim()) params.set("stipendMin", f.stipendMin.trim());
     if (f.durationMax.trim()) params.set("durationMax", f.durationMax.trim());
     if (f.partTime) params.set("partTime", "true");
+    if (f.companySize) params.set("companySize", f.companySize);
     return params.toString();
 }
 
@@ -60,6 +76,7 @@ function countActive(f: Filters): number {
     if (f.stipendMin.trim()) n++;
     if (f.durationMax.trim()) n++;
     if (f.partTime) n++;
+    if (f.companySize) n++;
     return n;
 }
 
@@ -90,7 +107,8 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
     const activeCount = countActive(filters);
 
     return (
-        <section className="rounded-[20px] border border-border bg-neutral-50">
+        <section className="rounded-2xl border border-border bg-card overflow-hidden">
+            {/* Quick row: search + city + mode + More toggle */}
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px_180px_auto] gap-2 p-3">
                 <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -98,11 +116,11 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                         type="text"
                         value={filters.q}
                         onChange={(e) => set("q", e.target.value)}
-                        placeholder="Search title or company…"
+                        placeholder="Search role, company, or skill"
                         className={cn(
                             "w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3",
                             "text-[13px] placeholder:text-muted-foreground/70",
-                            "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+                            "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-orange-500/15",
                         )}
                     />
                 </div>
@@ -110,11 +128,11 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                     type="text"
                     value={filters.city}
                     onChange={(e) => set("city", e.target.value)}
-                    placeholder="City"
+                    placeholder="City — e.g. Bengaluru"
                     className={cn(
                         "h-10 rounded-lg border border-border bg-background px-3",
                         "text-[13px] placeholder:text-muted-foreground/70",
-                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-orange-500/15",
                     )}
                 />
                 <select
@@ -124,11 +142,11 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                     }
                     className={cn(
                         "h-10 rounded-lg border border-border bg-background px-3 pr-8",
-                        "text-[13px] appearance-none",
-                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+                        "text-[13px] appearance-none cursor-pointer",
+                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-orange-500/15",
                     )}
                 >
-                    <option value="">Any mode</option>
+                    <option value="">Any work mode</option>
                     <option value="REMOTE">Remote</option>
                     <option value="HYBRID">Hybrid</option>
                     <option value="ONSITE">On-site</option>
@@ -137,14 +155,14 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                     type="button"
                     onClick={() => setExpanded((v) => !v)}
                     className={cn(
-                        "inline-flex items-center justify-center gap-1 h-10 px-3",
+                        "inline-flex items-center justify-center gap-1.5 h-10 px-3",
                         "rounded-lg border border-border bg-background",
-                        "text-[12.5px] font-medium hover:bg-secondary/40 transition-colors",
+                        "text-[12.5px] font-medium hover:bg-secondary/40 transition-colors cursor-pointer",
                     )}
                 >
-                    More
+                    More filters
                     {activeCount > 0 && (
-                        <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-brand text-white text-[10px] tabular-nums">
+                        <span className="inline-flex items-center justify-center h-4 min-w-4 px-1 rounded-full bg-orange-500 text-white text-[10px] tabular-nums">
                             {activeCount}
                         </span>
                     )}
@@ -156,61 +174,86 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                 </button>
             </div>
 
+            {/* Expanded: labeled fields in a clean grid */}
             {expanded && (
-                <div className="border-t border-border p-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    <input
-                        type="text"
-                        value={filters.skills}
-                        onChange={(e) => set("skills", e.target.value)}
-                        placeholder="Skills (comma-separated)"
-                        className={cn(
-                            "h-10 rounded-lg border border-border bg-background px-3",
-                            "text-[13px] placeholder:text-muted-foreground/70",
-                            "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
-                        )}
-                    />
-
-                    <input
-                        type="number"
-                        min={0}
-                        value={filters.stipendMin}
-                        onChange={(e) => set("stipendMin", e.target.value)}
-                        placeholder="Min stipend ₹/mo"
-                        className={cn(
-                            "h-10 rounded-lg border border-border bg-background px-3",
-                            "text-[13px] placeholder:text-muted-foreground/70",
-                            "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
-                        )}
-                    />
-                    <input
-                        type="number"
-                        min={1}
-                        value={filters.durationMax}
-                        onChange={(e) => set("durationMax", e.target.value)}
-                        placeholder="Max duration (months)"
-                        className={cn(
-                            "h-10 rounded-lg border border-border bg-background px-3",
-                            "text-[13px] placeholder:text-muted-foreground/70",
-                            "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
-                        )}
-                    />
-                    <label
-                        className={cn(
-                            "inline-flex items-center gap-2 h-10 px-3 rounded-lg border border-border bg-background",
-                            "text-[13px] cursor-pointer select-none",
-                        )}
-                    >
+                <div className="border-t border-border bg-secondary/30 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FilterField label="Skills" hint="Comma-separated">
                         <input
-                            type="checkbox"
-                            checked={filters.partTime}
-                            onChange={(e) => set("partTime", e.target.checked)}
-                            className="h-4 w-4 rounded border-border accent-brand"
+                            type="text"
+                            value={filters.skills}
+                            onChange={(e) => set("skills", e.target.value)}
+                            placeholder="React, TypeScript, Figma"
+                            className={fieldInputCls}
                         />
-                        Part-time allowed
-                    </label>
+                    </FilterField>
+
+                    <FilterField label="Min stipend" hint="₹ per month">
+                        <input
+                            type="number"
+                            min={0}
+                            value={filters.stipendMin}
+                            onChange={(e) => set("stipendMin", e.target.value)}
+                            placeholder="10000"
+                            className={fieldInputCls}
+                        />
+                    </FilterField>
+
+                    <FilterField label="Max duration" hint="Months">
+                        <input
+                            type="number"
+                            min={1}
+                            value={filters.durationMax}
+                            onChange={(e) => set("durationMax", e.target.value)}
+                            placeholder="3"
+                            className={fieldInputCls}
+                        />
+                    </FilterField>
+
+                    <FilterField label="Company size">
+                        <select
+                            value={filters.companySize}
+                            onChange={(e) =>
+                                set(
+                                    "companySize",
+                                    e.target.value as CompanySize | "",
+                                )
+                            }
+                            className={cn(
+                                fieldInputCls,
+                                "appearance-none pr-8 cursor-pointer",
+                            )}
+                        >
+                            <option value="">Any size</option>
+                            {COMPANY_SIZE_OPTIONS.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                    {o.label}
+                                </option>
+                            ))}
+                        </select>
+                    </FilterField>
+
+                    <FilterField label="Part-time">
+                        <label
+                            className={cn(
+                                "inline-flex items-center gap-2 h-10 px-3 rounded-lg border border-border bg-background",
+                                "text-[13px] cursor-pointer select-none",
+                            )}
+                        >
+                            <input
+                                type="checkbox"
+                                checked={filters.partTime}
+                                onChange={(e) =>
+                                    set("partTime", e.target.checked)
+                                }
+                                className="h-4 w-4 rounded border-border accent-orange-500"
+                            />
+                            Allow part-time roles
+                        </label>
+                    </FilterField>
                 </div>
             )}
 
+            {/* Active state footer */}
             {activeCount > 0 && (
                 <div className="border-t border-border px-3 py-2 flex items-center justify-between gap-3">
                     <span className="text-[11.5px] text-muted-foreground">
@@ -220,7 +263,7 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                     <button
                         type="button"
                         onClick={() => setFilters(EMPTY)}
-                        className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground hover:text-foreground"
+                        className="inline-flex items-center gap-1 text-[12px] font-medium text-orange-600 hover:text-orange-700 cursor-pointer"
                     >
                         <X className="h-3 w-3" />
                         Clear all
@@ -228,5 +271,37 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                 </div>
             )}
         </section>
+    );
+}
+
+const fieldInputCls = cn(
+    "w-full h-10 rounded-lg border border-border bg-background px-3",
+    "text-[13px] placeholder:text-muted-foreground/70",
+    "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-orange-500/15",
+);
+
+function FilterField({
+    label,
+    hint,
+    children,
+}: {
+    label: string;
+    hint?: string;
+    children: React.ReactNode;
+}) {
+    return (
+        <label className="block space-y-1">
+            <span className="flex items-baseline gap-1.5">
+                <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {label}
+                </span>
+                {hint && (
+                    <span className="text-[10.5px] text-muted-foreground/70">
+                        ({hint})
+                    </span>
+                )}
+            </span>
+            {children}
+        </label>
     );
 }

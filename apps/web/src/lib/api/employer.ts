@@ -70,11 +70,15 @@ export type AdminCompanyDetailMember = {
         email: string | null;
         image: string | null;
         createdAt: string;
+        isBanned: boolean;
+        banReason: string | null;
+        bannedAt: string | null;
         employerProfile: {
             firstName: string;
             lastName: string | null;
             phone: string | null;
             jobTitle: string | null;
+            linkedinUrl: string | null;
         } | null;
     };
 };
@@ -112,6 +116,7 @@ export type AdminFounderListItem = {
         email: string | null;
         image: string | null;
         createdAt: string;
+        isBanned: boolean;
         companyMemberships: Array<{
             companyId: string;
             userId: string;

@@ -8,6 +8,8 @@ import {
     PiCake,
     PiEnvelope,
     PiFilePdf,
+    PiGlobe,
+    PiLinkedinLogoFill,
     PiMapPin,
     PiPhone,
     PiUserCircle,
@@ -308,6 +310,38 @@ function Hero({
                             icon={<PiEnvelope className="h-3.5 w-3.5" />}
                             text={profile.user.email}
                         />
+                        {profile.linkedinUrl && (
+                            <Fact
+                                icon={
+                                    <PiLinkedinLogoFill className="h-3.5 w-3.5" />
+                                }
+                                text={
+                                    <a
+                                        href={profile.linkedinUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-brand hover:underline truncate"
+                                    >
+                                        LinkedIn
+                                    </a>
+                                }
+                            />
+                        )}
+                        {profile.portfolioUrl && (
+                            <Fact
+                                icon={<PiGlobe className="h-3.5 w-3.5" />}
+                                text={
+                                    <a
+                                        href={profile.portfolioUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-brand hover:underline truncate"
+                                    >
+                                        Portfolio
+                                    </a>
+                                }
+                            />
+                        )}
                     </dl>
                 </div>
             </div>
@@ -361,7 +395,13 @@ function Avatar({ name, image }: { name: string; image: string | null }) {
     );
 }
 
-function Fact({ icon, text }: { icon: React.ReactNode; text: string }) {
+function Fact({
+    icon,
+    text,
+}: {
+    icon: React.ReactNode;
+    text: React.ReactNode;
+}) {
     return (
         <div className="flex items-center gap-1.5 text-foreground min-w-0">
             <span className="text-muted-foreground inline-flex h-3.5 w-3.5 items-center justify-center">

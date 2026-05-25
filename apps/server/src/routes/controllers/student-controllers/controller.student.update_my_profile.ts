@@ -14,6 +14,16 @@ const Body = z.object({
         .nullable()
         .optional(),
     bio: z.string().nullable().optional(),
+    linkedinUrl: z
+        .string()
+        .url("Enter a valid LinkedIn URL")
+        .nullable()
+        .optional(),
+    portfolioUrl: z
+        .string()
+        .url("Enter a valid portfolio URL")
+        .nullable()
+        .optional(),
 });
 
 export default async function updateMyProfile(
@@ -44,6 +54,12 @@ export default async function updateMyProfile(
                     gender: body.gender as Gender | null,
                 }),
                 ...(body.bio !== undefined && { bio: body.bio }),
+                ...(body.linkedinUrl !== undefined && {
+                    linkedinUrl: body.linkedinUrl,
+                }),
+                ...(body.portfolioUrl !== undefined && {
+                    portfolioUrl: body.portfolioUrl,
+                }),
             },
         });
         api.ok({ profile });
