@@ -13,6 +13,7 @@ type DecidedStatus = Exclude<ApplicationStatus, "WITHDRAWN">;
 
 export type ListingApplicantsState = {
     items: ApplicantWithStudent[];
+    screeningQuestions: string[];
     loading: boolean;
     error: ApiClientError | Error | null;
     refetch: () => Promise<void>;
@@ -26,20 +27,23 @@ export function useListingApplicants(
     listingId: string | null,
 ): ListingApplicantsState {
     const [items, setItems] = useState<ApplicantWithStudent[]>([]);
+    const [screeningQuestions, setScreeningQuestions] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ApiClientError | Error | null>(null);
 
     const fetchApplicants = useCallback(async () => {
         if (!listingId) {
             setItems([]);
+            setScreeningQuestions([]);
             setLoading(false);
             return;
         }
         setLoading(true);
         setError(null);
         try {
-            const { items } = await listingApi.list_applicants(listingId);
-            setItems(items);
+            const res = await listingApi.list_applicants(listingId);
+            setItems(res.items);
+            setScreeningQuestions(res.screeningQuestions ?? []);
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
@@ -75,6 +79,7 @@ export function useListingApplicants(
 
     return {
         items,
+        screeningQuestions,
         loading,
         error,
         refetch: fetchApplicants,

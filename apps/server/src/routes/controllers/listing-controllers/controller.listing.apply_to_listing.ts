@@ -15,6 +15,12 @@ const Body = z.object({
         .string()
         .max(150, "Keep your cover note under 150 characters")
         .optional(),
+    // Parallel to Listing.screeningQuestions. Required when the listing has
+    // any questions — see the runtime check below for the count-match
+    // enforcement so we can produce a tailored error message.
+    screeningAnswers: z
+        .array(z.string().max(500, "Keep each answer under 500 characters"))
+        .optional(),
 });
 
 export default async function applyToListing(
@@ -34,6 +40,7 @@ export default async function applyToListing(
             pausedAt: true,
             expiresAt: true,
             title: true,
+            screeningQuestions: true,
         },
     });
     if (!found) throw new NotFound("Listing not found");
@@ -73,6 +80,30 @@ export default async function applyToListing(
 
     const coverLetter = body.coverLetter?.trim() || null;
 
+    // Screening answers must line up exactly with the listing's questions.
+    // Trimmed; empty answers are rejected so a student can't bypass the
+    // questionnaire by submitting blanks.
+    const submittedAnswers = (body.screeningAnswers ?? []).map((a) => a.trim());
+    if (found.screeningQuestions.length > 0) {
+        if (submittedAnswers.length !== found.screeningQuestions.length) {
+            throw new InvalidRequest(
+                "Please answer every screening question before applying.",
+            );
+        }
+        for (const a of submittedAnswers) {
+            if (a.length === 0) {
+                throw new InvalidRequest(
+                    "Please answer every screening question before applying.",
+                );
+            }
+        }
+    } else if (submittedAnswers.length > 0) {
+        // No questions on the listing but answers were supplied — drop them
+        // silently rather than reject; the student likely raced a question
+        // removal.
+        submittedAnswers.length = 0;
+    }
+
     let application;
     try {
         application = await prisma.application.create({
@@ -81,6 +112,7 @@ export default async function applyToListing(
                 studentId: req.user!.id,
                 coverLetter,
                 resumeUrl: profile.resumeUrl,
+                screeningAnswers: submittedAnswers,
             },
             include: {
                 listing: {

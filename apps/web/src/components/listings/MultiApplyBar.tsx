@@ -260,6 +260,7 @@ const SKIP_LABEL: Record<ApplyBatchSkipReason, string> = {
     PAUSED: "paused",
     EXPIRED: "expired",
     TAKEN_DOWN: "removed",
+    SCREENING_REQUIRED: "need answers — apply directly",
     NOT_FOUND: "not found",
 };
 

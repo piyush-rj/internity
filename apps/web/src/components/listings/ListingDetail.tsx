@@ -93,6 +93,7 @@ export function ListingDetail({
                                 postedById={listing.postedById}
                                 closed={closed}
                                 applied={applied}
+                                screeningQuestions={listing.screeningQuestions}
                                 onApplied={onApplied}
                             />
                         </div>

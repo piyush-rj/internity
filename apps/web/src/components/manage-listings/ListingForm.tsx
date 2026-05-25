@@ -1,6 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import {
+    forwardRef,
+    useImperativeHandle,
+    useState,
+    type ForwardedRef,
+} from "react";
 import { toast } from "sonner";
 import { Button } from "@/src/components/ui/button";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
@@ -11,6 +16,7 @@ import {
     type WorkMode,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import type { ListingTemplate } from "@/src/components/manage-listings/listingTemplates";
 import { cn } from "@/src/lib/utils";
 
 type FormState = {
@@ -23,6 +29,7 @@ type FormState = {
     perks: string;
     preferences: string;
     skillTags: string;
+    screeningQuestions: string[];
     stipendMin: string;
     stipendMax: string;
     durationMonths: string;
@@ -42,6 +49,7 @@ const empty: FormState = {
     perks: "",
     preferences: "",
     skillTags: "",
+    screeningQuestions: [],
     stipendMin: "",
     stipendMax: "",
     durationMonths: "",
@@ -51,19 +59,66 @@ const empty: FormState = {
     partTime: false,
 };
 
-export function ListingForm({
-    companyId,
-    onCreated,
-}: {
-    companyId: string;
-    onCreated: (id: string) => void | Promise<void>;
-}) {
+const MAX_SCREENING_QUESTIONS = 5;
+const SCREENING_QUESTION_MAX = 200;
+
+export type ListingFormHandle = {
+    /** Merge a template's fields into the form. Empty user-filled fields
+     *  are overwritten; non-empty ones are preserved. */
+    applyTemplate: (template: ListingTemplate) => void;
+};
+
+export const ListingForm = forwardRef(function ListingForm(
+    {
+        companyId,
+        onCreated,
+    }: {
+        companyId: string;
+        onCreated: (id: string) => void | Promise<void>;
+    },
+    ref: ForwardedRef<ListingFormHandle>,
+) {
     const [form, setForm] = useState<FormState>(empty);
     const [saving, setSaving] = useState(false);
 
     function set<K extends keyof FormState>(k: K, v: FormState[K]) {
         setForm((f) => ({ ...f, [k]: v }));
     }
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            applyTemplate: (t) => {
+                setForm((prev) => ({
+                    ...prev,
+                    type: t.type,
+                    mode: t.mode,
+                    title: prev.title.trim() ? prev.title : t.title,
+                    description: prev.description.trim()
+                        ? prev.description
+                        : t.description,
+                    responsibilities: prev.responsibilities.trim()
+                        ? prev.responsibilities
+                        : t.responsibilities.join("\n"),
+                    preferences: prev.preferences.trim()
+                        ? prev.preferences
+                        : t.preferences.join("\n"),
+                    perks: prev.perks.trim()
+                        ? prev.perks
+                        : t.perks.join("\n"),
+                    skillTags: prev.skillTags.trim()
+                        ? prev.skillTags
+                        : t.skillTags.join(", "),
+                    screeningQuestions:
+                        prev.screeningQuestions.some((q) => q.trim())
+                            ? prev.screeningQuestions
+                            : t.screeningQuestions ?? [],
+                }));
+                toast.success(`${t.label} template applied — tweak and post.`);
+            },
+        }),
+        [],
+    );
 
     async function submit() {
         if (!form.title.trim()) {
@@ -79,6 +134,19 @@ export function ListingForm({
             return;
         }
 
+        const cleanedQuestions = form.screeningQuestions
+            .map((q) => q.trim())
+            .filter(Boolean);
+        const overLength = cleanedQuestions.find(
+            (q) => q.length > SCREENING_QUESTION_MAX,
+        );
+        if (overLength) {
+            toast.error(
+                `Keep each screening question under ${SCREENING_QUESTION_MAX} characters.`,
+            );
+            return;
+        }
+
         const input: ListingInput = {
             companyId,
             type: form.type,
@@ -90,6 +158,8 @@ export function ListingForm({
             perks: splitLines(form.perks),
             preferences: splitLines(form.preferences),
             skillTagsRaw: splitTags(form.skillTags),
+            screeningQuestions:
+                cleanedQuestions.length > 0 ? cleanedQuestions : undefined,
             stipendMin: numOr(form.stipendMin),
             stipendMax: numOr(form.stipendMax),
             durationMonths: numOr(form.durationMonths),
@@ -240,6 +310,13 @@ export function ListingForm({
                 </Field>
             </Section>
 
+            <Section title="Screening questions (optional)">
+                <ScreeningQuestionsEditor
+                    questions={form.screeningQuestions}
+                    onChange={(next) => set("screeningQuestions", next)}
+                />
+            </Section>
+
             <Section title="Compensation & logistics">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Stipend min (₹/mo)">
@@ -334,7 +411,7 @@ export function ListingForm({
             </div>
         </div>
     );
-}
+});
 
 /* -------------------------------- helpers -------------------------------- */
 
@@ -352,6 +429,80 @@ function Section({
             </h3>
             <div className="space-y-3">{children}</div>
         </section>
+    );
+}
+
+/**
+ * Editor for screening questions. Up to MAX_SCREENING_QUESTIONS rows, each
+ * capped at SCREENING_QUESTION_MAX chars. Submission filters out blank
+ * rows so the founder can leave an empty slot during editing.
+ */
+function ScreeningQuestionsEditor({
+    questions,
+    onChange,
+}: {
+    questions: string[];
+    onChange: (next: string[]) => void;
+}) {
+    function setAt(index: number, value: string) {
+        const next = [...questions];
+        next[index] = value;
+        onChange(next);
+    }
+    function add() {
+        if (questions.length >= MAX_SCREENING_QUESTIONS) return;
+        onChange([...questions, ""]);
+    }
+    function remove(index: number) {
+        onChange(questions.filter((_, i) => i !== index));
+    }
+
+    return (
+        <div className="space-y-2">
+            {questions.length === 0 && (
+                <p className="text-[12px] text-muted-foreground">
+                    Add quick questions students must answer at apply time —
+                    great for filtering out spam applications.
+                </p>
+            )}
+            {questions.map((q, i) => (
+                <div key={i} className="flex gap-2">
+                    <input
+                        type="text"
+                        value={q}
+                        onChange={(e) => setAt(i, e.target.value)}
+                        placeholder={`Question ${i + 1}`}
+                        maxLength={SCREENING_QUESTION_MAX}
+                        className={cn(inputCls(), "flex-1")}
+                    />
+                    <button
+                        type="button"
+                        onClick={() => remove(i)}
+                        aria-label={`Remove question ${i + 1}`}
+                        className={cn(
+                            "h-10 w-10 inline-flex items-center justify-center rounded-md shrink-0",
+                            "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
+                            "transition-colors cursor-pointer",
+                        )}
+                    >
+                        ×
+                    </button>
+                </div>
+            ))}
+            {questions.length < MAX_SCREENING_QUESTIONS && (
+                <button
+                    type="button"
+                    onClick={add}
+                    className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand hover:underline cursor-pointer"
+                >
+                    + Add a question
+                </button>
+            )}
+            <p className="text-[11px] text-muted-foreground">
+                Up to {MAX_SCREENING_QUESTIONS} questions.{" "}
+                {questions.length}/{MAX_SCREENING_QUESTIONS} added.
+            </p>
+        </div>
     );
 }
 

@@ -42,9 +42,12 @@ const statusStyles: Record<ApplicationStatus, string> = {
 
 export function ApplicantCard({
     applicant,
+    screeningQuestions = [],
     onUpdateStatus,
 }: {
     applicant: ApplicantWithStudent;
+    /** Listing-level questions paired by index with applicant.screeningAnswers. */
+    screeningQuestions?: string[];
     onUpdateStatus: (id: string, status: DecidedStatus) => Promise<void>;
 }) {
     const router = useRouter();
@@ -154,15 +157,18 @@ export function ApplicantCard({
                     </div>
 
                     <div className="mt-2 flex items-center gap-4">
-                        {applicant.coverLetter && (
+                        {(applicant.coverLetter ||
+                            applicant.screeningAnswers.length > 0) && (
                             <button
                                 type="button"
                                 onClick={() => setExpanded((v) => !v)}
                                 className="inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
                             >
                                 {expanded
-                                    ? "Hide cover letter"
-                                    : "Read cover letter"}
+                                    ? "Hide details"
+                                    : applicant.screeningAnswers.length > 0
+                                      ? `Read answers${applicant.coverLetter ? " + cover note" : ""}`
+                                      : "Read cover note"}
                                 {expanded ? (
                                     <ChevronUp className="h-3 w-3" />
                                 ) : (
@@ -232,9 +238,40 @@ export function ApplicantCard({
                 </div>
             </div>
 
-            {expanded && applicant.coverLetter && (
-                <div className="mt-3 ml-14 rounded-lg border border-border bg-background px-3 py-2.5 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                    {applicant.coverLetter}
+            {expanded && (
+                <div className="mt-3 ml-14 space-y-3">
+                    {applicant.screeningAnswers.length > 0 && (
+                        <div className="rounded-lg border border-border bg-background divide-y divide-border">
+                            {applicant.screeningAnswers.map((ans, i) => (
+                                <div key={i} className="px-3 py-2.5">
+                                    <div className="text-[11.5px] font-medium text-muted-foreground leading-snug">
+                                        <span className="tabular-nums">
+                                            Q{i + 1}.
+                                        </span>{" "}
+                                        {screeningQuestions[i] ??
+                                            "(question not available)"}
+                                    </div>
+                                    <div className="mt-1 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                                        {ans || (
+                                            <span className="italic text-muted-foreground">
+                                                (no answer)
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                    {applicant.coverLetter && (
+                        <div className="rounded-lg border border-border bg-background px-3 py-2.5">
+                            <div className="text-[11.5px] font-medium text-muted-foreground">
+                                Cover note
+                            </div>
+                            <div className="mt-1 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                                {applicant.coverLetter}
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

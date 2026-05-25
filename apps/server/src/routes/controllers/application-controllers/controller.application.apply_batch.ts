@@ -27,6 +27,7 @@ type SkipReason =
     | "PAUSED"
     | "EXPIRED"
     | "TAKEN_DOWN"
+    | "SCREENING_REQUIRED"
     | "NOT_FOUND";
 
 type Skip = { listingId: string; reason: SkipReason };
@@ -68,6 +69,7 @@ export default async function applyBatch(
                 takenDownAt: true,
                 pausedAt: true,
                 expiresAt: true,
+                screeningQuestions: true,
             },
         });
         const byId = new Map(listings.map((l) => [l.id, l]));
@@ -119,6 +121,12 @@ export default async function applyBatch(
             }
             if (alreadyApplied.has(id)) {
                 skipped.push({ listingId: id, reason: "ALREADY_APPLIED" });
+                continue;
+            }
+            if (l.screeningQuestions.length > 0) {
+                // Batch apply doesn't collect per-listing answers; tell the
+                // student to apply to these one-by-one.
+                skipped.push({ listingId: id, reason: "SCREENING_REQUIRED" });
                 continue;
             }
             created.push({

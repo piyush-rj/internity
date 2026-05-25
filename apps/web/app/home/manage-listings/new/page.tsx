@@ -1,10 +1,15 @@
 "use client";
 
+import { useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, Clock } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
-import { ListingForm } from "@/src/components/manage-listings/ListingForm";
+import {
+    ListingForm,
+    type ListingFormHandle,
+} from "@/src/components/manage-listings/ListingForm";
+import { TemplatePicker } from "@/src/components/manage-listings/TemplatePicker";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 
 export default function NewListingPage() {
@@ -12,6 +17,7 @@ export default function NewListingPage() {
     const { memberships, loading } = useMyEmployer();
     const company = memberships[0]?.company ?? null;
     const status = company?.verificationStatus ?? null;
+    const formRef = useRef<ListingFormHandle | null>(null);
 
     return (
         <EmptySection
@@ -32,10 +38,18 @@ export default function NewListingPage() {
                 ) : !company ? (
                     <NoCompany />
                 ) : status === "APPROVED" ? (
-                    <ListingForm
-                        companyId={company.id}
-                        onCreated={(id) => router.push(`/home/listings/${id}`)}
-                    />
+                    <div className="space-y-4">
+                        <TemplatePicker
+                            onPick={(t) => formRef.current?.applyTemplate(t)}
+                        />
+                        <ListingForm
+                            ref={formRef}
+                            companyId={company.id}
+                            onCreated={(id) =>
+                                router.push(`/home/listings/${id}`)
+                            }
+                        />
+                    </div>
                 ) : status === "PENDING" ? (
                     <PendingNotice />
                 ) : (

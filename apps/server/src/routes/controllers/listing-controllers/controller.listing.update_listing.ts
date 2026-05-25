@@ -18,6 +18,10 @@ const Body = z.object({
     perks: z.array(z.string()).optional(),
     preferences: z.array(z.string()).optional(),
     skillTagsRaw: z.array(z.string()).optional(),
+    screeningQuestions: z
+        .array(z.string().min(1).max(200))
+        .max(5, "Up to 5 screening questions")
+        .optional(),
     stipendMin: z.number().int().nullable().optional(),
     stipendMax: z.number().int().nullable().optional(),
     durationMonths: z.number().int().nullable().optional(),
@@ -71,6 +75,11 @@ export default async function updateListing(
             }),
             ...(body.skillTagsRaw !== undefined && {
                 skillTagsRaw: normalize(body.skillTagsRaw ?? []),
+            }),
+            ...(body.screeningQuestions !== undefined && {
+                screeningQuestions: body.screeningQuestions
+                    .map((q) => q.trim())
+                    .filter(Boolean),
             }),
             ...(body.stipendMin !== undefined && {
                 stipendMin: body.stipendMin,

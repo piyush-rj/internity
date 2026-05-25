@@ -44,8 +44,13 @@ function ApplicantsView() {
         router.replace(`/home/applicants?${params.toString()}`);
     }, [activeListingId, queriedId, router, searchParams]);
 
-    const { items, loading, error, updateStatus } =
-        useListingApplicants(activeListingId);
+    const {
+        items,
+        screeningQuestions,
+        loading,
+        error,
+        updateStatus,
+    } = useListingApplicants(activeListingId);
 
     return (
         <EmptySection
@@ -89,6 +94,9 @@ function ApplicantsView() {
                                     <li key={applicant.id}>
                                         <ApplicantCard
                                             applicant={applicant}
+                                            screeningQuestions={
+                                                screeningQuestions
+                                            }
                                             onUpdateStatus={updateStatus}
                                         />
                                     </li>

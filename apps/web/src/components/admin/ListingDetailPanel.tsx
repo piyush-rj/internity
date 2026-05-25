@@ -158,6 +158,16 @@ function DetailContent({
                 </p>
             </Section>
 
+            {listing.screeningQuestions.length > 0 && (
+                <Section title="Screening questions">
+                    <ol className="space-y-1.5 text-[12.5px] text-foreground/90 list-decimal pl-5 marker:text-muted-foreground marker:tabular-nums">
+                        {listing.screeningQuestions.map((q, i) => (
+                            <li key={i}>{q}</li>
+                        ))}
+                    </ol>
+                </Section>
+            )}
+
             <Section title="Founder">
                 <div className="text-[12.5px]">
                     <div className="font-medium">

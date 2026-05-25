@@ -150,6 +150,7 @@ export type Listing = {
     perks: string[];
     preferences: string[];
     skillTagsRaw: string[];
+    screeningQuestions: string[];
     stipendMin: number | null;
     stipendMax: number | null;
     currency: string | null;
@@ -182,6 +183,7 @@ export type Application = {
     appliedAt: string;
     statusUpdatedAt: string;
     seenAt: string | null;
+    screeningAnswers: string[];
 };
 
 export type SavedListing = {

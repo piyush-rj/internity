@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Check } from "lucide-react";
 import { listingApi } from "@/src/lib/api";
@@ -10,23 +10,38 @@ import { useMe } from "@/src/hooks/useMe";
 import { cn } from "@/src/lib/utils";
 
 const COVER_LIMIT = 150;
+const ANSWER_LIMIT = 500;
 
 export function ApplyCard({
     listingId,
     postedById,
     closed,
     applied,
+    screeningQuestions = [],
     onApplied,
 }: {
     listingId: string;
     postedById: string;
     closed: boolean;
     applied: boolean;
+    screeningQuestions?: string[];
     onApplied: () => Promise<void> | void;
 }) {
     const { me } = useMe();
     const [coverLetter, setCoverLetter] = useState<string>("");
+    const [answers, setAnswers] = useState<string[]>(() =>
+        screeningQuestions.map(() => ""),
+    );
     const [submitting, setSubmitting] = useState<boolean>(false);
+
+    // Keep `answers` length in sync if the founder edits the listing while
+    // the student is viewing.
+    useEffect(() => {
+        setAnswers((prev) => {
+            if (prev.length === screeningQuestions.length) return prev;
+            return screeningQuestions.map((_, i) => prev[i] ?? "");
+        });
+    }, [screeningQuestions]);
 
     if (me && me.id === postedById) {
         return (
@@ -70,22 +85,44 @@ export function ApplyCard({
 
     const remaining = COVER_LIMIT - coverLetter.length;
     const over = remaining < 0;
+    const overAnswer =
+        answers.find((a) => a.length > ANSWER_LIMIT) !== undefined;
+    const missingAnswerIndex = screeningQuestions.length
+        ? answers.findIndex((a) => a.trim().length === 0)
+        : -1;
+    const ready = missingAnswerIndex === -1 && !over && !overAnswer;
 
     async function submit() {
-        const trimmed = coverLetter.trim();
-        if (trimmed.length > COVER_LIMIT) {
+        if (over) {
             toast.error(
                 `Keep your cover note under ${COVER_LIMIT} characters.`,
+            );
+            return;
+        }
+        if (overAnswer) {
+            toast.error(
+                `Keep each screening answer under ${ANSWER_LIMIT} characters.`,
+            );
+            return;
+        }
+        if (missingAnswerIndex !== -1) {
+            toast.error(
+                `Please answer question ${missingAnswerIndex + 1}.`,
             );
             return;
         }
         setSubmitting(true);
         try {
             await listingApi.apply(listingId, {
-                coverLetter: trimmed || undefined,
+                coverLetter: coverLetter.trim() || undefined,
+                screeningAnswers:
+                    screeningQuestions.length > 0
+                        ? answers.map((a) => a.trim())
+                        : undefined,
             });
             await onApplied();
             setCoverLetter("");
+            setAnswers(screeningQuestions.map(() => ""));
             toast.success("Application sent.");
         } catch (err) {
             toast.error(
@@ -100,6 +137,59 @@ export function ApplyCard({
 
     return (
         <div className="space-y-3">
+            {screeningQuestions.length > 0 && (
+                <div className="space-y-2.5">
+                    <div className="text-[12.5px] font-medium">
+                        A few quick questions from the employer
+                    </div>
+                    {screeningQuestions.map((q, i) => {
+                        const overThis = answers[i]!.length > ANSWER_LIMIT;
+                        return (
+                            <label key={i} className="block space-y-1">
+                                <span className="block text-[12.5px] text-foreground/90">
+                                    <span className="font-medium tabular-nums text-muted-foreground">
+                                        Q{i + 1}.
+                                    </span>{" "}
+                                    {q}
+                                </span>
+                                <textarea
+                                    value={answers[i]}
+                                    onChange={(e) =>
+                                        setAnswers((prev) =>
+                                            prev.map((a, j) =>
+                                                j === i ? e.target.value : a,
+                                            ),
+                                        )
+                                    }
+                                    rows={2}
+                                    maxLength={ANSWER_LIMIT}
+                                    placeholder="Your answer"
+                                    className={cn(
+                                        "w-full rounded-lg border bg-background px-3 py-2",
+                                        "text-[13px] placeholder:text-muted-foreground/70",
+                                        "outline-none focus:ring-3 focus:ring-foreground/5",
+                                        "resize-y min-h-14 max-h-32",
+                                        overThis
+                                            ? "border-destructive/50 focus:border-destructive/60"
+                                            : "border-border focus:border-foreground/40",
+                                    )}
+                                />
+                                <div
+                                    className={cn(
+                                        "text-right text-[11px] tabular-nums",
+                                        overThis
+                                            ? "text-destructive"
+                                            : "text-muted-foreground",
+                                    )}
+                                >
+                                    {answers[i]!.length}/{ANSWER_LIMIT}
+                                </div>
+                            </label>
+                        );
+                    })}
+                </div>
+            )}
+
             <label className="block">
                 <span className="block mb-1.5 text-[12.5px] font-medium">
                     Cover note{" "}
@@ -140,12 +230,13 @@ export function ApplyCard({
                 type="button"
                 variant="exec-dark"
                 onClick={submit}
-                disabled={submitting || over}
+                disabled={submitting || !ready}
                 className="w-full h-10 text-[13px] cursor-pointer"
             >
                 {submitting
                     ? "Submitting…"
-                    : coverLetter.trim().length > 0
+                    : screeningQuestions.length > 0 ||
+                        coverLetter.trim().length > 0
                       ? "Submit application"
                       : "Apply in 1 click"}
             </Button>

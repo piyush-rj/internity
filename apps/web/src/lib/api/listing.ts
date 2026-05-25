@@ -46,6 +46,7 @@ export type ListingInput = {
     perks?: string[];
     preferences?: string[];
     skillTagsRaw?: string[];
+    screeningQuestions?: string[];
     stipendMin?: number;
     stipendMax?: number;
     durationMonths?: number;
@@ -99,16 +100,20 @@ export const listingApi = {
     remove: (id: string) => api.delete<{ ok: true }>(`/listing/${id}`),
 
     // apply hangs off /listing/:id/apply
-    apply: (listingId: string, input: { coverLetter?: string }) =>
+    apply: (
+        listingId: string,
+        input: { coverLetter?: string; screeningAnswers?: string[] },
+    ) =>
         api.post<{ application: Application }>(
             `/listing/${listingId}/apply`,
             input,
         ),
     // applicants list hangs off /listing/:id/applications
     list_applicants: (listingId: string) =>
-        api.get<{ items: ApplicantWithStudent[] }>(
-            `/listing/${listingId}/applications`,
-        ),
+        api.get<{
+            items: ApplicantWithStudent[];
+            screeningQuestions: string[];
+        }>(`/listing/${listingId}/applications`),
 
     admin_list: (params: {
         state?: AdminListingStateFilter;
@@ -137,6 +142,7 @@ export type ApplyBatchSkipReason =
     | "PAUSED"
     | "EXPIRED"
     | "TAKEN_DOWN"
+    | "SCREENING_REQUIRED"
     | "NOT_FOUND";
 
 export type ApplyBatchResult = {

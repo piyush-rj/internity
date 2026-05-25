@@ -17,7 +17,7 @@ export default async function listApplicationsForListing(
         const id = req.params.id as string;
         const found = await prisma.listing.findUnique({
             where: { id },
-            select: { companyId: true },
+            select: { companyId: true, screeningQuestions: true },
         });
         if (!found) throw new NotFound();
         const member = await prisma.companyMember.findUnique({
@@ -62,7 +62,10 @@ export default async function listApplicationsForListing(
                 },
             },
         });
-        api.ok({ items: rows });
+        api.ok({
+            items: rows,
+            screeningQuestions: found.screeningQuestions,
+        });
     } catch (err) {
         if (err instanceof ApiError) {
             api.fail(err.status, err.code, err.message);

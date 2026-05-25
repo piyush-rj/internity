@@ -247,6 +247,11 @@ model Listing {
   preferences      String[]
   skillTagsRaw     String[] // free-text snapshot; normalised m2m below
 
+  // Optional founder-defined screening questions. When non-empty, students
+  // must submit answers (same count, same order) at apply time. Capped at 5
+  // per the "no long forms" product principle.
+  screeningQuestions String[]
+
   stipendMin     Int?
   stipendMax     Int?
   currency       String?   @default("INR")
@@ -312,6 +317,10 @@ model Application {
   status      ApplicationStatus @default(APPLIED)
   coverLetter String?           @db.Text
   resumeUrl   String? // snapshot of resume at time of apply
+
+  // Parallel to Listing.screeningQuestions at the moment of apply. Same
+  // indices, same length. Empty array when the listing had no questions.
+  screeningAnswers String[]
 
   appliedAt       DateTime  @default(now())
   statusUpdatedAt DateTime  @default(now())
