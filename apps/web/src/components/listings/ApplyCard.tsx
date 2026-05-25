@@ -2,12 +2,14 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
-import { Check, Info } from "lucide-react";
+import { Check } from "lucide-react";
 import { listingApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Button } from "@/src/components/ui/button";
 import { useMe } from "@/src/hooks/useMe";
 import { cn } from "@/src/lib/utils";
+
+const COVER_LIMIT = 150;
 
 export function ApplyCard({
     listingId,
@@ -23,10 +25,8 @@ export function ApplyCard({
     onApplied: () => Promise<void> | void;
 }) {
     const { me } = useMe();
-    const [open, setOpen] = useState<boolean>(false);
     const [coverLetter, setCoverLetter] = useState<string>("");
     const [submitting, setSubmitting] = useState<boolean>(false);
-    const [error, setError] = useState<string | null>(null);
 
     if (me && me.id === postedById) {
         return (
@@ -68,23 +68,25 @@ export function ApplyCard({
         );
     }
 
-    const trimmedCoverLetter = coverLetter.trim();
-    const canSubmit = trimmedCoverLetter.length > 0;
+    const remaining = COVER_LIMIT - coverLetter.length;
+    const over = remaining < 0;
 
-    async function handleSubmit() {
-        if (!canSubmit) {
-            setError("Add a cover letter — it’s required.");
+    async function submit() {
+        const trimmed = coverLetter.trim();
+        if (trimmed.length > COVER_LIMIT) {
+            toast.error(
+                `Keep your cover note under ${COVER_LIMIT} characters.`,
+            );
             return;
         }
         setSubmitting(true);
-        setError(null);
         try {
             await listingApi.apply(listingId, {
-                coverLetter: trimmedCoverLetter,
+                coverLetter: trimmed || undefined,
             });
             await onApplied();
-            setOpen(false);
             setCoverLetter("");
+            toast.success("Application sent.");
         } catch (err) {
             toast.error(
                 err instanceof ApiClientError
@@ -96,74 +98,57 @@ export function ApplyCard({
         }
     }
 
-    if (!open) {
-        return (
-            <Button
-                type="button"
-                variant="exec-dark"
-                onClick={() => setOpen(true)}
-                className="w-full h-10 text-[13px] cursor-pointer"
-            >
-                Apply now
-            </Button>
-        );
-    }
-
     return (
         <div className="space-y-3">
             <label className="block">
                 <span className="block mb-1.5 text-[12.5px] font-medium">
-                    Cover letter
-                    <span className="ml-0.5 text-destructive">*</span>
+                    Cover note{" "}
+                    <span className="text-muted-foreground font-normal">
+                        (optional)
+                    </span>
                 </span>
                 <textarea
                     value={coverLetter}
                     onChange={(e) => setCoverLetter(e.target.value)}
-                    placeholder="Why are you a great fit? A few lines is enough."
-                    rows={5}
-                    maxLength={1200}
+                    placeholder="One or two lines about why you’re a great fit. Skip if you just want to apply in 1 click."
+                    rows={3}
+                    maxLength={COVER_LIMIT}
                     className={cn(
-                        "w-full rounded-lg border border-border bg-background px-3 py-2",
+                        "w-full rounded-lg border bg-background px-3 py-2",
                         "text-[13px] placeholder:text-muted-foreground/70",
-                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
-                        "resize-y min-h-28",
+                        "outline-none focus:ring-3 focus:ring-foreground/5",
+                        // Cap height so the textarea doesn't stretch with
+                        // the parent column on listing pages with sparse
+                        // detail. resize-y keeps user control within range.
+                        "resize-y min-h-20 max-h-32",
+                        over
+                            ? "border-destructive/50 focus:border-destructive/60"
+                            : "border-border focus:border-foreground/40",
                     )}
                 />
-                <div className="mt-1 text-right text-[11px] text-muted-foreground tabular-nums">
-                    {coverLetter.length}/1200
+                <div
+                    className={cn(
+                        "mt-1 text-right text-[11px] tabular-nums",
+                        over ? "text-destructive" : "text-muted-foreground",
+                    )}
+                >
+                    {coverLetter.length}/{COVER_LIMIT}
                 </div>
             </label>
 
-            {error && (
-                <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[12.5px] text-destructive">
-                    <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                    <span>{error}</span>
-                </div>
-            )}
-
-            <div className="flex items-center gap-2">
-                <Button
-                    type="button"
-                    variant="exec-light"
-                    onClick={() => {
-                        setOpen(false);
-                        setError(null);
-                    }}
-                    disabled={submitting}
-                    className="h-9 px-3 text-[12.5px] cursor-pointer"
-                >
-                    Cancel
-                </Button>
-                <Button
-                    type="button"
-                    variant="exec-dark"
-                    onClick={handleSubmit}
-                    disabled={submitting || !canSubmit}
-                    className="flex-1 h-9 text-[12.5px] cursor-pointer"
-                >
-                    {submitting ? "Submitting…" : "Submit application"}
-                </Button>
-            </div>
+            <Button
+                type="button"
+                variant="exec-dark"
+                onClick={submit}
+                disabled={submitting || over}
+                className="w-full h-10 text-[13px] cursor-pointer"
+            >
+                {submitting
+                    ? "Submitting…"
+                    : coverLetter.trim().length > 0
+                      ? "Submit application"
+                      : "Apply in 1 click"}
+            </Button>
         </div>
     );
 }

@@ -181,6 +181,7 @@ export type Application = {
     resumeUrl: string | null;
     appliedAt: string;
     statusUpdatedAt: string;
+    seenAt: string | null;
 };
 
 export type SavedListing = {

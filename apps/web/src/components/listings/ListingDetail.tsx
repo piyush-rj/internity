@@ -25,6 +25,14 @@ export function ListingDetail({
     onApplied: () => Promise<void> | void;
 }) {
     const closed = !!listing.closedAt;
+    const hasKeyDetails = !!(
+        listing.applyBy ||
+        listing.startDate ||
+        listing.durationMonths ||
+        listing.stipendMin ||
+        listing.stipendMax ||
+        listing.openings
+    );
 
     return (
         <div className="mx-auto max-w-6xl px-6 py-8">
@@ -72,8 +80,14 @@ export function ListingDetail({
 
                 <aside className="lg:sticky lg:top-16 lg:self-start space-y-4">
                     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
-                        <KeyDetails listing={listing} />
-                        <div className="border-t border-border pt-3">
+                        {hasKeyDetails && <KeyDetails listing={listing} />}
+                        <div
+                            className={
+                                hasKeyDetails
+                                    ? "border-t border-border pt-3"
+                                    : ""
+                            }
+                        >
                             <ApplyCard
                                 listingId={listing.id}
                                 postedById={listing.postedById}

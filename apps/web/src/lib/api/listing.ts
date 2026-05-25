@@ -130,6 +130,20 @@ export const listingApi = {
         api.post<{ listing: Listing }>(`/listing/admin/${id}/restore`),
 };
 
+export type ApplyBatchSkipReason =
+    | "ALREADY_APPLIED"
+    | "OWN_COMPANY"
+    | "CLOSED"
+    | "PAUSED"
+    | "EXPIRED"
+    | "TAKEN_DOWN"
+    | "NOT_FOUND";
+
+export type ApplyBatchResult = {
+    created: number;
+    skipped: Array<{ listingId: string; reason: ApplyBatchSkipReason }>;
+};
+
 export const applicationApi = {
     list_mine: () =>
         api.get<{ items: (Application & { listing: ListingWithCompany })[] }>(
@@ -145,6 +159,8 @@ export const applicationApi = {
         api.patch<{ application: Application }>(`/application/${id}/status`, {
             status,
         }),
+    apply_batch: (input: { listingIds: string[]; coverLetter?: string }) =>
+        api.post<ApplyBatchResult>("/application/batch", input),
 };
 
 export const savedApi = {

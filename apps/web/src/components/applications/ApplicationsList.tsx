@@ -12,6 +12,7 @@ import {
 } from "react-icons/pi";
 import { ApiClientError } from "@/src/lib/apiClient";
 import {
+    SeenBadge,
     StatusBadge,
     type ApplicationCardItem,
 } from "@/src/components/applications/ApplicationCard";
@@ -160,7 +161,7 @@ function ApplicationRow({
     onWithdraw?: (id: string) => void;
     compact?: boolean;
 }) {
-    const { listing, status, appliedAt } = application;
+    const { listing, status, appliedAt, seenAt } = application;
     const canWithdraw =
         !!onWithdraw &&
         status !== "WITHDRAWN" &&
@@ -187,7 +188,10 @@ function ApplicationRow({
                 <span className="truncate">{listing.company.name}</span>
             </Td>
             <Td compact={compact}>
-                <StatusBadge status={status} />
+                <span className="inline-flex items-center gap-1.5">
+                    <StatusBadge status={status} />
+                    <SeenBadge status={status} seenAt={seenAt} />
+                </span>
             </Td>
             <Td compact={compact}>
                 <ModeBadge mode={listing.mode} />

@@ -313,8 +313,13 @@ model Application {
   coverLetter String?           @db.Text
   resumeUrl   String? // snapshot of resume at time of apply
 
-  appliedAt       DateTime @default(now())
-  statusUpdatedAt DateTime @default(now())
+  appliedAt       DateTime  @default(now())
+  statusUpdatedAt DateTime  @default(now())
+  // Set the first time a founder opens the applicants page for this listing.
+  // Orthogonal to `status` — a founder may see an applicant and then move
+  // them through SHORTLISTED / HIRED / etc., and the student still benefits
+  // from knowing the first "seen" moment.
+  seenAt          DateTime?
 
   conversationId String?
   conversation   Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)

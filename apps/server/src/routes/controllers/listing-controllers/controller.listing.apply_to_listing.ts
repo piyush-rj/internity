@@ -9,7 +9,12 @@ import { NotificationType, Prisma, prisma } from "../../../db.ts";
 import { notifyMany } from "../../../services/notifications.ts";
 
 const Body = z.object({
-    coverLetter: z.string().min(1).max(1200),
+    // Cover letter is optional and capped at 150 chars per the spec —
+    // 1-click apply is the default; a short note is a nice-to-have.
+    coverLetter: z
+        .string()
+        .max(150, "Keep your cover note under 150 characters")
+        .optional(),
 });
 
 export default async function applyToListing(
@@ -66,13 +71,15 @@ export default async function applyToListing(
     });
     if (!profile) throw new InvalidRequest("Create your profile first");
 
+    const coverLetter = body.coverLetter?.trim() || null;
+
     let application;
     try {
         application = await prisma.application.create({
             data: {
                 listingId: id,
                 studentId: req.user!.id,
-                coverLetter: body.coverLetter,
+                coverLetter,
                 resumeUrl: profile.resumeUrl,
             },
             include: {

@@ -30,6 +30,15 @@ export default async function listApplicationsForListing(
         });
         if (!member) throw new Forbidden("Not a member of this company");
 
+        // The founder is opening their applicants list — stamp every unseen
+        // applicant on this listing as seen. Orthogonal to status; runs
+        // before the read below so the returned rows carry the fresh
+        // seenAt value.
+        await prisma.application.updateMany({
+            where: { listingId: id, seenAt: null },
+            data: { seenAt: new Date() },
+        });
+
         const rows = await prisma.application.findMany({
             where: { listingId: id },
             orderBy: { appliedAt: "desc" },

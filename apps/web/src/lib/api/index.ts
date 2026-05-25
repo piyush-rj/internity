@@ -35,6 +35,8 @@ export {
     type ApplicantWithStudent,
     type AdminListingListItem,
     type AdminListingStateFilter,
+    type ApplyBatchResult,
+    type ApplyBatchSkipReason,
 } from "./listing";
 export {
     notificationApi,

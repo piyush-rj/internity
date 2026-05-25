@@ -16,6 +16,8 @@ import {
 import type { ListingWithCompany } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
+import { useMe } from "@/src/hooks/useMe";
+import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { cn } from "@/src/lib/utils";
 
 export function ListingList({
@@ -33,7 +35,11 @@ export function ListingList({
     header?: ReactNode;
     compact?: boolean;
 }) {
-    const colCount = compact ? 6 : 8;
+    const { me } = useMe();
+    // Only students get the select-to-apply column. Employers / admins
+    // browsing the same surface don't need it.
+    const selectable = !compact && me?.role === "STUDENT";
+    const colCount = (compact ? 6 : 8) + (selectable ? 1 : 0);
     return (
         <section className="rounded-md border border-border bg-card/90 backdrop-blur-sm shadow-xs overflow-hidden transition-shadow duration-200">
             {header && (
@@ -54,6 +60,11 @@ export function ListingList({
                     >
                         <thead className="border-b border-border bg-neutral-100">
                             <tr className="text-left text-muted-foreground divide-x divide-border">
+                                {selectable && (
+                                    <th className="w-10 px-3 py-2.5">
+                                        <SelectAllCheckbox items={items} />
+                                    </th>
+                                )}
                                 <ColHeader
                                     icon={
                                         <PiBriefcase className="h-3.5 w-3.5" />
@@ -117,7 +128,10 @@ export function ListingList({
                         </thead>
                         <tbody className="divide-y divide-border">
                             {loading ? (
-                                <SkeletonRows compact={compact} />
+                                <SkeletonRows
+                                    compact={compact}
+                                    selectable={selectable}
+                                />
                             ) : items.length === 0 ? (
                                 <tr>
                                     <td
@@ -133,6 +147,7 @@ export function ListingList({
                                         key={listing.id}
                                         listing={listing}
                                         compact={compact}
+                                        selectable={selectable}
                                     />
                                 ))
                             )}
@@ -173,12 +188,19 @@ function ColHeader({
 function ListingRow({
     listing,
     compact = false,
+    selectable = false,
 }: {
     listing: ListingWithCompany;
     compact?: boolean;
+    selectable?: boolean;
 }) {
     return (
         <tr className="group hover:bg-secondary/40 transition-colors divide-x divide-border">
+            {selectable && (
+                <Td className="w-10 px-3">
+                    <RowCheckbox listing={listing} />
+                </Td>
+            )}
             <Td compact={compact} className={compact ? undefined : "min-w-50"}>
                 <Link
                     href={`/home/listings/${listing.id}`}
@@ -265,6 +287,59 @@ function Td({
 
 function Dash() {
     return <span className="text-muted-foreground/60">—</span>;
+}
+
+function RowCheckbox({ listing }: { listing: ListingWithCompany }) {
+    const checked = useMultiSelectStore((s) => s.selected.has(listing.id));
+    const toggle = useMultiSelectStore((s) => s.toggle);
+
+    function onChange(e: React.MouseEvent | React.ChangeEvent) {
+        e.stopPropagation();
+        toggle(listing);
+    }
+
+    return (
+        <input
+            type="checkbox"
+            checked={checked}
+            onChange={onChange}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={
+                checked
+                    ? `Unselect ${listing.title}`
+                    : `Select ${listing.title}`
+            }
+            className="h-4 w-4 rounded border-border accent-orange-500 cursor-pointer"
+        />
+    );
+}
+
+function SelectAllCheckbox({ items }: { items: ListingWithCompany[] }) {
+    const selected = useMultiSelectStore((s) => s.selected);
+    const add = useMultiSelectStore((s) => s.add);
+    const remove = useMultiSelectStore((s) => s.remove);
+
+    const onPageSelected = items.filter((it) => selected.has(it.id)).length;
+    const allOnPage = items.length > 0 && onPageSelected === items.length;
+    const someOnPage = onPageSelected > 0 && !allOnPage;
+
+    function toggleAll() {
+        if (allOnPage) items.forEach((it) => remove(it.id));
+        else items.forEach((it) => add(it));
+    }
+
+    return (
+        <input
+            type="checkbox"
+            checked={allOnPage}
+            ref={(el) => {
+                if (el) el.indeterminate = someOnPage;
+            }}
+            onChange={toggleAll}
+            aria-label={allOnPage ? "Unselect all" : "Select all on page"}
+            className="h-4 w-4 rounded border-border accent-orange-500 cursor-pointer"
+        />
+    );
 }
 
 function SaveButton({ listing }: { listing: ListingWithCompany }) {
@@ -361,8 +436,14 @@ function ModeBadge({ mode }: { mode: ListingWithCompany["mode"] }) {
     );
 }
 
-function SkeletonRows({ compact = false }: { compact?: boolean }) {
-    const cols = compact ? 6 : 8;
+function SkeletonRows({
+    compact = false,
+    selectable = false,
+}: {
+    compact?: boolean;
+    selectable?: boolean;
+}) {
+    const cols = (compact ? 6 : 8) + (selectable ? 1 : 0);
     return (
         <>
             {Array.from({ length: 4 }).map((_, i) => (

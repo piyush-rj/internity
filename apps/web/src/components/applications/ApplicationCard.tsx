@@ -5,6 +5,7 @@ export type ApplicationCardItem = {
     id: string;
     status: ApplicationStatus;
     appliedAt: string;
+    seenAt: string | null;
     listing: ListingWithCompany;
 };
 
@@ -55,6 +56,35 @@ export function StatusBadge({ status }: { status: ApplicationStatus }) {
         >
             <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />
             {statusLabels[status]}
+        </span>
+    );
+}
+
+/**
+ * Tiny "Seen by company" indicator shown alongside the status badge once the
+ * founder has opened their applicants page for this listing. Hidden once the
+ * status has moved beyond APPLIED — at that point the status itself already
+ * implies the founder has engaged.
+ */
+export function SeenBadge({
+    status,
+    seenAt,
+}: {
+    status: ApplicationStatus;
+    seenAt: string | null;
+}) {
+    if (!seenAt) return null;
+    if (status !== "APPLIED") return null;
+    return (
+        <span
+            className={cn(
+                "inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-medium",
+                "bg-neutral-100 text-neutral-600 border-neutral-200",
+            )}
+            title={`Founder viewed your application`}
+        >
+            <span className="h-1 w-1 rounded-full bg-neutral-400" />
+            Seen
         </span>
     );
 }

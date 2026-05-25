@@ -6,6 +6,7 @@ import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ListHeader } from "@/src/components/listings/ListHeader";
 import { ListingList } from "@/src/components/listings/ListingList";
 import { ListingsFilters } from "@/src/components/listings/ListingsFilters";
+import { MultiApplyBar } from "@/src/components/listings/MultiApplyBar";
 import { PaginationBar } from "@/src/components/listings/PaginationBar";
 import {
     filtersFromSearchParams,
@@ -55,6 +56,8 @@ function InternshipsView() {
                 pageSize={pageSize ?? PAGE_SIZE}
                 total={total}
             />
+
+            <MultiApplyBar />
         </EmptySection>
     );
 }
