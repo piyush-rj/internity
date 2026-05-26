@@ -6,6 +6,7 @@ import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ListHeader } from "@/src/components/listings/ListHeader";
 import { ListingCards } from "@/src/components/listings/ListingCards";
 import { ListingsFiltersPanel } from "@/src/components/listings/ListingsFiltersPanel";
+import { MultiApplyBar } from "@/src/components/listings/MultiApplyBar";
 import { PaginationBar } from "@/src/components/listings/PaginationBar";
 import {
     filtersFromSearchParams,
@@ -56,6 +57,7 @@ function InternshipsView() {
                     <ListingsFiltersPanel basePath="/home/internships" />
                 </aside>
             </div>
+            <MultiApplyBar />
         </EmptySection>
     );
 }

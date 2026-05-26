@@ -58,7 +58,11 @@ export function RoleGate() {
     if (!session?.user || loading || !me) return null;
 
     if (me.isAdmin) {
-        router.replace("/admin");
+        const isDashboardEntry =
+            pathname === "/home" || pathname === "/home/dashboard";
+        if (isDashboardEntry) {
+            router.replace("/admin");
+        }
         return null;
     }
 

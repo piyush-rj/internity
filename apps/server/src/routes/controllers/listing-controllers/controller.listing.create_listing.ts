@@ -3,6 +3,7 @@ import { z, ZodError } from "zod";
 import { ApiError, Forbidden, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import {
     CompanyVerificationStatus,
+    ListingDomain,
     ListingType,
     Prisma,
     WorkMode,
@@ -14,6 +15,24 @@ const Body = z.object({
     type: z.enum(["INTERNSHIP", "JOB"]),
     title: z.string().min(1),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]),
+    domain: z
+        .enum([
+            "AI",
+            "BACKEND",
+            "WEB",
+            "MOBILE",
+            "QA",
+            "DESIGN",
+            "PRODUCT",
+            "MARKETING",
+            "CONTENT",
+            "SALES",
+            "DATA",
+            "HR",
+            "OTHER",
+        ])
+        .nullable()
+        .optional(),
     city: z.string().nullable().optional(),
     description: z.string().min(1),
     responsibilities: z.array(z.string()).default([]),
@@ -78,6 +97,7 @@ export default async function createListing(
             type: body.type as ListingType,
             title: body.title,
             mode: body.mode as WorkMode,
+            domain: (body.domain ?? null) as ListingDomain | null,
             description: body.description,
             city: body.city ?? null,
             responsibilities: body.responsibilities,

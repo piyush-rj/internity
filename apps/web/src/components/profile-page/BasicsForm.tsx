@@ -2,7 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { Calendar, Globe, Info, MapPin, Phone, User, Users } from "lucide-react";
+import {
+    BookOpen,
+    Calendar,
+    GraduationCap,
+    Globe,
+    Info,
+    MapPin,
+    Phone,
+    User,
+    Users,
+} from "lucide-react";
 import { PiLinkedinLogoFill } from "react-icons/pi";
 import { studentApi, type Gender, type StudentProfile } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -20,6 +30,8 @@ type FormState = {
     bio: string;
     linkedinUrl: string;
     portfolioUrl: string;
+    college: string;
+    branch: string;
 };
 
 const empty: FormState = {
@@ -32,6 +44,8 @@ const empty: FormState = {
     bio: "",
     linkedinUrl: "",
     portfolioUrl: "",
+    college: "",
+    branch: "",
 };
 
 function fromProfile(p: StudentProfile | null): FormState {
@@ -46,6 +60,8 @@ function fromProfile(p: StudentProfile | null): FormState {
         bio: p.bio ?? "",
         linkedinUrl: p.linkedinUrl ?? "",
         portfolioUrl: p.portfolioUrl ?? "",
+        college: p.college ?? "",
+        branch: p.branch ?? "",
     };
 }
 
@@ -114,6 +130,8 @@ export function BasicsForm({
             bio: form.bio.trim() || undefined,
             linkedinUrl: linkedin || undefined,
             portfolioUrl: portfolio || undefined,
+            college: form.college.trim() || undefined,
+            branch: form.branch.trim() || undefined,
         };
         try {
             if (profile) await studentApi.update(payload);
@@ -215,6 +233,34 @@ export function BasicsForm({
                             Prefer not to say
                         </option>
                     </select>
+                </Field>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field
+                    label="College"
+                    icon={<GraduationCap className="h-3.5 w-3.5" />}
+                    hint="Used by founders to filter applicants."
+                >
+                    <input
+                        type="text"
+                        value={form.college}
+                        onChange={(e) => set("college", e.target.value)}
+                        placeholder="IIT Bombay"
+                        className={inputCls()}
+                    />
+                </Field>
+                <Field
+                    label="Branch"
+                    icon={<BookOpen className="h-3.5 w-3.5" />}
+                >
+                    <input
+                        type="text"
+                        value={form.branch}
+                        onChange={(e) => set("branch", e.target.value)}
+                        placeholder="Computer Science"
+                        className={inputCls()}
+                    />
                 </Field>
             </div>
 

@@ -50,11 +50,10 @@ export function StatusBadge({ status }: { status: ApplicationStatus }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                "inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
                 s.wrap,
             )}
         >
-            <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />
             {statusLabels[status]}
         </span>
     );
@@ -73,12 +72,11 @@ export function SeenBadge({
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
+                "inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
                 "bg-neutral-100 text-neutral-600 border-neutral-200",
             )}
             title={`Founder viewed your application`}
         >
-            <span className="h-1 w-1 rounded-full bg-neutral-400" />
             Seen
         </span>
     );

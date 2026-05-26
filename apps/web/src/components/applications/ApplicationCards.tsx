@@ -90,7 +90,7 @@ function ApplicationItemCard({
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                             <Link
-                                href={`/home/listings/${listing.id}`}
+                                href={`/listings/${listing.id}`}
                                 className="block"
                             >
                                 <h3 className="text-[15px] font-semibold text-foreground group-hover:text-orange-600 transition-colors truncate">

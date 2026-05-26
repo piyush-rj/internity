@@ -2,8 +2,6 @@
 import { memo, useCallback, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { openCheckout } from "@/src/lib/razorpay";
-import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
 import {
     ChevronRightIcon,
@@ -363,33 +361,7 @@ const NavItem = memo(function NavItem({
 });
 
 function UpgradeCard() {
-    const session = useUserSessionStore((s) => s.session);
     const isPremium = useMeStore((s) => s.me?.isPremium ?? false);
-    const refetchMe = useMeStore((s) => s.refetch);
-    const [busy, setBusy] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-
-    async function handleClick() {
-        if (busy) return;
-        setError(null);
-        setBusy(true);
-        try {
-            await openCheckout({
-                planCode: "PRO",
-                prefill: {
-                    name: session?.user?.name ?? undefined,
-                    email: session?.user?.email ?? undefined,
-                },
-                onSuccess: () => refetchMe(),
-                onDismiss: () => setBusy(false),
-                onFailure: (msg) => setError(msg),
-            });
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "Payment failed");
-        } finally {
-            setBusy(false);
-        }
-    }
 
     return (
         <div className="rounded-lg border border-orange-200 bg-brand-soft p-3 m-2">
@@ -399,24 +371,21 @@ function UpgradeCard() {
             </div>
             <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
                 {isPremium
-                    ? "Thanks for upgrading — enjoy unlimited applications, priority support, and mentor sessions."
-                    : "Unlimited applications, priority support, and 1:1 mentor sessions."}
+                    ? "Thanks for upgrading — enjoy unlimited listings, priority placement, and team invites."
+                    : "Unlimited listings, priority placement in search, team invites."}
             </p>
             {!isPremium && (
-                <button
-                    type="button"
-                    onClick={handleClick}
-                    disabled={busy}
+                <Link
+                    href="/pricing"
                     className={cn(
                         "mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-orange-600",
-                        "hover:underline disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer",
+                        "hover:underline cursor-pointer",
                     )}
                 >
-                    {busy ? "Opening…" : "Buy Plan · ₹499"}
+                    See plans
                     <ChevronRightIcon className="h-3 w-3" />
-                </button>
+                </Link>
             )}
-            {error && <p className="mt-2 text-[11px] text-rose-600">{error}</p>}
         </div>
     );
 }

@@ -1,13 +1,37 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
 import { ApiError, Forbidden, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
-import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
+import {
+    ListingDomain,
+    ListingType,
+    Prisma,
+    WorkMode,
+    prisma,
+} from "../../../db.ts";
 import { isAdminUser } from "../../../config/config.ts";
 
 const Body = z.object({
     type: z.enum(["INTERNSHIP", "JOB"]).optional(),
     title: z.string().min(1).optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
+    domain: z
+        .enum([
+            "AI",
+            "BACKEND",
+            "WEB",
+            "MOBILE",
+            "QA",
+            "DESIGN",
+            "PRODUCT",
+            "MARKETING",
+            "CONTENT",
+            "SALES",
+            "DATA",
+            "HR",
+            "OTHER",
+        ])
+        .nullable()
+        .optional(),
     city: z.string().nullable().optional(),
     description: z.string().min(1).optional(),
     responsibilities: z.array(z.string()).optional(),
@@ -61,6 +85,9 @@ export default async function updateListing(
             ...(body.type !== undefined && { type: body.type as ListingType }),
             ...(body.title !== undefined && { title: body.title }),
             ...(body.mode !== undefined && { mode: body.mode as WorkMode }),
+            ...(body.domain !== undefined && {
+                domain: (body.domain ?? null) as ListingDomain | null,
+            }),
             ...(body.city !== undefined && { city: body.city }),
             ...(body.description !== undefined && {
                 description: body.description,

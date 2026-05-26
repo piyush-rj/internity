@@ -64,6 +64,9 @@ model User {
 
   interviewsHosted    Interview[] @relation("InterviewsHosted")
   interviewsAttending Interview[] @relation("InterviewsAttending")
+
+  companyInvitesSent     CompanyInvitation[] @relation("CompanyInvitesSent")
+  companyInvitesAccepted CompanyInvitation[] @relation("CompanyInvitesAccepted")
 }
 
 model StudentProfile {
@@ -82,6 +85,11 @@ model StudentProfile {
   resumeUrl    String? // pointer to latest resume Asset.url
   linkedinUrl  String?
   portfolioUrl String?
+
+  // Top-level shortcuts surfaced on cards + filters. Education[] still
+  // holds the full history; these are the founder-facing summary fields.
+  college String?
+  branch  String?
 
   educations     Education[]
   experiences    WorkExperience[]
@@ -225,10 +233,39 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members  CompanyMember[]
-  listings Listing[]
+  members     CompanyMember[]
+  invitations CompanyInvitation[]
+  listings    Listing[]
 
   @@index([verificationStatus, submittedAt])
+}
+
+// Pending invite for a non-member to join a company by email. Created by an
+// existing OWNER; the invitee clicks the share link (which contains the
+// token) and confirms while signed in. Single open invite per (company,
+// email) is enforced in the controller.
+model CompanyInvitation {
+  id String @id @default(cuid())
+
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  email String
+  role  CompanyRole @default(MEMBER)
+  token String      @unique
+
+  invitedById String
+  invitedBy   User   @relation("CompanyInvitesSent", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime
+  acceptedAt DateTime?
+
+  acceptedById String?
+  acceptedBy   User?   @relation("CompanyInvitesAccepted", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@index([companyId])
+  @@index([email])
 }
 
 model CompanyMember {
@@ -258,6 +295,10 @@ model Listing {
   mode        WorkMode
   city        String?
   description String      @db.Text
+
+  // High-level category for browse filtering. Optional so older posts
+  // don't break; new ones surface it in the post-listing form.
+  domain      ListingDomain?
 
   responsibilities String[]
   perks            String[]
@@ -548,6 +589,24 @@ enum WorkMode {
   REMOTE
   HYBRID
   ONSITE
+}
+
+// High-level category for the browse-page Domain filter. Values mirror the
+// sample internship roles in the spec, grouped into a tractable filter set.
+enum ListingDomain {
+  AI
+  BACKEND
+  WEB
+  MOBILE
+  QA
+  DESIGN
+  PRODUCT
+  MARKETING
+  CONTENT
+  SALES
+  DATA
+  HR
+  OTHER
 }
 
 enum ApplicationStatus {

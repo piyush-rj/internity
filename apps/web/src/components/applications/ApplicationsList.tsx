@@ -172,7 +172,7 @@ function ApplicationRow({
         <tr className="group hover:bg-secondary/40 transition-colors divide-x divide-border">
             <Td compact={compact} className={compact ? undefined : "min-w-50"}>
                 <Link
-                    href={`/home/listings/${listing.id}`}
+                    href={`/listings/${listing.id}`}
                     className="flex items-center gap-2.5 min-w-0"
                 >
                     <CompanyAvatar
@@ -299,11 +299,10 @@ function ModeBadge({ mode }: { mode: "REMOTE" | "HYBRID" | "ONSITE" }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                "inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
                 s.wrap,
             )}
         >
-            <span className={cn("h-1.5 w-1.5 rounded-full", s.dot)} />
             {labels[mode]}
         </span>
     );

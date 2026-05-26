@@ -24,6 +24,8 @@ const Body = z.object({
         .url("Enter a valid portfolio URL")
         .nullable()
         .optional(),
+    college: z.string().nullable().optional(),
+    branch: z.string().nullable().optional(),
 });
 
 export default async function createMyProfile(
@@ -45,6 +47,8 @@ export default async function createMyProfile(
                 bio: body.bio ?? null,
                 linkedinUrl: body.linkedinUrl ?? null,
                 portfolioUrl: body.portfolioUrl ?? null,
+                college: body.college ?? null,
+                branch: body.branch ?? null,
             },
         });
         api.created({ profile }, "Profile created");

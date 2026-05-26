@@ -91,7 +91,7 @@ export function MyListingCard({
                             </span>
                         ) : (
                             <Link
-                                href={`/home/listings/${listing.id}`}
+                                href={`/listings/${listing.id}`}
                                 className="text-[16px] font-semibold text-foreground truncate hover:text-orange-600 transition-colors"
                             >
                                 {listing.title}

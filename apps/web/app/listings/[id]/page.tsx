@@ -2,52 +2,60 @@
 
 import { use } from "react";
 import Link from "next/link";
+import { NavBar } from "@/src/components/navbar/NavBar";
 import { ListingDetail } from "@/src/components/listings/ListingDetail";
-import { useBreadcrumbLabel } from "@/src/components/dashboard/BreadcrumbContext";
 import { useListing } from "@/src/hooks/useListing";
 import { useMyApplications } from "@/src/hooks/useMyApplications";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
-export default function ListingDetailPage({
+export default function PublicListingPage({
     params,
 }: {
     params: Promise<{ id: string }>;
 }) {
     const { id } = use(params);
     const { listing, loading, error } = useListing(id);
+    const session = useUserSessionStore((s) => s.session);
     const { items: applications, refetch: refetchApplications } =
-        useMyApplications();
-    useBreadcrumbLabel(listing?.company.name ?? null);
+        useMyApplications({ enabled: !!session?.user });
 
     const applied = applications.some((a) => a.listingId === id);
 
-    if (loading && !listing) {
-        return <DetailSkeleton />;
-    }
-
-    if (error || !listing) {
-        return (
-            <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-                <h1 className="text-[20px] font-semibold">Listing not found</h1>
-                <p className="mt-1 text-[13px] text-muted-foreground">
-                    {error?.message ??
-                        "This listing may have been removed or its link is invalid."}
-                </p>
-                <Link
-                    href="/home/internships"
-                    className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline"
-                >
-                    Browse internships
-                </Link>
-            </div>
-        );
-    }
-
     return (
-        <ListingDetail
-            listing={listing}
-            applied={applied}
-            onApplied={refetchApplications}
-        />
+        <div className="flex flex-col min-h-screen bg-neutral-50">
+            <NavBar />
+            <main className="flex-1 pt-14">
+                {loading && !listing ? (
+                    <DetailSkeleton />
+                ) : error || !listing ? (
+                    <NotFound message={error?.message ?? null} />
+                ) : (
+                    <ListingDetail
+                        listing={listing}
+                        applied={applied}
+                        onApplied={refetchApplications}
+                    />
+                )}
+            </main>
+        </div>
+    );
+}
+
+function NotFound({ message }: { message: string | null }) {
+    return (
+        <div className="mx-auto max-w-3xl px-6 py-16 text-center">
+            <h1 className="text-[20px] font-semibold">Listing not found</h1>
+            <p className="mt-1 text-[13px] text-muted-foreground">
+                {message ??
+                    "This listing may have been removed or its link is invalid."}
+            </p>
+            <Link
+                href="/"
+                className="mt-4 inline-flex items-center gap-1 text-[13px] font-medium text-brand hover:underline"
+            >
+                Back to home
+            </Link>
+        </div>
     );
 }
 

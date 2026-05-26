@@ -19,7 +19,6 @@ export default function CompanyPage() {
         members,
         loading: membersLoading,
         error: membersError,
-        add,
         updateRole,
         remove,
     } = useCompanyMembers(companyId);
@@ -41,12 +40,12 @@ export default function CompanyPage() {
                         onSaved={refetch}
                     />
                     <MembersCard
+                        companyId={companyId}
                         members={members}
                         loading={membersLoading}
                         error={membersError}
                         canManage={isOwner}
                         currentUserId={me?.id ?? null}
-                        onAdd={add}
                         onUpdateRole={updateRole}
                         onRemove={remove}
                     />

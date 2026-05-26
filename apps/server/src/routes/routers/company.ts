@@ -23,6 +23,9 @@ import removeCompanyMember from "../controllers/company-controllers/controller.c
 import setCompanyVerification from "../controllers/company-controllers/controller.company.set_verification.ts";
 import adminListCompanies from "../controllers/company-controllers/controller.company.admin_list.ts";
 import adminGetCompany from "../controllers/company-controllers/controller.company.admin_get.ts";
+import createCompanyInvitation from "../controllers/company-controllers/controller.company.create_invitation.ts";
+import listCompanyInvitations from "../controllers/company-controllers/controller.company.list_invitations.ts";
+import revokeCompanyInvitation from "../controllers/company-controllers/controller.company.revoke_invitation.ts";
 
 // middleware that allows only company members or owners
 function requireCompanyMember(opts: { ownerOnly?: boolean } = {}) {
@@ -83,6 +86,22 @@ router.delete(
     "/:id/members/:userId",
     requireCompanyMember({ ownerOnly: true }),
     removeCompanyMember,
+);
+
+router.get(
+    "/:id/invites",
+    requireCompanyMember(),
+    listCompanyInvitations,
+);
+router.post(
+    "/:id/invites",
+    requireCompanyMember({ ownerOnly: true }),
+    createCompanyInvitation,
+);
+router.delete(
+    "/:id/invites/:inviteId",
+    requireCompanyMember({ ownerOnly: true }),
+    revokeCompanyInvitation,
 );
 
 export default router;

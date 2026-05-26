@@ -4,6 +4,7 @@ import type {
     ApplicationStatus,
     CompanyVerificationStatus,
     Listing,
+    ListingDomain,
     ListingType,
     ListingWithCompany,
     Paginated,
@@ -71,6 +72,7 @@ export type ListingInput = {
     type: ListingType;
     title: string;
     mode: WorkMode;
+    domain?: ListingDomain;
     city?: string;
     description: string;
     responsibilities?: string[];
@@ -94,6 +96,7 @@ export type ListingListFilters = {
     q?: string;
     city?: string;
     mode?: WorkMode;
+    domain?: ListingDomain;
     skills?: string;
     stipendMin?: number;
     durationMax?: number;

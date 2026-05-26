@@ -217,7 +217,7 @@ function ListingHeader({ listing }: { listing: AdminListingListItem }) {
                 <div className="mt-1.5 flex items-center gap-2 flex-wrap">
                     <StateBadge listing={listing} />
                     <Link
-                        href={`/home/listings/${listing.id}`}
+                        href={`/company/${listing.company.slug}`}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
@@ -397,7 +397,6 @@ function ModerationActions({
                     </Button>
                     <Button
                         type="button"
-                        variant="exec-dark"
                         onClick={takeDown}
                         disabled={busy}
                         className="h-8 px-3 text-[12px] cursor-pointer bg-red-600 hover:bg-red-700"
@@ -413,20 +412,18 @@ function ModerationActions({
         <div className="flex items-center justify-end gap-2">
             <Button
                 type="button"
-                variant="exec-light"
                 onClick={onEdit}
                 disabled={busy}
-                className="h-9 px-3 text-[12.5px] cursor-pointer"
+                className="h-9 px-3 text-[12.5px] cursor-pointer bg-white text-neutral-800 hover:bg-neutral-100 transition-colors transform duration-250"
             >
                 <Pencil className="h-3.5 w-3.5 mr-1" />
                 Edit listing
             </Button>
             <Button
                 type="button"
-                variant="exec-light"
                 onClick={() => setMode("taking-down")}
                 disabled={busy}
-                className="h-9 px-3 text-[12.5px] cursor-pointer text-red-700 hover:bg-red-50"
+                className="h-9 px-3 text-[12.5px] cursor-pointer text-red-700 bg-red-100 hover:bg-red-200/70 outline-0! transition-colors transform duration-250"
             >
                 Take down
             </Button>

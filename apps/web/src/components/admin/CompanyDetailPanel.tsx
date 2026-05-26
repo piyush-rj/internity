@@ -151,7 +151,7 @@ function DetailContent({
     const liveListings = detail.listings.filter((l) => !l.closedAt);
 
     return (
-        <div className="px-6 divide-y divide-border">
+        <div className="px-6">
             <div className="py-5 space-y-3">
                 <CompanyHeader detail={detail} />
                 {owner?.user.isBanned && owner.user.banReason && (
@@ -618,10 +618,9 @@ function FounderBanActions({
                         </Button>
                         <Button
                             type="button"
-                            variant="exec-dark"
                             onClick={deactivate}
                             disabled={busy}
-                            className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer bg-red-600 hover:bg-red-700"
+                            className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer bg-red-600 hover:bg-red-700 shadow-xs shadow-black/10 inset-shadow-xs inset-shadow-black/20"
                         >
                             {busy ? "Disabling…" : "Disable account"}
                         </Button>
@@ -639,7 +638,7 @@ function FounderBanActions({
                 variant="outline"
                 onClick={() => setMode("deactivating")}
                 disabled={busy}
-                className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 hover:border-red-300 shrink-0"
+                className="h-9 px-4 text-[12.5px] rounded-md cursor-pointer border-red-200 text-red-700 hover:bg-red-50 hover:text-red-800 shrink-0"
             >
                 Disable account
             </Button>

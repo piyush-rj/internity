@@ -14,6 +14,7 @@ import paymentRouter from "./routers/payment.ts";
 import chatRouter from "./routers/chat.ts";
 import adminRouter from "./routers/admin.ts";
 import interviewRouter from "./routers/interview.ts";
+import invitationRouter from "./routers/invitation.ts";
 
 const v1: Router = Router();
 
@@ -35,5 +36,6 @@ v1.use("/payment", paymentRouter);
 v1.use("/chat", chatRouter);
 v1.use("/admin", adminRouter);
 v1.use("/interview", interviewRouter);
+v1.use("/invitation", invitationRouter);
 
 export default v1;

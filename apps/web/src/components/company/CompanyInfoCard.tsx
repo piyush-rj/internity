@@ -218,16 +218,26 @@ function EditForm({
     }
 
     return (
-        <div className="space-y-4">
-            <Field label="Company name" required>
-                <input
-                    type="text"
-                    value={form.name}
-                    onChange={(e) => set("name", e.target.value)}
-                    className={inputCls()}
+        <div className="space-y-5">
+            <div className="flex items-end gap-5">
+                <CompanyLogoUpload
+                    companyId={company.id}
+                    name={form.name || company.name}
+                    logoUrl={form.logoUrl || null}
+                    onUploaded={(url) => set("logoUrl", url)}
                 />
-            </Field>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex-1 min-w-0">
+                    <Field label="Company name" required>
+                        <input
+                            type="text"
+                            value={form.name}
+                            onChange={(e) => set("name", e.target.value)}
+                            className={inputCls()}
+                        />
+                    </Field>
+                </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <Field label="LinkedIn URL" required>
                     <input
                         type="url"
@@ -247,7 +257,7 @@ function EditForm({
                     />
                 </Field>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
                 <Field label="Founding year" required>
                     <input
                         type="number"
@@ -259,16 +269,6 @@ function EditForm({
                         className={inputCls()}
                     />
                 </Field>
-                <Field label="Logo">
-                    <CompanyLogoUpload
-                        companyId={company.id}
-                        name={form.name || company.name}
-                        logoUrl={form.logoUrl || null}
-                        onUploaded={(url) => set("logoUrl", url)}
-                    />
-                </Field>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <Field label="Industry">
                     <input
                         type="text"

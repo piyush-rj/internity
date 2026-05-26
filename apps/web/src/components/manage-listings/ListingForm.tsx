@@ -12,6 +12,7 @@ import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
     listingApi,
     type Listing,
+    type ListingDomain,
     type ListingInput,
     type ListingType,
     type WorkMode,
@@ -24,6 +25,7 @@ type FormState = {
     type: ListingType;
     title: string;
     mode: WorkMode;
+    domain: ListingDomain | "";
     city: string;
     description: string;
     responsibilities: string;
@@ -44,6 +46,7 @@ const empty: FormState = {
     type: "INTERNSHIP",
     title: "",
     mode: "ONSITE",
+    domain: "",
     city: "",
     description: "",
     responsibilities: "",
@@ -60,6 +63,22 @@ const empty: FormState = {
     partTime: false,
 };
 
+const DOMAIN_OPTIONS: { value: ListingDomain; label: string }[] = [
+    { value: "AI", label: "AI / ML" },
+    { value: "BACKEND", label: "Backend" },
+    { value: "WEB", label: "Web" },
+    { value: "MOBILE", label: "Mobile" },
+    { value: "QA", label: "QA / Testing" },
+    { value: "DESIGN", label: "Design (UI/UX)" },
+    { value: "PRODUCT", label: "Product" },
+    { value: "MARKETING", label: "Marketing" },
+    { value: "CONTENT", label: "Content / Video" },
+    { value: "SALES", label: "Sales / BD" },
+    { value: "DATA", label: "Data" },
+    { value: "HR", label: "HR" },
+    { value: "OTHER", label: "Other" },
+];
+
 const MAX_SCREENING_QUESTIONS = 5;
 const SCREENING_QUESTION_MAX = 200;
 
@@ -72,6 +91,7 @@ function fromListing(l: Listing): FormState {
         type: l.type,
         title: l.title ?? "",
         mode: l.mode,
+        domain: l.domain ?? "",
         city: l.city ?? "",
         description: l.description ?? "",
         responsibilities: (l.responsibilities ?? []).join("\n"),
@@ -180,6 +200,7 @@ export const ListingForm = forwardRef(function ListingForm(
             type: form.type,
             title: form.title.trim(),
             mode: form.mode,
+            domain: form.domain || undefined,
             city: form.city.trim() || undefined,
             description: form.description.trim(),
             responsibilities: splitLines(form.responsibilities),
@@ -248,6 +269,28 @@ export const ListingForm = forwardRef(function ListingForm(
                         placeholder="Frontend Developer Intern"
                         className={inputCls()}
                     />
+                </Field>
+                <Field
+                    label="Domain"
+                    hint="Used by students to filter the browse feed."
+                >
+                    <select
+                        value={form.domain}
+                        onChange={(e) =>
+                            set("domain", e.target.value as ListingDomain | "")
+                        }
+                        className={cn(
+                            inputCls(),
+                            "appearance-none pr-8 cursor-pointer",
+                        )}
+                    >
+                        <option value="">Pick a domain (optional)</option>
+                        {DOMAIN_OPTIONS.map((o) => (
+                            <option key={o.value} value={o.value}>
+                                {o.label}
+                            </option>
+                        ))}
+                    </select>
                 </Field>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Field label="Work mode" required>

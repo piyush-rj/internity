@@ -1,7 +1,6 @@
 "use client";
-
+import {HiTemplate} from 'react-icons/hi';
 import { useState } from "react";
-import { Sparkles } from "lucide-react";
 import {
     LISTING_TEMPLATES,
     TEMPLATE_CATEGORIES,
@@ -28,7 +27,7 @@ export function TemplatePicker({
         <div className="rounded-lg border border-border bg-neutral-100 p-3.5">
             <div className="flex items-center justify-between gap-3">
                 <div className="flex items-start gap-2">
-                    <Sparkles className="h-4 w-4 mt-0.5 text-orange-600 shrink-0" />
+                    <HiTemplate className="h-4.5 w-4.5 mt-0.5 text-orange-600 shrink-0" />
                     <div className="space-y-0.5">
                         <div className="text-[13px] font-medium">
                             Start from a template

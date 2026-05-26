@@ -8,6 +8,7 @@ import {
     PiBuildings,
     PiClock,
     PiCurrencyInr,
+    PiLockKey,
     PiMapPin,
     PiUsers,
 } from "react-icons/pi";
@@ -15,6 +16,8 @@ import { NavBar } from "@/src/components/navbar/NavBar";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { companyApi, type Company, type Listing } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { useAuthDialog } from "@/src/store/useAuthDialog";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
 
 type CompanyDetail = Company & { listings: Listing[] };
@@ -25,15 +28,21 @@ export default function PublicCompanyPage({
     params: Promise<{ slug: string }>;
 }) {
     const { slug } = use(params);
+    const session = useUserSessionStore((s) => s.session);
+    const sessionInitialized = useUserSessionStore((s) => s.initialized);
+    const signedIn = !!session?.user;
     const [data, setData] = useState<CompanyDetail | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ApiClientError | Error | null>(null);
 
     useEffect(() => {
+        if (!sessionInitialized) return;
+        if (!signedIn) {
+            setLoading(false);
+            return;
+        }
         let cancelled = false;
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLoading(true);
-
         setError(null);
         companyApi
             .get_by_slug(slug)
@@ -52,15 +61,17 @@ export default function PublicCompanyPage({
         return () => {
             cancelled = true;
         };
-    }, [slug]);
+    }, [slug, signedIn, sessionInitialized]);
 
     return (
-        <div className="flex flex-col min-h-screen">
-            <NavBar />
+        <div className="flex flex-col min-h-screen bg-neutral-50">
+            <NavBar className="bg-white" />
             <main className="flex-1 pt-14">
                 <div className="mx-auto max-w-5xl px-6 py-10">
-                    {loading ? (
+                    {!sessionInitialized || (signedIn && loading) ? (
                         <PageSkeleton />
+                    ) : !signedIn ? (
+                        <SignInRequired />
                     ) : error || !data ? (
                         <NotFound message={error?.message ?? null} />
                     ) : (
@@ -68,6 +79,36 @@ export default function PublicCompanyPage({
                     )}
                 </div>
             </main>
+        </div>
+    );
+}
+
+function SignInRequired() {
+    const openDialog = useAuthDialog((s) => s.openDialog);
+    return (
+        <div className="mx-auto max-w-md rounded-lg border border-border bg-card px-8 py-12 text-center">
+            <div className="mx-auto h-10 w-10 inline-flex items-center justify-center rounded-full bg-brand-soft text-orange-600">
+                <PiLockKey className="h-5 w-5" />
+            </div>
+            <h1 className="mt-4 text-[18px] font-semibold">
+                Sign in to view this company
+            </h1>
+            <p className="mt-1.5 text-[13px] text-muted-foreground leading-relaxed">
+                Company pages are visible to signed-in members of SpiderSkill.
+            </p>
+            <button
+                type="button"
+                onClick={() =>
+                    openDialog(
+                        typeof window !== "undefined"
+                            ? window.location.pathname
+                            : "/",
+                    )
+                }
+                className="mt-5 inline-flex items-center justify-center h-9 px-4 rounded-lg bg-foreground text-background text-[13px] font-medium hover:bg-foreground/90 transition-colors cursor-pointer"
+            >
+                Sign in
+            </button>
         </div>
     );
 }
@@ -203,7 +244,7 @@ function PublicListingRow({
 }) {
     return (
         <Link
-            href={`/home/listings/${listing.id}`}
+            href={`/listings/${listing.id}`}
             className="flex items-start gap-4 px-6 py-4 hover:bg-secondary/40 transition-colors"
         >
             <span

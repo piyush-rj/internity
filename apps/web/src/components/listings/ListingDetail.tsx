@@ -1,12 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import {
+    PiArrowSquareOut,
     PiBookmarkSimple,
     PiBookmarkSimpleFill,
     PiBriefcase,
+    PiBuildings,
     PiCalendarBlank,
     PiClock,
     PiCurrencyInr,
+    PiLinkedinLogoFill,
     PiMapPin,
     PiUsers,
 } from "react-icons/pi";
@@ -15,7 +19,6 @@ import { ApplyCard } from "@/src/components/listings/ApplyCard";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { cn } from "@/src/lib/utils";
-import { PiLinkedinLogoFill } from "react-icons/pi";
 
 export function ListingDetail({
     listing,
@@ -101,7 +104,10 @@ export function ListingDetail({
                         </div>
                     </div>
 
-                    <PostedByCard postedBy={listing.postedBy} />
+                    <PostedByCard
+                        postedBy={listing.postedBy}
+                        company={listing.company}
+                    />
                 </aside>
             </div>
         </div>
@@ -110,8 +116,10 @@ export function ListingDetail({
 
 function PostedByCard({
     postedBy,
+    company,
 }: {
     postedBy: ListingDetailType["postedBy"] | null | undefined;
+    company: ListingDetailType["company"];
 }) {
     if (!postedBy) return null;
     const ep = postedBy.employerProfile;
@@ -124,37 +132,77 @@ function PostedByCard({
     if (!founderName) return null;
 
     return (
-        <div className="rounded-lg border border-border bg-card p-4 space-y-2">
+        <div className="rounded-lg border border-border bg-card p-4 space-y-3">
             <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Posted by
             </div>
             <div className="flex items-start gap-3">
-                <span className="h-9 w-9 rounded-full flex items-center justify-center bg-linear-to-br from-orange-400 to-orange-600 text-white text-[13px] font-semibold ring-1 ring-border shrink-0">
-                    {founderName.charAt(0).toUpperCase()}
-                </span>
+                <FounderAvatar
+                    name={founderName}
+                    imageUrl={postedBy.image ?? null}
+                />
                 <div className="min-w-0 flex-1">
-                    <div className="text-[13px] font-medium truncate">
-                        {founderName}
+                    <div className="flex items-center gap-1.5 min-w-0">
+                        <span className="text-[13px] font-medium truncate">
+                            {founderName}
+                        </span>
+                        {ep?.linkedinUrl && (
+                            <a
+                                href={ep.linkedinUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                aria-label={`${founderName} on LinkedIn`}
+                                className="text-[#0a66c2] hover:text-[#0a66c2]/80 shrink-0"
+                            >
+                                <PiLinkedinLogoFill className="h-3.5 w-3.5" />
+                            </a>
+                        )}
                     </div>
                     {ep?.jobTitle && (
                         <div className="text-[11.5px] text-muted-foreground truncate">
-                            {ep.jobTitle}
+                            {ep.jobTitle} at {company.name}
                         </div>
-                    )}
-                    {ep?.linkedinUrl && (
-                        <a
-                            href={ep.linkedinUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium text-orange-600 hover:text-orange-700"
-                        >
-                            <PiLinkedinLogoFill className="h-3.5 w-3.5" />
-                            View LinkedIn
-                        </a>
                     )}
                 </div>
             </div>
+            <Link
+                href={`/company/${company.slug}`}
+                className={cn(
+                    "flex items-center justify-between gap-2 mt-1 pt-3 border-t border-border",
+                    "text-[12.5px] font-medium text-foreground/80 hover:text-orange-600 transition-colors",
+                )}
+            >
+                <span className="inline-flex items-center gap-1.5 min-w-0">
+                    <PiBuildings className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                    <span className="truncate">View {company.name}</span>
+                </span>
+                <PiArrowSquareOut className="h-3 w-3 shrink-0 text-muted-foreground" />
+            </Link>
         </div>
+    );
+}
+
+function FounderAvatar({
+    name,
+    imageUrl,
+}: {
+    name: string;
+    imageUrl: string | null;
+}) {
+    if (imageUrl) {
+        return (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+                src={imageUrl}
+                alt={`${name} avatar`}
+                className="h-9 w-9 rounded-full object-cover ring-1 ring-border shrink-0"
+            />
+        );
+    }
+    return (
+        <span className="h-9 w-9 rounded-full flex items-center justify-center bg-linear-to-br from-orange-400 to-orange-600 text-white text-[13px] font-semibold ring-1 ring-border shrink-0">
+            {name.charAt(0).toUpperCase()}
+        </span>
     );
 }
 

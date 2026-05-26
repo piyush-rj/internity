@@ -1,13 +1,36 @@
 import type { Request, Response } from "express";
 import { z, ZodError } from "zod";
 import { ApiError, InvalidRequest, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
-import { ListingType, Prisma, WorkMode, prisma } from "../../../db.ts";
+import {
+    ListingDomain,
+    ListingType,
+    Prisma,
+    WorkMode,
+    prisma,
+} from "../../../db.ts";
 
 const Query = z.object({
     type: z.enum(["INTERNSHIP", "JOB"]).optional(),
     q: z.string().optional(),
     city: z.string().optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
+    domain: z
+        .enum([
+            "AI",
+            "BACKEND",
+            "WEB",
+            "MOBILE",
+            "QA",
+            "DESIGN",
+            "PRODUCT",
+            "MARKETING",
+            "CONTENT",
+            "SALES",
+            "DATA",
+            "HR",
+            "OTHER",
+        ])
+        .optional(),
     skills: z.string().optional(),
     companySize: z
         .enum(["1-10", "11-50", "51-200", "201-500", "500+"])
@@ -49,6 +72,7 @@ export default async function listListings(
         };
         if (q.type) where.type = q.type as ListingType;
         if (q.mode) where.mode = q.mode as WorkMode;
+        if (q.domain) where.domain = q.domain as ListingDomain;
         if (q.city) where.city = { contains: q.city, mode: "insensitive" };
         if (q.q && q.q.trim()) {
             const needle = q.q.trim();

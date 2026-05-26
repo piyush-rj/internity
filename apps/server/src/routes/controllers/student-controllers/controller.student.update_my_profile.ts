@@ -24,6 +24,8 @@ const Body = z.object({
         .url("Enter a valid portfolio URL")
         .nullable()
         .optional(),
+    college: z.string().nullable().optional(),
+    branch: z.string().nullable().optional(),
 });
 
 export default async function updateMyProfile(
@@ -60,6 +62,8 @@ export default async function updateMyProfile(
                 ...(body.portfolioUrl !== undefined && {
                     portfolioUrl: body.portfolioUrl,
                 }),
+                ...(body.college !== undefined && { college: body.college }),
+                ...(body.branch !== undefined && { branch: body.branch }),
             },
         });
         api.ok({ profile });

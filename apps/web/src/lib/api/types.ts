@@ -4,6 +4,20 @@ export type UserRole = "STUDENT" | "EMPLOYER" | "ADMIN";
 export type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
 export type ListingType = "INTERNSHIP" | "JOB";
 export type WorkMode = "REMOTE" | "HYBRID" | "ONSITE";
+export type ListingDomain =
+    | "AI"
+    | "BACKEND"
+    | "WEB"
+    | "MOBILE"
+    | "QA"
+    | "DESIGN"
+    | "PRODUCT"
+    | "MARKETING"
+    | "CONTENT"
+    | "SALES"
+    | "DATA"
+    | "HR"
+    | "OTHER";
 export type ApplicationStatus =
     | "APPLIED"
     | "SHORTLISTED"
@@ -97,6 +111,8 @@ export type StudentProfile = {
     resumeUrl: string | null;
     linkedinUrl: string | null;
     portfolioUrl: string | null;
+    college: string | null;
+    branch: string | null;
     educations: Education[];
     experiences: WorkExperience[];
     projects: Project[];
@@ -147,6 +163,7 @@ export type Listing = {
     type: ListingType;
     title: string;
     mode: WorkMode;
+    domain: ListingDomain | null;
     city: string | null;
     description: string;
     responsibilities: string[];

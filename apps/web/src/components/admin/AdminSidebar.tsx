@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import {
     PiBriefcaseFill,
     PiCheckCircleFill,
+    PiCurrencyInrFill,
     PiHouseFill,
     PiUsersFill,
 } from "react-icons/pi";
@@ -45,6 +46,12 @@ const NAV: Item[] = [
         label: "Founders",
         icon: PiUsersFill,
         href: "/admin/founders",
+    },
+    {
+        key: "payments",
+        label: "Payments",
+        icon: PiCurrencyInrFill,
+        href: "/admin/payments",
     },
 ];
 

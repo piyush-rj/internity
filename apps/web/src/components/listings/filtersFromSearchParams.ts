@@ -1,4 +1,25 @@
-import type { ListingListFilters, ListingType, WorkMode } from "@/src/lib/api";
+import type {
+    ListingDomain,
+    ListingListFilters,
+    ListingType,
+    WorkMode,
+} from "@/src/lib/api";
+
+const DOMAINS = [
+    "AI",
+    "BACKEND",
+    "WEB",
+    "MOBILE",
+    "QA",
+    "DESIGN",
+    "PRODUCT",
+    "MARKETING",
+    "CONTENT",
+    "SALES",
+    "DATA",
+    "HR",
+    "OTHER",
+] as const;
 
 export const PAGE_SIZE = 20;
 
@@ -22,6 +43,11 @@ export function filtersFromSearchParams(
     const mode = sp.get("mode");
     if (mode === "REMOTE" || mode === "HYBRID" || mode === "ONSITE") {
         filters.mode = mode as WorkMode;
+    }
+
+    const domain = sp.get("domain");
+    if (domain && (DOMAINS as readonly string[]).includes(domain)) {
+        filters.domain = domain as ListingDomain;
     }
 
     const skills = sp.get("skills")?.trim();

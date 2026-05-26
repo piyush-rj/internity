@@ -20,12 +20,20 @@ export type MyApplicationsState = {
     withdraw: (id: string) => Promise<void>;
 };
 
-export function useMyApplications(): MyApplicationsState {
+export function useMyApplications(
+    options: { enabled?: boolean } = {},
+): MyApplicationsState {
+    const enabled = options.enabled ?? true;
     const [items, setItems] = useState<ApplicationWithListing[]>([]);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(enabled);
     const [error, setError] = useState<ApiClientError | Error | null>(null);
 
     const fetchApplications = useCallback(async () => {
+        if (!enabled) {
+            setItems([]);
+            setLoading(false);
+            return;
+        }
         setLoading(true);
         setError(null);
         try {
@@ -36,7 +44,7 @@ export function useMyApplications(): MyApplicationsState {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [enabled]);
 
     const withdraw = useCallback(async (id: string) => {
         await applicationApi.withdraw(id);

@@ -151,6 +151,34 @@ export const employerApi = {
         }>("/employer/admin/list", params),
 };
 
+export type CompanyInvitation = {
+    id: string;
+    companyId: string;
+    email: string;
+    role: CompanyRole;
+    token: string;
+    invitedById: string;
+    createdAt: string;
+    expiresAt: string;
+    acceptedAt: string | null;
+    acceptedById: string | null;
+    invitedBy?: { id: string; name: string | null; email: string | null };
+};
+
+export type InvitationLookup = {
+    invitation: CompanyInvitation & {
+        company: {
+            id: string;
+            name: string;
+            slug: string;
+            logoUrl: string | null;
+            verificationStatus: CompanyVerificationStatus;
+        };
+        invitedBy: { id: string; name: string | null; email: string | null };
+    };
+    state: "pending" | "accepted" | "expired";
+};
+
 export const companyApi = {
     create: (input: CompanyInput) =>
         api.post<{ company: Company & { members: CompanyMember[] } }>(
@@ -199,4 +227,26 @@ export const companyApi = {
         ),
     remove_member: (id: string, userId: string) =>
         api.delete<{ ok: true }>(`/company/${id}/members/${userId}`),
+
+    list_invitations: (id: string) =>
+        api.get<{ invitations: CompanyInvitation[] }>(
+            `/company/${id}/invites`,
+        ),
+    create_invitation: (
+        id: string,
+        input: { email: string; role?: CompanyRole },
+    ) =>
+        api.post<{ invitation: CompanyInvitation }>(
+            `/company/${id}/invites`,
+            input,
+        ),
+    revoke_invitation: (id: string, inviteId: string) =>
+        api.delete<{ ok: true }>(`/company/${id}/invites/${inviteId}`),
+};
+
+export const invitationApi = {
+    get: (token: string) =>
+        api.get<InvitationLookup>(`/invitation/${token}`),
+    accept: (token: string) =>
+        api.post<{ member: CompanyMember }>(`/invitation/${token}/accept`),
 };

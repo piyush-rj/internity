@@ -1,35 +1,72 @@
 "use client";
-import { useState } from "react";
+
+import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
-import { Info, Plus, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { Check, Copy, Info, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
-import type { CompanyMemberWithUser, CompanyRole } from "@/src/lib/api";
+import {
+    companyApi,
+    type CompanyInvitation,
+    type CompanyMemberWithUser,
+    type CompanyRole,
+} from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useConfirm } from "@/src/hooks/useConfirm";
 import { cn } from "@/src/lib/utils";
 
 export function MembersCard({
+    companyId,
     members,
     loading,
     error,
     canManage,
     currentUserId,
-    onAdd,
     onUpdateRole,
     onRemove,
 }: {
+    companyId: string | null;
     members: CompanyMemberWithUser[];
     loading: boolean;
     error: ApiClientError | Error | null;
     canManage: boolean;
     currentUserId: string | null;
-    onAdd: (email: string, role: CompanyRole) => Promise<void>;
     onUpdateRole: (userId: string, role: CompanyRole) => Promise<void>;
     onRemove: (userId: string) => Promise<void>;
 }) {
     const [open, setOpen] = useState<boolean>(false);
+    const [invitations, setInvitations] = useState<CompanyInvitation[]>([]);
+    const [invitationsLoading, setInvitationsLoading] = useState(false);
+
+    const loadInvitations = useCallback(async () => {
+        if (!companyId) {
+            setInvitations([]);
+            return;
+        }
+        setInvitationsLoading(true);
+        try {
+            const { invitations } = await companyApi.list_invitations(
+                companyId,
+            );
+            setInvitations(invitations);
+        } catch {
+            setInvitations([]);
+        } finally {
+            setInvitationsLoading(false);
+        }
+    }, [companyId]);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        loadInvitations();
+    }, [loadInvitations]);
+
+    const pending = invitations.filter(
+        (i) =>
+            !i.acceptedAt && new Date(i.expiresAt).getTime() > Date.now(),
+    );
 
     return (
         <section className="rounded-lg border border-border bg-card overflow-hidden">
@@ -45,21 +82,21 @@ export function MembersCard({
                         type="button"
                         variant="exec-light"
                         onClick={() => setOpen(true)}
-                        className="h-9 px-3 text-[12.5px] cursor-pointer"
+                        className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                     >
                         <Plus className="h-3.5 w-3.5" />
-                        Invite
+                        Invite by email
                     </Button>
                 )}
             </header>
 
-            {open && (
+            {open && companyId && (
                 <div className="px-5 py-4 border-b border-border bg-secondary/30">
                     <InviteForm
+                        companyId={companyId}
                         onCancel={() => setOpen(false)}
-                        onAdd={async (email, role) => {
-                            await onAdd(email, role);
-                            setOpen(false);
+                        onCreated={async () => {
+                            await loadInvitations();
                         }}
                     />
                 </div>
@@ -85,6 +122,16 @@ export function MembersCard({
                         </li>
                     ))}
                 </ul>
+            )}
+
+            {pending.length > 0 && companyId && (
+                <PendingInvites
+                    companyId={companyId}
+                    invitations={pending}
+                    loading={invitationsLoading}
+                    canManage={canManage}
+                    onChanged={loadInvitations}
+                />
             )}
         </section>
     );
@@ -191,36 +238,83 @@ function Row({
 }
 
 function InviteForm({
+    companyId,
     onCancel,
-    onAdd,
+    onCreated,
 }: {
+    companyId: string;
     onCancel: () => void;
-    onAdd: (email: string, role: CompanyRole) => Promise<void>;
+    onCreated: () => Promise<void> | void;
 }) {
     const [email, setEmail] = useState("");
     const [role, setRole] = useState<CompanyRole>("MEMBER");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [createdLink, setCreatedLink] = useState<string | null>(null);
 
     async function submit() {
-        if (!email.trim()) {
+        const trimmed = email.trim();
+        if (!trimmed) {
             setError("Email is required.");
             return;
         }
         setSaving(true);
         setError(null);
         try {
-            await onAdd(email.trim(), role);
+            const { invitation } = await companyApi.create_invitation(
+                companyId,
+                { email: trimmed, role },
+            );
+            setCreatedLink(buildInviteUrl(invitation.token));
             setEmail("");
+            await onCreated();
         } catch (err) {
             setError(
                 err instanceof ApiClientError
                     ? err.message
-                    : "Couldn’t invite. Try again.",
+                    : "Couldn't create the invite.",
             );
         } finally {
             setSaving(false);
         }
+    }
+
+    if (createdLink) {
+        return (
+            <div className="space-y-3">
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3">
+                    <div className="text-[12.5px] font-medium text-emerald-900 inline-flex items-center gap-1.5">
+                        <Check className="h-3.5 w-3.5" />
+                        Invite created — share this link
+                    </div>
+                    <p className="mt-1 text-[11.5px] text-emerald-900/80 leading-relaxed">
+                        They&apos;ll sign in (or sign up) and join your team
+                        automatically. The link works for 14 days.
+                    </p>
+                </div>
+                <CopyLinkRow url={createdLink} />
+                <div className="flex items-center justify-end gap-2">
+                    <Button
+                        type="button"
+                        variant="exec-light"
+                        onClick={() => {
+                            setCreatedLink(null);
+                        }}
+                        className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
+                    >
+                        Invite another
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="exec-dark"
+                        onClick={onCancel}
+                        className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
+                    >
+                        Done
+                    </Button>
+                </div>
+            </div>
+        );
     }
 
     return (
@@ -260,7 +354,7 @@ function InviteForm({
                     variant="exec-light"
                     onClick={onCancel}
                     disabled={saving}
-                    className="h-9 px-3 text-[12.5px] cursor-pointer"
+                    className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                 >
                     Cancel
                 </Button>
@@ -269,11 +363,162 @@ function InviteForm({
                     variant="exec-dark"
                     onClick={submit}
                     disabled={saving}
-                    className="h-9 px-3 text-[12.5px] cursor-pointer"
+                    className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                 >
-                    {saving ? "Inviting…" : "Send invite"}
+                    {saving ? "Creating…" : "Create invite link"}
                 </Button>
             </div>
+        </div>
+    );
+}
+
+function PendingInvites({
+    companyId,
+    invitations,
+    loading,
+    canManage,
+    onChanged,
+}: {
+    companyId: string;
+    invitations: CompanyInvitation[];
+    loading: boolean;
+    canManage: boolean;
+    onChanged: () => Promise<void> | void;
+}) {
+    return (
+        <div className="border-t border-border bg-secondary/30 px-5 py-4">
+            <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+                Pending invites ({invitations.length})
+            </div>
+            <ul className="space-y-2">
+                {invitations.map((inv) => (
+                    <InviteRow
+                        key={inv.id}
+                        companyId={companyId}
+                        invitation={inv}
+                        canManage={canManage}
+                        onChanged={onChanged}
+                        loading={loading}
+                    />
+                ))}
+            </ul>
+        </div>
+    );
+}
+
+function InviteRow({
+    companyId,
+    invitation,
+    canManage,
+    onChanged,
+    loading,
+}: {
+    companyId: string;
+    invitation: CompanyInvitation;
+    canManage: boolean;
+    onChanged: () => Promise<void> | void;
+    loading: boolean;
+}) {
+    const [busy, setBusy] = useState(false);
+    const url = buildInviteUrl(invitation.token);
+
+    async function copy() {
+        try {
+            await navigator.clipboard.writeText(url);
+            toast.success("Link copied — share it with your teammate.");
+        } catch {
+            toast.error("Couldn't copy. Select the URL manually.");
+        }
+    }
+
+    async function revoke() {
+        if (busy) return;
+        setBusy(true);
+        try {
+            await companyApi.revoke_invitation(companyId, invitation.id);
+            toast.success("Invite revoked.");
+            await onChanged();
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn't revoke.",
+            );
+        } finally {
+            setBusy(false);
+        }
+    }
+
+    return (
+        <li className="flex items-center gap-3 rounded-md border border-border bg-card px-3 py-2">
+            <div className="flex-1 min-w-0">
+                <div className="text-[12.5px] font-medium truncate">
+                    {invitation.email}
+                </div>
+                <div className="text-[11px] text-muted-foreground">
+                    {prettyRole(invitation.role)} · expires{" "}
+                    {timeUntil(invitation.expiresAt)}
+                </div>
+            </div>
+            <button
+                type="button"
+                onClick={copy}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11.5px] font-medium border border-border bg-background hover:bg-secondary cursor-pointer"
+            >
+                <Copy className="h-3 w-3" />
+                Copy link
+            </button>
+            {canManage && (
+                <button
+                    type="button"
+                    onClick={revoke}
+                    disabled={busy}
+                    aria-label="Revoke invite"
+                    className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 disabled:opacity-50 cursor-pointer"
+                >
+                    <Trash2 className="h-3.5 w-3.5" />
+                </button>
+            )}
+        </li>
+    );
+}
+
+function CopyLinkRow({ url }: { url: string }) {
+    const [copied, setCopied] = useState(false);
+    async function copy() {
+        try {
+            await navigator.clipboard.writeText(url);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch {
+            toast.error("Couldn't copy. Select the URL manually.");
+        }
+    }
+    return (
+        <div className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
+            <input
+                readOnly
+                value={url}
+                className="flex-1 bg-transparent text-[12px] font-mono text-foreground/80 outline-none min-w-0 truncate"
+                onClick={(e) => e.currentTarget.select()}
+            />
+            <Button
+                type="button"
+                variant="exec-light"
+                onClick={copy}
+                className="h-8 px-3 text-[12px] rounded-md cursor-pointer shrink-0"
+            >
+                {copied ? (
+                    <>
+                        <Check className="h-3 w-3" /> Copied
+                    </>
+                ) : (
+                    <>
+                        <Copy className="h-3 w-3" /> Copy
+                    </>
+                )}
+            </Button>
         </div>
     );
 }
@@ -359,4 +604,22 @@ function ErrorRow({ message }: { message: string }) {
             Couldn’t load members — {message}
         </div>
     );
+}
+
+/* ------------------------------- helpers --------------------------------- */
+
+function buildInviteUrl(token: string): string {
+    if (typeof window === "undefined") return `/home/invite/${token}`;
+    return `${window.location.origin}/home/invite/${token}`;
+}
+
+function prettyRole(role: CompanyRole): string {
+    return role === "OWNER" ? "Owner" : "Member";
+}
+
+function timeUntil(iso: string): string {
+    const ms = new Date(iso).getTime() - Date.now();
+    if (ms < 0) return "expired";
+    const days = Math.ceil(ms / (1000 * 60 * 60 * 24));
+    return `in ${days} day${days === 1 ? "" : "s"}`;
 }

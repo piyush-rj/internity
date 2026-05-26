@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Pencil, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
+import { AvatarUpload } from "@/src/components/profile-page/AvatarUpload";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { useMeStore } from "@/src/store/useMeStore";
@@ -18,6 +19,13 @@ import { ApiClientError } from "@/src/lib/apiClient";
 export function EmployerProfileEditor() {
     const { profile, loading, refetch } = useMyEmployer();
     const me = useMeStore((s) => s.me);
+    const refetchMe = useMeStore((s) => s.refetch);
+
+    const displayName =
+        [profile?.firstName, profile?.lastName].filter(Boolean).join(" ") ||
+        me?.name ||
+        me?.email ||
+        "You";
 
     return (
         <div className="mx-auto max-w-3xl px-6 py-8 sm:px-10 space-y-4">
@@ -37,6 +45,26 @@ export function EmployerProfileEditor() {
                     .
                 </p>
             </header>
+
+            <section className="rounded-lg border border-border bg-card overflow-hidden">
+                <header className="flex items-center justify-between px-5 py-4 border-b border-border">
+                    <h2 className="text-[14px] font-semibold">
+                        Profile picture
+                    </h2>
+                </header>
+                <div className="px-5 py-5">
+                    <AvatarUpload
+                        name={displayName}
+                        imageUrl={me?.image ?? null}
+                        onUploaded={() => {
+                            // confirm endpoint already updated User.image —
+                            // refetch so the new picture propagates to the
+                            // navbar, sidebar, listing detail, etc.
+                            void refetchMe();
+                        }}
+                    />
+                </div>
+            </section>
 
             {loading && !profile ? (
                 <Skeleton />

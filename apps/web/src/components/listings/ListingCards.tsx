@@ -14,6 +14,8 @@ import {
 import type { ListingWithCompany } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useIsApplied } from "@/src/store/useAppliedStore";
+import { useMe } from "@/src/hooks/useMe";
+import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { cn } from "@/src/lib/utils";
@@ -63,6 +65,8 @@ export function ListingCards({
 
 function ListingCard({ listing }: { listing: ListingWithCompany }) {
     const applied = useIsApplied(listing.id);
+    const { me } = useMe();
+    const canMultiApply = me?.role === "STUDENT" && !applied;
     const isFresh =
         Date.now() - new Date(listing.createdAt).getTime() <
         7 * 24 * 60 * 60 * 1000;
@@ -77,7 +81,8 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
             )}
         >
             <div className="flex items-start gap-3">
-                <div className="pt-0.5">
+                <div className="flex flex-col items-center gap-1.5 pt-1">
+                    {canMultiApply && <RowCheckbox listing={listing} />}
                     <SaveButton listing={listing} />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -98,8 +103,7 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                                         Applied
                                     </span>
                                 ) : !closed ? (
-                                    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 px-1.5 py-0.5 text-[10.5px] font-medium">
-                                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+                                    <span className="inline-flex items-center rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[10.5px] font-medium">
                                         Actively hiring
                                     </span>
                                 ) : null}
@@ -207,7 +211,7 @@ function ApplyCta({
     if (applied) {
         return (
             <Link
-                href={`/home/listings/${listing.id}`}
+                href={`/listings/${listing.id}`}
                 className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-[12.5px] font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             >
                 <PiCheckCircleFill className="h-3.5 w-3.5" />
@@ -217,7 +221,7 @@ function ApplyCta({
     }
     return (
         <Link
-            href={`/home/listings/${listing.id}`}
+            href={`/listings/${listing.id}`}
             className="inline-flex items-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors transform duration-250"
         >
             Apply now
@@ -280,6 +284,26 @@ function SaveButton({ listing }: { listing: ListingWithCompany }) {
         >
             <Icon className="h-4 w-4" />
         </button>
+    );
+}
+
+function RowCheckbox({ listing }: { listing: ListingWithCompany }) {
+    const checked = useMultiSelectStore((s) => s.selected.has(listing.id));
+    const toggle = useMultiSelectStore((s) => s.toggle);
+    return (
+        <input
+            type="checkbox"
+            checked={checked}
+            onChange={() => toggle(listing)}
+            onClick={(e) => e.stopPropagation()}
+            aria-label={
+                checked
+                    ? `Unselect ${listing.title}`
+                    : `Select ${listing.title} for bulk apply`
+            }
+            title="Add to bulk apply"
+            className="h-4 w-4 rounded border-border accent-orange-500 cursor-pointer"
+        />
     );
 }
 

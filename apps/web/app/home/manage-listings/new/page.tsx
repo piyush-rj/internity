@@ -50,7 +50,7 @@ export default function NewListingPage() {
                             ref={formRef}
                             companyId={company.id}
                             onCreated={(id) =>
-                                router.push(`/home/listings/${id}`)
+                                router.push(`/listings/${id}`)
                             }
                         />
                     </div>
