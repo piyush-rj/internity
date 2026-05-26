@@ -73,6 +73,7 @@ function ApplicantsView() {
     // default to skill-match sort when the listing has tags
     const [sort, setSort] = useState<SortKey>("applied_desc");
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setSort(skillTagsRaw.length > 0 ? "match_desc" : "applied_desc");
     }, [activeListingId, skillTagsRaw.length]);
 
@@ -217,12 +218,8 @@ function sortApplicants(
             });
             break;
         case "match_desc": {
-            const tagSet = new Set(
-                tags.map((t) => t.trim().toLowerCase()),
-            );
-            arr.sort(
-                (a, b) => matchCount(b, tagSet) - matchCount(a, tagSet),
-            );
+            const tagSet = new Set(tags.map((t) => t.trim().toLowerCase()));
+            arr.sort((a, b) => matchCount(b, tagSet) - matchCount(a, tagSet));
             break;
         }
     }
@@ -242,10 +239,7 @@ function applicantCollege(a: ApplicantWithStudent): string {
     return a.student.studentProfile?.educations?.[0]?.institute ?? "";
 }
 
-function matchCount(
-    a: ApplicantWithStudent,
-    tagSet: Set<string>,
-): number {
+function matchCount(a: ApplicantWithStudent, tagSet: Set<string>): number {
     const skills = a.student.studentProfile?.skills ?? [];
     let n = 0;
     for (const s of skills) {

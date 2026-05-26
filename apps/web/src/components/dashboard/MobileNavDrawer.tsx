@@ -38,6 +38,7 @@ export function MobileNavDrawer({
 
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -48,9 +49,7 @@ export function MobileNavDrawer({
             <div
                 className={cn(
                     "fixed inset-0 z-[100] bg-black/40 transition-opacity",
-                    open
-                        ? "opacity-100"
-                        : "pointer-events-none opacity-0",
+                    open ? "opacity-100" : "pointer-events-none opacity-0",
                 )}
                 onClick={onClose}
                 aria-hidden

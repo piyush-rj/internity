@@ -60,9 +60,7 @@ export function AdminTopbar() {
                 onClose={() => setDrawerOpen(false)}
                 ariaLabel="Admin navigation"
             >
-                <AdminSidebarBody
-                    onNavigate={() => setDrawerOpen(false)}
-                />
+                <AdminSidebarBody onNavigate={() => setDrawerOpen(false)} />
             </MobileNavDrawer>
         </header>
     );

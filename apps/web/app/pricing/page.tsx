@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import {
     PiBriefcase,
     PiCalendarBlank,
@@ -82,9 +81,8 @@ export default function PricingPage() {
                             Simple pricing, no hidden tricks.
                         </h1>
                         <p className="text-[14px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                            Pick a plan that matches your hiring volume.
-                            Switch or cancel any time — students always apply
-                            free.
+                            Pick a plan that matches your hiring volume. Switch
+                            or cancel any time — students always apply free.
                         </p>
                     </header>
 
@@ -94,7 +92,7 @@ export default function PricingPage() {
                         ))}
                     </div>
 
-                    <div className="mt-14 text-center text-[12.5px] text-muted-foreground">
+                    {/* <div className="mt-14 text-center text-[12.5px] text-muted-foreground">
                         Checkout is rolling out soon — for now,{" "}
                         <Link
                             href="/home/manage-listings/new"
@@ -103,7 +101,7 @@ export default function PricingPage() {
                             post your first listing free
                         </Link>{" "}
                         while we finish payments.
-                    </div>
+                    </div> */}
                 </div>
             </main>
         </div>

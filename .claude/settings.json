@@ -19,7 +19,8 @@
       "Bash(rmdir /Users/piyush/utility/internshala_clone/apps/web/app/home/listings/\\\\[id\\\\] /Users/piyush/utility/internshala_clone/apps/web/app/home/listings)",
       "Bash(xargs sed -i '' 's|/home/listings/|/listings/|g')",
       "Bash(grep -nA 8 \"View public page\" /Users/piyush/utility/internshala_clone/apps/web/src/components/admin/ListingDetailPanel.tsx)",
-      "Bash(grep -nA 25 \"AdminListingListItem\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/lib/api/listing.ts)"
+      "Bash(grep -nA 25 \"AdminListingListItem\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/lib/api/listing.ts)",
+      "Bash(rg -l 'import \\\\{ z, ZodError \\\\} from \"zod\";' apps/server/src/routes/controllers)"
     ],
     "additionalDirectories": [
       "/Users/piyush/utility/internshala_clone/apps/web/app/home/invite",

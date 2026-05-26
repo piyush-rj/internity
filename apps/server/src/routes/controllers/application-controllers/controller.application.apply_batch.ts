@@ -69,7 +69,10 @@ export default async function applyBatch(
         const byId = new Map(listings.map((l) => [l.id, l]));
 
         const myMemberships = await prisma.companyMember.findMany({
-            where: { userId, companyId: { in: listings.map((l) => l.companyId) } },
+            where: {
+                userId,
+                companyId: { in: listings.map((l) => l.companyId) },
+            },
             select: { companyId: true },
         });
         const myCompanies = new Set(myMemberships.map((m) => m.companyId));

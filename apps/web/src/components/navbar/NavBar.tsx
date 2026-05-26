@@ -10,7 +10,13 @@ import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { cn } from "@/src/lib/utils";
 
-export function NavBar({ floatOnScroll = false, className }: { floatOnScroll?: boolean, className?: string }) {
+export function NavBar({
+    floatOnScroll = false,
+    className,
+}: {
+    floatOnScroll?: boolean;
+    className?: string;
+}) {
     const session = useUserSessionStore((s) => s.session);
     const openDialog = useAuthDialog((s) => s.openDialog);
     const [scrolled, setScrolled] = useState(false);
@@ -50,7 +56,7 @@ export function NavBar({ floatOnScroll = false, className }: { floatOnScroll?: b
                 "transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
                 scrolled
                     ? "border-b-transparent bg-transparent"
-                    : `border-b-border bg-neutral-50 ${className}`
+                    : `border-b-border bg-neutral-50 ${className}`,
             )}
         >
             <div

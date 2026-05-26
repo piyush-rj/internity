@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
-import { z, ZodError } from "zod";
-import { ApiError, Forbidden, InvalidRequest, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import { z } from "zod";
+import {
+    Forbidden,
+    InvalidRequest,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { bucket, publicUrlFor } from "../../../core/storage.ts";
 import { AssetKind, CompanyRole, prisma } from "../../../db.ts";
 

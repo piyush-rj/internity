@@ -86,13 +86,7 @@ export function ListingDetail({
                 <aside className="lg:sticky lg:top-16 lg:self-start space-y-4">
                     <div className="rounded-lg border border-border border-t-2 border-t-orange-300 bg-card p-4 space-y-3">
                         {hasKeyDetails && <KeyDetails listing={listing} />}
-                        <div
-                            className={
-                                hasKeyDetails
-                                    ? "pt-3"
-                                    : ""
-                            }
-                        >
+                        <div className={hasKeyDetails ? "pt-3" : ""}>
                             <ApplyCard
                                 listingId={listing.id}
                                 postedById={listing.postedById}
@@ -234,8 +228,9 @@ function Header({
                     </div>
                     <p className="mt-1 inline-flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
                         <span>{listing.company.name}</span>
-                        {listing.company.verificationStatus ===
-                            "APPROVED" && <VerifiedBadge label />}
+                        {listing.company.verificationStatus === "APPROVED" && (
+                            <VerifiedBadge label />
+                        )}
                         {listing.city && <span>· {listing.city}</span>}
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground">

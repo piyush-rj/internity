@@ -206,7 +206,10 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
                                 e.target.value as CompanySize | "",
                             )
                         }
-                        className={cn(inputCls, "appearance-none pr-8 cursor-pointer")}
+                        className={cn(
+                            inputCls,
+                            "appearance-none pr-8 cursor-pointer",
+                        )}
                     >
                         <option value="">Any size</option>
                         {COMPANY_SIZE_OPTIONS.map((o) => (

@@ -3,7 +3,6 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
-import { ListHeader } from "@/src/components/listings/ListHeader";
 import { ListingCards } from "@/src/components/listings/ListingCards";
 import { useSavedStore } from "@/src/store/useSavedStore";
 import { cn } from "@/src/lib/utils";
@@ -46,12 +45,12 @@ export default function SavedPage() {
                 />
             </div>
 
-            <ListHeader
+            {/* <ListHeader
                 title="Saved listings"
                 count={filtered.length}
                 countLabel="saved"
                 loading={loading}
-            />
+            /> */}
 
             <div className="mt-5">
                 <ListingCards

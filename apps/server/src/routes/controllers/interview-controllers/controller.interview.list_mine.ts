@@ -1,9 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import {
-    ResponseWriter,
-    handleApiError,
-} from "../../../utils/api-response.ts";
+import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 const Query = z.object({

@@ -295,6 +295,7 @@ function ModerationActions({
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMode("idle");
         setReason("");
     }, [listing.id]);
@@ -541,6 +542,7 @@ function EditListingDialog({
 
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -569,8 +571,7 @@ function EditListingDialog({
                             Edit listing
                         </h2>
                         <div className="text-[11px] text-muted-foreground truncate">
-                            {listing.title} ·{" "}
-                            {listing.company.name}
+                            {listing.title} · {listing.company.name}
                         </div>
                     </div>
                     <button

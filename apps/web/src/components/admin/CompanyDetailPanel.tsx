@@ -62,11 +62,11 @@ export function CompanyDetailPanel({
 
     useEffect(() => {
         if (!companyId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setDetail(null);
             setErrorMessage(null);
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchDetail();
     }, [companyId, fetchDetail]);
 
@@ -207,36 +207,35 @@ function DetailContent({
 
             {owner && (
                 <div className="py-5">
-                    <FounderSection
-                        member={owner}
-                        onMutated={onMutated}
-                    />
+                    <FounderSection member={owner} onMutated={onMutated} />
                 </div>
             )}
 
             {detail.members.length > 1 && (
                 <div className="py-5">
                     <Section title={`Team (${detail.members.length})`}>
-                    <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
-                        {detail.members.map((m) => (
-                            <li
-                                key={m.userId}
-                                className="px-3 py-2 flex items-center justify-between text-[12.5px]"
-                            >
-                                <div className="min-w-0">
-                                    <div className="font-medium truncate">
-                                        {memberName(m) ?? m.user.email ?? "—"}
+                        <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                            {detail.members.map((m) => (
+                                <li
+                                    key={m.userId}
+                                    className="px-3 py-2 flex items-center justify-between text-[12.5px]"
+                                >
+                                    <div className="min-w-0">
+                                        <div className="font-medium truncate">
+                                            {memberName(m) ??
+                                                m.user.email ??
+                                                "—"}
+                                        </div>
+                                        <div className="text-[11.5px] text-muted-foreground truncate">
+                                            {m.user.email}
+                                        </div>
                                     </div>
-                                    <div className="text-[11.5px] text-muted-foreground truncate">
-                                        {m.user.email}
-                                    </div>
-                                </div>
-                                <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
-                                    {m.role}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
+                                    <span className="text-[10.5px] uppercase tracking-wider text-muted-foreground">
+                                        {m.role}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
                     </Section>
                 </div>
             )}
@@ -250,42 +249,44 @@ function DetailContent({
                             : "No live listings"
                     }
                 >
-                {detail.listings.length === 0 ? (
-                    <EmptyHint
-                        Icon={Briefcase}
-                        text="This company hasn't posted anything yet."
-                    />
-                ) : (
-                    <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
-                        {detail.listings.map((l) => (
-                            <li
-                                key={l.id}
-                                className="px-3 py-2.5 flex items-start justify-between gap-3"
-                            >
-                                <div className="min-w-0">
-                                    <div className="text-[12.5px] font-medium truncate">
-                                        {l.title}
-                                    </div>
-                                    <div className="text-[11.5px] text-muted-foreground">
-                                        {l.type} · {l.mode}
-                                        {l.city ? ` · ${l.city}` : ""} ·{" "}
-                                        {l._count.applications} applicants
-                                    </div>
-                                </div>
-                                <span
-                                    className={cn(
-                                        "shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
-                                        l.closedAt
-                                            ? "bg-muted text-muted-foreground"
-                                            : "bg-emerald-100 text-emerald-700",
-                                    )}
+                    {detail.listings.length === 0 ? (
+                        <EmptyHint
+                            Icon={Briefcase}
+                            text="This company hasn't posted anything yet."
+                        />
+                    ) : (
+                        <ul className="divide-y divide-border rounded-lg border border-border overflow-hidden">
+                            {detail.listings.map((l) => (
+                                <li
+                                    key={l.id}
+                                    className="px-3 py-2.5 flex items-start justify-between gap-3"
                                 >
-                                    {l.closedAt ? "Closed" : "Live"}
-                                </span>
-                            </li>
-                        ))}
-                    </ul>
-                )}
+                                    <div className="min-w-0">
+                                        <div className="text-[12.5px] font-medium truncate">
+                                            {l.title}
+                                        </div>
+                                        <div className="text-[11.5px] text-muted-foreground">
+                                            {l.type} · {l.mode}
+                                            {l.city
+                                                ? ` · ${l.city}`
+                                                : ""} · {l._count.applications}{" "}
+                                            applicants
+                                        </div>
+                                    </div>
+                                    <span
+                                        className={cn(
+                                            "shrink-0 mt-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-medium",
+                                            l.closedAt
+                                                ? "bg-muted text-muted-foreground"
+                                                : "bg-emerald-100 text-emerald-700",
+                                        )}
+                                    >
+                                        {l.closedAt ? "Closed" : "Live"}
+                                    </span>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </Section>
             </div>
         </div>
@@ -364,6 +365,7 @@ function StatusActions({
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMode("idle");
         setNote(detail.rejectionNote ?? "");
     }, [detail.id, detail.rejectionNote]);
@@ -509,6 +511,7 @@ function FounderBanActions({
     const { confirm, dialogProps } = useConfirm();
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMode("idle");
         setReason("");
     }, [user.id]);
@@ -690,10 +693,7 @@ function FounderSection({
                 </div>
             </div>
             <div className="flex items-center justify-end pt-1">
-                <FounderBanActions
-                    user={member.user}
-                    onMutated={onMutated}
-                />
+                <FounderBanActions user={member.user} onMutated={onMutated} />
             </div>
         </Section>
     );

@@ -1,6 +1,9 @@
 import type { Request, Response } from "express";
-import { ZodError } from "zod";
-import { ApiError, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    NotFound,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { ApplicationStatus, prisma } from "../../../db.ts";
 
 export default async function withdrawApplication(

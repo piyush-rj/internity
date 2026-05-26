@@ -48,13 +48,8 @@ export default async function applyToListing(
             "This role has paused hiring. Try again later.",
         );
     }
-    if (
-        found.expiresAt !== null &&
-        found.expiresAt.getTime() <= Date.now()
-    ) {
-        throw new InvalidRequest(
-            "This role's application window has closed.",
-        );
+    if (found.expiresAt !== null && found.expiresAt.getTime() <= Date.now()) {
+        throw new InvalidRequest("This role's application window has closed.");
     }
 
     const member = await prisma.companyMember.findUnique({

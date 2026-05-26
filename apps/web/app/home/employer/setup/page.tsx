@@ -46,7 +46,6 @@ export default function EmployerSetupPage() {
             router.replace("/home/dashboard");
             return;
         }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (profile) setStep("company");
 
         setBootstrapped(true);

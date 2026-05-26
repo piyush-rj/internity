@@ -1,6 +1,6 @@
 "use client";
 
-import type { ComponentType } from "react";
+import { useState, type ComponentType } from "react";
 import Link from "next/link";
 import { ArrowDown, ArrowUp } from "lucide-react";
 import type { IconType } from "react-icons";
@@ -37,7 +37,7 @@ export function EmployerStatsRow() {
     const companyId = memberships[0]?.company.id ?? null;
     const { members, loading: membersLoading } = useCompanyMembers(companyId);
 
-    const now = Date.now();
+    const [now] = useState(() => Date.now());
     const openListings = listings.filter((l) => !l.closedAt).length;
     const closedListings = listings.length - openListings;
     const expiredListings = listings.filter(

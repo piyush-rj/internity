@@ -83,8 +83,7 @@ export function ProjectsStep({
         try {
             await studentApi.remove_project(id);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

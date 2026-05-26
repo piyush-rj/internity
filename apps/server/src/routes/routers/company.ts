@@ -88,11 +88,7 @@ router.delete(
     removeCompanyMember,
 );
 
-router.get(
-    "/:id/invites",
-    requireCompanyMember(),
-    listCompanyInvitations,
-);
+router.get("/:id/invites", requireCompanyMember(), listCompanyInvitations);
 router.post(
     "/:id/invites",
     requireCompanyMember({ ownerOnly: true }),

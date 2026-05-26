@@ -93,7 +93,9 @@ function MultiApplyDialog({
 
     async function submit() {
         if (over) {
-            toast.error(`Keep your cover note under ${COVER_LIMIT} characters.`);
+            toast.error(
+                `Keep your cover note under ${COVER_LIMIT} characters.`,
+            );
             return;
         }
         setSubmitting(true);
@@ -154,8 +156,7 @@ function MultiApplyDialog({
             >
                 <header className="flex items-center justify-between px-5 h-13 border-b border-border shrink-0">
                     <h2 className="text-[14px] font-semibold">
-                        Apply to {count}{" "}
-                        {count === 1 ? "listing" : "listings"}
+                        Apply to {count} {count === 1 ? "listing" : "listings"}
                     </h2>
                     <button
                         type="button"
@@ -237,9 +238,7 @@ function MultiApplyDialog({
                         disabled={submitting || over}
                         className="h-9 px-3 text-[12.5px] cursor-pointer"
                     >
-                        {submitting
-                            ? "Sending…"
-                            : `Apply to ${count}`}
+                        {submitting ? "Sending…" : `Apply to ${count}`}
                     </Button>
                 </footer>
             </div>

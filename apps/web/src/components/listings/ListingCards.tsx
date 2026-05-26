@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
     PiBookmarkSimple,
@@ -49,7 +50,7 @@ export function ListingCards({
     }
     if (items.length === 0) {
         return (
-            <div className="rounded-lg border border-dashed border-stone-200 bg-stone-50 px-6 py-12 text-center text-[13px] text-muted-foreground">
+            <div className="rounded-lg border border-dashed border-stone-200 bg-stone-100 px-6 py-12 text-center text-[13px] text-muted-foreground">
                 {emptyText}
             </div>
         );
@@ -67,12 +68,13 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
     const applied = useIsApplied(listing.id);
     const { me } = useMe();
     const canMultiApply = me?.role === "STUDENT" && !applied;
+    const [now] = useState(() => Date.now());
     const isFresh =
-        Date.now() - new Date(listing.createdAt).getTime() <
-        7 * 24 * 60 * 60 * 1000;
+        now - new Date(listing.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000;
     const closed = !!listing.closedAt;
     const stipend = formatStipend(listing.stipendMin, listing.stipendMax);
-    const location = listing.mode === "REMOTE" ? "Work from home" : listing.city;
+    const location =
+        listing.mode === "REMOTE" ? "Work from home" : listing.city;
     return (
         <article
             className={cn(
@@ -184,7 +186,11 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                                 </span>
                             )}
                         </div>
-                        <ApplyCta listing={listing} applied={applied} closed={closed} />
+                        <ApplyCta
+                            listing={listing}
+                            applied={applied}
+                            closed={closed}
+                        />
                     </div>
                 </div>
             </div>

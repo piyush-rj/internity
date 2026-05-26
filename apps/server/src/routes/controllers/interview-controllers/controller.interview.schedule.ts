@@ -27,11 +27,7 @@ const Body = z.object({
         .url("Meeting link must be a valid URL")
         .max(500)
         .optional(),
-    hostPhone: z
-        .string()
-        .trim()
-        .max(30)
-        .optional(),
+    hostPhone: z.string().trim().max(30).optional(),
     description: z
         .string()
         .trim()

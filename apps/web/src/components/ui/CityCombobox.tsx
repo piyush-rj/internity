@@ -23,10 +23,7 @@ export function CityCombobox({
     invalid,
     inputClassName,
 }: Props) {
-    const isKnown = useMemo(
-        () => TOP_INDIAN_CITIES.includes(value),
-        [value],
-    );
+    const isKnown = useMemo(() => TOP_INDIAN_CITIES.includes(value), [value]);
     const [mode, setMode] = useState<"pick" | "other">(() =>
         value && !isKnown ? "other" : "pick",
     );
@@ -36,6 +33,7 @@ export function CityCombobox({
     const containerRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         if (mode === "pick") setQuery(value);
     }, [value, mode]);
 
@@ -56,9 +54,7 @@ export function CityCombobox({
     const matches = useMemo(() => {
         const q = query.trim().toLowerCase();
         const filtered = q
-            ? TOP_INDIAN_CITIES.filter((c) =>
-                  c.toLowerCase().includes(q),
-              )
+            ? TOP_INDIAN_CITIES.filter((c) => c.toLowerCase().includes(q))
             : [...TOP_INDIAN_CITIES];
         return [...filtered.slice(0, 8), OTHER_CITY_SENTINEL];
     }, [query]);
@@ -80,15 +76,11 @@ export function CityCombobox({
         if (e.key === "ArrowDown") {
             e.preventDefault();
             setOpen(true);
-            setHighlightedIndex((i) =>
-                i + 1 >= matches.length ? 0 : i + 1,
-            );
+            setHighlightedIndex((i) => (i + 1 >= matches.length ? 0 : i + 1));
         } else if (e.key === "ArrowUp") {
             e.preventDefault();
             setOpen(true);
-            setHighlightedIndex((i) =>
-                i <= 0 ? matches.length - 1 : i - 1,
-            );
+            setHighlightedIndex((i) => (i <= 0 ? matches.length - 1 : i - 1));
         } else if (e.key === "Enter") {
             if (open && highlightedIndex >= 0) {
                 e.preventDefault();
@@ -148,10 +140,12 @@ export function CityCombobox({
                 role="combobox"
                 aria-autocomplete="list"
                 aria-expanded={open}
+                aria-controls="city-combobox-listbox"
                 className={cn(inputCls(invalid), inputClassName)}
             />
             {open && matches.length > 0 && (
                 <ul
+                    id="city-combobox-listbox"
                     role="listbox"
                     className={cn(
                         "absolute z-20 mt-1 w-full",

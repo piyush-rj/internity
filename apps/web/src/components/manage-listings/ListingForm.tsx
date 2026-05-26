@@ -101,7 +101,8 @@ function fromListing(l: Listing): FormState {
         screeningQuestions: l.screeningQuestions ?? [],
         stipendMin: l.stipendMin != null ? String(l.stipendMin) : "",
         stipendMax: l.stipendMax != null ? String(l.stipendMax) : "",
-        durationMonths: l.durationMonths != null ? String(l.durationMonths) : "",
+        durationMonths:
+            l.durationMonths != null ? String(l.durationMonths) : "",
         startDate: l.startDate ? l.startDate.slice(0, 10) : "",
         applyBy: l.applyBy ? l.applyBy.slice(0, 10) : "",
         openings: l.openings != null ? String(l.openings) : "",
@@ -151,16 +152,15 @@ export const ListingForm = forwardRef(function ListingForm(
                     preferences: prev.preferences.trim()
                         ? prev.preferences
                         : t.preferences.join("\n"),
-                    perks: prev.perks.trim()
-                        ? prev.perks
-                        : t.perks.join("\n"),
+                    perks: prev.perks.trim() ? prev.perks : t.perks.join("\n"),
                     skillTags: prev.skillTags.trim()
                         ? prev.skillTags
                         : t.skillTags.join(", "),
-                    screeningQuestions:
-                        prev.screeningQuestions.some((q) => q.trim())
-                            ? prev.screeningQuestions
-                            : t.screeningQuestions ?? [],
+                    screeningQuestions: prev.screeningQuestions.some((q) =>
+                        q.trim(),
+                    )
+                        ? prev.screeningQuestions
+                        : (t.screeningQuestions ?? []),
                 }));
                 toast.success(`${t.label} template applied — tweak and post.`);
             },
@@ -587,8 +587,8 @@ function ScreeningQuestionsEditor({
                 </button>
             )}
             <p className="text-[11px] text-muted-foreground">
-                Up to {MAX_SCREENING_QUESTIONS} questions.{" "}
-                {questions.length}/{MAX_SCREENING_QUESTIONS} added.
+                Up to {MAX_SCREENING_QUESTIONS} questions. {questions.length}/
+                {MAX_SCREENING_QUESTIONS} added.
             </p>
         </div>
     );

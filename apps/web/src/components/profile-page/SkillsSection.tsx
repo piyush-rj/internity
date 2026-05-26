@@ -69,8 +69,7 @@ export function SkillsSection({
                         .slice(0, 8),
                 );
                 setHighlightedIndex(-1);
-            } catch {
-            }
+            } catch {}
         }, 200);
         return () => {
             cancelled = true;

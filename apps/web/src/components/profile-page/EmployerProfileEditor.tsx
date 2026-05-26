@@ -34,8 +34,8 @@ export function EmployerProfileEditor() {
                     Your profile
                 </h1>
                 <p className="text-[13px] text-muted-foreground">
-                    Shown to students on listings you post. Company details
-                    are managed on{" "}
+                    Shown to students on listings you post. Company details are
+                    managed on{" "}
                     <a
                         href="/home/company"
                         className="text-brand hover:underline"
@@ -112,19 +112,14 @@ function ProfileCard({
                     <EditForm
                         profile={profile}
                         accountEmail={accountEmail}
-                        onCancel={
-                            profile ? () => setEditing(false) : undefined
-                        }
+                        onCancel={profile ? () => setEditing(false) : undefined}
                         onSaved={async () => {
                             await onSaved();
                             setEditing(false);
                         }}
                     />
                 ) : (
-                    <ReadView
-                        profile={profile}
-                        accountEmail={accountEmail}
-                    />
+                    <ReadView profile={profile} accountEmail={accountEmail} />
                 )}
             </div>
         </section>
@@ -168,13 +163,7 @@ function ReadView({
     );
 }
 
-function Fact({
-    label,
-    value,
-}: {
-    label: string;
-    value: React.ReactNode;
-}) {
+function Fact({ label, value }: { label: string; value: React.ReactNode }) {
     return (
         <div className="min-w-0">
             <dt className="text-[11px] uppercase tracking-wider text-muted-foreground">
@@ -215,6 +204,7 @@ function EditForm({
     });
     useEffect(() => {
         if (!profile) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setForm({
             firstName: profile.firstName ?? "",
             lastName: profile.lastName ?? "",
@@ -359,7 +349,11 @@ function EditForm({
                     disabled={saving}
                     className="h-9 px-3 text-[12.5px] cursor-pointer"
                 >
-                    {saving ? "Saving…" : profile ? "Save changes" : "Create profile"}
+                    {saving
+                        ? "Saving…"
+                        : profile
+                          ? "Save changes"
+                          : "Create profile"}
                 </Button>
             </div>
         </div>

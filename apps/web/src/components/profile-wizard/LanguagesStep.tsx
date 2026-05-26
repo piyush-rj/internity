@@ -79,8 +79,7 @@ export function LanguagesStep({
         try {
             await studentApi.remove_language(id);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

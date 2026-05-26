@@ -6,10 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
-import {
-    invitationApi,
-    type InvitationLookup,
-} from "@/src/lib/api";
+import { invitationApi, type InvitationLookup } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useMeStore } from "@/src/store/useMeStore";
 import { cn } from "@/src/lib/utils";
@@ -54,7 +51,9 @@ export default function InviteAcceptPage({
         setAccepting(true);
         try {
             await invitationApi.accept(token);
-            toast.success(`You're in! Welcome to ${data?.invitation.company.name}.`);
+            toast.success(
+                `You're in! Welcome to ${data?.invitation.company.name}.`,
+            );
             router.push("/home/company");
         } catch (err) {
             toast.error(
@@ -99,16 +98,12 @@ function Content({
 }) {
     const inv = data.invitation;
     const emailMatches =
-        !!callerEmail &&
-        callerEmail.toLowerCase() === inv.email.toLowerCase();
+        !!callerEmail && callerEmail.toLowerCase() === inv.email.toLowerCase();
 
     return (
         <>
             <header className="px-6 py-5 border-b border-border flex items-start gap-4">
-                <Logo
-                    name={inv.company.name}
-                    logoUrl={inv.company.logoUrl}
-                />
+                <Logo name={inv.company.name} logoUrl={inv.company.logoUrl} />
                 <div className="min-w-0">
                     <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         You&apos;ve been invited
@@ -197,13 +192,7 @@ function Content({
     );
 }
 
-function Logo({
-    name,
-    logoUrl,
-}: {
-    name: string;
-    logoUrl: string | null;
-}) {
+function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
     if (logoUrl) {
         return (
             // eslint-disable-next-line @next/next/no-img-element

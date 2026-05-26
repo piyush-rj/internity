@@ -80,8 +80,7 @@ export function ProjectsSection({
         try {
             await studentApi.remove_project(id);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

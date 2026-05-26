@@ -229,9 +229,7 @@ export const companyApi = {
         api.delete<{ ok: true }>(`/company/${id}/members/${userId}`),
 
     list_invitations: (id: string) =>
-        api.get<{ invitations: CompanyInvitation[] }>(
-            `/company/${id}/invites`,
-        ),
+        api.get<{ invitations: CompanyInvitation[] }>(`/company/${id}/invites`),
     create_invitation: (
         id: string,
         input: { email: string; role?: CompanyRole },
@@ -245,8 +243,7 @@ export const companyApi = {
 };
 
 export const invitationApi = {
-    get: (token: string) =>
-        api.get<InvitationLookup>(`/invitation/${token}`),
+    get: (token: string) => api.get<InvitationLookup>(`/invitation/${token}`),
     accept: (token: string) =>
         api.post<{ member: CompanyMember }>(`/invitation/${token}/accept`),
 };

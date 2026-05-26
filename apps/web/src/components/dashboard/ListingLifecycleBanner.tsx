@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { Clock } from "lucide-react";
 import { useMyListings } from "@/src/hooks/useMyListings";
@@ -8,9 +9,9 @@ import { cn } from "@/src/lib/utils";
 // dashboard banner warning founders about expired or expiring listings
 export function ListingLifecycleBanner() {
     const { items, loading } = useMyListings();
+    const [now] = useState(() => Date.now());
     if (loading) return null;
 
-    const now = Date.now();
     const SOON_MS = 3 * 24 * 60 * 60 * 1000;
 
     const visible = items.filter(

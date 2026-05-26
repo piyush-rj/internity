@@ -53,8 +53,7 @@ export function SkillsStep({
         try {
             await studentApi.remove_skill(skillId);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

@@ -1,8 +1,5 @@
 import type { Request, Response } from "express";
-import {
-    ResponseWriter,
-    handleApiError,
-} from "../../../utils/api-response.ts";
+import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 /**

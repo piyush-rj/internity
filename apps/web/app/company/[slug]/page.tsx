@@ -38,6 +38,7 @@ export default function PublicCompanyPage({
     useEffect(() => {
         if (!sessionInitialized) return;
         if (!signedIn) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setLoading(false);
             return;
         }

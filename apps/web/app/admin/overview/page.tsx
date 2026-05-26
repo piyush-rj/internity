@@ -112,12 +112,7 @@ function StatCard({
             ? "ring-orange-200 bg-white text-orange-700"
             : "ring-border/70 bg-white text-foreground/70";
     return (
-        <div
-            className={cn(
-                "rounded-lg border px-4 py-3.5 shadow-xs",
-                surface,
-            )}
-        >
+        <div className={cn("rounded-lg border px-4 py-3.5 shadow-xs", surface)}>
             <div className="flex items-center gap-3">
                 <span
                     className={cn(

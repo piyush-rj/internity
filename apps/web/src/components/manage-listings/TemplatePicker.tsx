@@ -1,5 +1,5 @@
 "use client";
-import {HiTemplate} from 'react-icons/hi';
+import { HiTemplate } from "react-icons/hi";
 import { useState } from "react";
 import {
     LISTING_TEMPLATES,
@@ -33,8 +33,8 @@ export function TemplatePicker({
                             Start from a template
                         </div>
                         <div className="text-[11.5px] text-muted-foreground">
-                            Skip the blank page — pick a role to pre-fill
-                            title, description, skills, and perks.
+                            Skip the blank page — pick a role to pre-fill title,
+                            description, skills, and perks.
                         </div>
                     </div>
                 </div>

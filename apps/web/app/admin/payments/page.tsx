@@ -56,8 +56,8 @@ export default function AdminPaymentsPage() {
                     Payments
                 </h1>
                 <p className="text-[12.5px] text-muted-foreground">
-                    Founder payments tracked across plans. Read-only —
-                    refunds happen in Razorpay dashboard.
+                    Founder payments tracked across plans. Read-only — refunds
+                    happen in Razorpay dashboard.
                 </p>
             </header>
 
@@ -84,7 +84,9 @@ export default function AdminPaymentsPage() {
 
             <section className="rounded-xl border border-border bg-card overflow-hidden">
                 <header className="flex items-center justify-between px-5 py-3 border-b border-border">
-                    <div className="text-[12.5px] font-medium">All payments</div>
+                    <div className="text-[12.5px] font-medium">
+                        All payments
+                    </div>
                     <span className="text-[11.5px] text-muted-foreground tabular-nums">
                         {loading
                             ? "…"
@@ -127,8 +129,7 @@ export default function AdminPaymentsPage() {
 
 function PaymentRow({ payment }: { payment: AdminPaymentRow }) {
     const company = payment.user.companyMemberships[0]?.company;
-    const founder =
-        payment.user.name ?? payment.user.email ?? "(no name)";
+    const founder = payment.user.name ?? payment.user.email ?? "(no name)";
 
     return (
         <tr className="hover:bg-secondary/30 transition-colors">
@@ -240,8 +241,8 @@ function Td({
 function Empty() {
     return (
         <div className="px-5 py-16 text-center text-[12.5px] text-muted-foreground">
-            No payments yet. Once founders start subscribing, they'll show up
-            here.
+            No payments yet. Once founders start subscribing, they&apos;ll show
+            up here.
         </div>
     );
 }

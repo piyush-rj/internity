@@ -47,9 +47,8 @@ export function MembersCard({
         }
         setInvitationsLoading(true);
         try {
-            const { invitations } = await companyApi.list_invitations(
-                companyId,
-            );
+            const { invitations } =
+                await companyApi.list_invitations(companyId);
             setInvitations(invitations);
         } catch {
             setInvitations([]);
@@ -63,9 +62,9 @@ export function MembersCard({
         loadInvitations();
     }, [loadInvitations]);
 
+    const [now] = useState(() => Date.now());
     const pending = invitations.filter(
-        (i) =>
-            !i.acceptedAt && new Date(i.expiresAt).getTime() > Date.now(),
+        (i) => !i.acceptedAt && new Date(i.expiresAt).getTime() > now,
     );
 
     return (

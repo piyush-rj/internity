@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
-import { z, ZodError } from "zod";
-import { ApiError, Forbidden, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import { z } from "zod";
+import {
+    Forbidden,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import {
     CompanyVerificationStatus,
     ListingDomain,

@@ -34,9 +34,7 @@ export function ApplyCard({
     const [open, setOpen] = useState<boolean>(false);
 
     if (me && me.id === postedById) {
-        return (
-            <div></div>
-        );
+        return <div></div>;
     }
 
     if (me && me.role !== "STUDENT") {
@@ -84,9 +82,7 @@ export function ApplyCard({
             {screeningQuestions.length > 0 && (
                 <p className="mt-1.5 text-[11.5px] text-muted-foreground text-center">
                     {screeningQuestions.length} short{" "}
-                    {screeningQuestions.length === 1
-                        ? "question"
-                        : "questions"}{" "}
+                    {screeningQuestions.length === 1 ? "question" : "questions"}{" "}
                     from the employer
                 </p>
             )}
@@ -138,6 +134,7 @@ function ApplyDialog({
 
     useEffect(() => {
         if (!open) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setStep(hasQuestions ? "questions" : "cover");
         setAnswers((prev) => {
             if (prev.length === screeningQuestions.length) return prev;
@@ -156,6 +153,7 @@ function ApplyDialog({
 
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -167,8 +165,7 @@ function ApplyDialog({
     const missingAnswerIndex = hasQuestions
         ? answers.findIndex((a) => a.trim().length === 0)
         : -1;
-    const questionsReady =
-        !overAnswer && missingAnswerIndex === -1;
+    const questionsReady = !overAnswer && missingAnswerIndex === -1;
     const coverReady = !overCover;
 
     function goToCoverStep() {
@@ -179,9 +176,7 @@ function ApplyDialog({
             return;
         }
         if (missingAnswerIndex !== -1) {
-            toast.error(
-                `Please answer question ${missingAnswerIndex + 1}.`,
-            );
+            toast.error(`Please answer question ${missingAnswerIndex + 1}.`);
             return;
         }
         setStep("cover");
@@ -201,9 +196,7 @@ function ApplyDialog({
             return;
         }
         if (missingAnswerIndex !== -1) {
-            toast.error(
-                `Please answer question ${missingAnswerIndex + 1}.`,
-            );
+            toast.error(`Please answer question ${missingAnswerIndex + 1}.`);
             return;
         }
         if (profileInitialized && !profile?.resumeUrl) {
@@ -340,9 +333,7 @@ function ApplyDialog({
                             </span>
                             <textarea
                                 value={coverLetter}
-                                onChange={(e) =>
-                                    setCoverLetter(e.target.value)
-                                }
+                                onChange={(e) => setCoverLetter(e.target.value)}
                                 placeholder="One or two lines about why you’re a great fit. Skip if you just want to apply."
                                 rows={3}
                                 maxLength={COVER_LIMIT}

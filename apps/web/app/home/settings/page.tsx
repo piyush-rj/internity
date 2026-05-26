@@ -102,9 +102,8 @@ export default function SettingsPage() {
                     </div>
                     <Button
                         type="button"
-                        variant="exec-light"
                         onClick={handleSignOut}
-                        className="h-9 px-3 text-[12.5px] cursor-pointer"
+                        className="h-9 px-3.5 text-[12.5px] cursor-pointer bg-red-600"
                     >
                         <LogOut className="h-3.5 w-3.5" />
                         Sign out

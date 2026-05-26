@@ -11,11 +11,7 @@ import { CompanyRole, prisma } from "../../../db.ts";
 const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
 const Body = z.object({
-    email: z
-        .string()
-        .trim()
-        .toLowerCase()
-        .email("Enter a valid email"),
+    email: z.string().trim().toLowerCase().email("Enter a valid email"),
     role: z.enum(["OWNER", "MEMBER"]).optional(),
 });
 
@@ -42,9 +38,7 @@ export default async function createCompanyInvitation(
             select: { id: true },
         });
         if (existingMember) {
-            throw new InvalidRequest(
-                "That email is already on your team.",
-            );
+            throw new InvalidRequest("That email is already on your team.");
         }
 
         const existingInvite = await prisma.companyInvitation.findFirst({

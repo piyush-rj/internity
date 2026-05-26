@@ -82,8 +82,7 @@ export function CertificationsStep({
         try {
             await studentApi.remove_certification(id);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

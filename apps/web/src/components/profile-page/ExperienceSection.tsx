@@ -86,8 +86,7 @@ export function ExperienceSection({
         try {
             await studentApi.remove_experience(id);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

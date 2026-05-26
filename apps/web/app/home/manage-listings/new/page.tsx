@@ -49,9 +49,7 @@ export default function NewListingPage() {
                         <ListingForm
                             ref={formRef}
                             companyId={company.id}
-                            onCreated={(id) =>
-                                router.push(`/listings/${id}`)
-                            }
+                            onCreated={(id) => router.push(`/listings/${id}`)}
                         />
                     </div>
                 ) : status === "PENDING" ? (

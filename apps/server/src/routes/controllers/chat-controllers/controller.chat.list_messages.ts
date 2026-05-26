@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
-import { ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 export default async function listMessages(

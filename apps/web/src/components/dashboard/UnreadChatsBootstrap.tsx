@@ -42,8 +42,7 @@ export function UnreadChatsBootstrap() {
                 setUnread(unread);
                 seedPresence(presence);
             })
-            .catch(() => {
-            });
+            .catch(() => {});
         return () => {
             cancelled = true;
         };

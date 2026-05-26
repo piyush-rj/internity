@@ -12,10 +12,10 @@ import { isAdminUser } from "../config/config.ts";
 // 403 error thrown for banned users with a distinct code from forbidden
 class AccountDisabled extends ApiError {
     constructor(reason: string | null) {
-        super(
-            reason ?? "This account has been disabled. Contact support.",
-            { status: 403, code: "ACCOUNT_DISABLED" },
-        );
+        super(reason ?? "This account has been disabled. Contact support.", {
+            status: 403,
+            code: "ACCOUNT_DISABLED",
+        });
     }
 }
 

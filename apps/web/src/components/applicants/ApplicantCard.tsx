@@ -130,266 +130,276 @@ export function ApplicantCard({
 
     return (
         <>
-        <div className="px-5 py-4 hover:bg-secondary/30 transition-colors">
-            <div className="flex items-start gap-4">
-                <Avatar name={displayName} image={student.image ?? null} />
-                <div className="flex-1 min-w-0 space-y-1.5">
-                    <div className="flex items-center gap-3 flex-wrap">
-                        <div className="flex items-center gap-2 min-w-0 flex-1">
-                            <Link
-                                href={`/student/${student.id}`}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="text-[14px] font-semibold truncate hover:underline hover:text-orange-600 transition-colors"
-                            >
-                                {displayName}
-                            </Link>
-                            {match && (
-                                <MatchBadge
-                                    matched={match.matched}
-                                    total={match.total}
+            <div className="px-5 py-4 hover:bg-secondary/30 transition-colors">
+                <div className="flex items-start gap-4">
+                    <Avatar name={displayName} image={student.image ?? null} />
+                    <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex items-center gap-3 flex-wrap">
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                                <Link
+                                    href={`/student/${student.id}`}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="text-[14px] font-semibold truncate hover:underline hover:text-orange-600 transition-colors"
+                                >
+                                    {displayName}
+                                </Link>
+                                {match && (
+                                    <MatchBadge
+                                        matched={match.matched}
+                                        total={match.total}
+                                    />
+                                )}
+                                {applicant.seenAt &&
+                                    applicant.status === "APPLIED" && (
+                                        <span className="text-[10.5px] text-muted-foreground">
+                                            · Seen
+                                        </span>
+                                    )}
+                            </div>
+                            {isWithdrawn ? (
+                                <StatusPill status={applicant.status} />
+                            ) : (
+                                <label className="ml-auto shrink-0 flex items-center gap-2">
+                                    <span className="text-[11px] text-muted-foreground">
+                                        Change status:
+                                    </span>
+                                    <select
+                                        value={applicant.status}
+                                        onChange={(e) =>
+                                            changeStatus(
+                                                e.target.value as DecidedStatus,
+                                            )
+                                        }
+                                        disabled={busy}
+                                        className={cn(
+                                            "h-7 rounded-md border px-2 pr-6 text-[11px] font-medium appearance-none",
+                                            "outline-none focus:ring-3 focus:ring-orange-200/60 cursor-pointer",
+                                            statusStyles[applicant.status],
+                                        )}
+                                    >
+                                        {statusOptions.map((opt) => (
+                                            <option
+                                                key={opt.value}
+                                                value={opt.value}
+                                            >
+                                                {opt.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </label>
+                            )}
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
+                            <Meta
+                                icon={<PiEnvelope className="h-3 w-3" />}
+                                text={student.email ?? "—"}
+                            />
+                            {profile?.phone && (
+                                <Meta
+                                    icon={<PiPhone className="h-3 w-3" />}
+                                    text={profile.phone}
                                 />
                             )}
-                            {applicant.seenAt &&
-                                applicant.status === "APPLIED" && (
-                                    <span className="text-[10.5px] text-muted-foreground">
-                                        · Seen
-                                    </span>
-                                )}
+                            {profile?.city && (
+                                <Meta
+                                    icon={<PiMapPin className="h-3 w-3" />}
+                                    text={profile.city}
+                                />
+                            )}
+                            <Meta
+                                icon={<PiClock className="h-3 w-3" />}
+                                text={`Applied ${formatDate(applicant.appliedAt)}`}
+                            />
                         </div>
-                        {isWithdrawn ? (
-                            <StatusPill status={applicant.status} />
-                        ) : (
-                            <label className="ml-auto shrink-0 flex items-center gap-2">
-                                <span className="text-[11px] text-muted-foreground">
-                                    Change status:
-                                </span>
-                                <select
-                                    value={applicant.status}
-                                    onChange={(e) =>
-                                        changeStatus(
-                                            e.target.value as DecidedStatus,
-                                        )
-                                    }
-                                    disabled={busy}
-                                    className={cn(
-                                        "h-7 rounded-md border px-2 pr-6 text-[11px] font-medium appearance-none",
-                                        "outline-none focus:ring-3 focus:ring-orange-200/60 cursor-pointer",
-                                        statusStyles[applicant.status],
-                                    )}
-                                >
-                                    {statusOptions.map((opt) => (
-                                        <option
-                                            key={opt.value}
-                                            value={opt.value}
-                                        >
-                                            {opt.label}
-                                        </option>
-                                    ))}
-                                </select>
-                            </label>
-                        )}
-                    </div>
-
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
-                        <Meta
-                            icon={<PiEnvelope className="h-3 w-3" />}
-                            text={student.email ?? "—"}
-                        />
-                        {profile?.phone && (
-                            <Meta
-                                icon={<PiPhone className="h-3 w-3" />}
-                                text={profile.phone}
-                            />
-                        )}
-                        {profile?.city && (
-                            <Meta
-                                icon={<PiMapPin className="h-3 w-3" />}
-                                text={profile.city}
-                            />
-                        )}
-                        <Meta
-                            icon={<PiClock className="h-3 w-3" />}
-                            text={`Applied ${formatDate(applicant.appliedAt)}`}
-                        />
                     </div>
                 </div>
-            </div>
 
-            <dl className="mt-4 sm:ml-14 space-y-2 text-[12.5px]">
-                <Row label="Education">
-                    {primaryEducation ? (
-                        <EducationLine education={primaryEducation} />
-                    ) : (
-                        <Dim>Not provided</Dim>
-                    )}
-                </Row>
-                {totalExperience && (
-                    <Row label="Experience">
-                        <span>{totalExperience}</span>
-                    </Row>
-                )}
-                <Row label="Skills">
-                    {skills.length > 0 ? (
-                        <SkillChips
-                            skills={skills.map((s) => s.skill.name)}
-                            highlight={listingSkillTags}
-                        />
-                    ) : (
-                        <Dim>Not provided</Dim>
-                    )}
-                </Row>
-            </dl>
-
-            <div className="mt-3 sm:ml-14 flex flex-wrap items-center gap-x-3 gap-y-2">
-                {hasExpandableContent && (
-                    <button
-                        type="button"
-                        onClick={() => setExpanded((v) => !v)}
-                        className="inline-flex items-center gap-1 text-[12px] font-medium text-orange-600 hover:text-orange-700"
-                    >
-                        {expanded ? "Hide details" : expandLabel(applicant)}
-                        {expanded ? (
-                            <ChevronUp className="h-3 w-3" />
+                <dl className="mt-4 sm:ml-14 space-y-2 text-[12.5px]">
+                    <Row label="Education">
+                        {primaryEducation ? (
+                            <EducationLine education={primaryEducation} />
                         ) : (
-                            <ChevronDown className="h-3 w-3" />
+                            <Dim>Not provided</Dim>
                         )}
-                    </button>
-                )}
-                <Link
-                    href={`/student/${student.id}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground hover:text-foreground"
-                >
-                    View profile
-                    <PiArrowSquareOut className="h-3 w-3" />
-                </Link>
+                    </Row>
+                    {totalExperience && (
+                        <Row label="Experience">
+                            <span>{totalExperience}</span>
+                        </Row>
+                    )}
+                    <Row label="Skills">
+                        {skills.length > 0 ? (
+                            <SkillChips
+                                skills={skills.map((s) => s.skill.name)}
+                                highlight={listingSkillTags}
+                            />
+                        ) : (
+                            <Dim>Not provided</Dim>
+                        )}
+                    </Row>
+                </dl>
 
-                {!isDecided && (
-                    <div className="ml-auto flex items-center gap-2">
+                <div className="mt-3 sm:ml-14 flex flex-wrap items-center gap-x-3 gap-y-2">
+                    {hasExpandableContent && (
                         <button
                             type="button"
-                            onClick={() => changeStatus("REJECTED")}
-                            disabled={busy}
-                            className={cn(
-                                "inline-flex items-center gap-1 h-8 px-3 rounded-md border text-[12px] font-medium",
-                                "border-border bg-white text-foreground hover:bg-secondary",
-                                "disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
-                            )}
+                            onClick={() => setExpanded((v) => !v)}
+                            className="inline-flex items-center gap-1 text-[12px] font-medium text-orange-600 hover:text-orange-700"
                         >
-                            <X className="h-3 w-3" />
-                            Reject
+                            {expanded ? "Hide details" : expandLabel(applicant)}
+                            {expanded ? (
+                                <ChevronUp className="h-3 w-3" />
+                            ) : (
+                                <ChevronDown className="h-3 w-3" />
+                            )}
                         </button>
-                        <NextStepsMenu
-                            currentStatus={applicant.status}
-                            busy={busy || messaging || isWithdrawn}
-                            messaging={messaging}
-                            onSchedule={() => setScheduling(true)}
-                            onStartChat={startChat}
-                            onAdvanceStatus={changeStatus}
-                        />
+                    )}
+                    <Link
+                        href={`/student/${student.id}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground hover:text-foreground"
+                    >
+                        View profile
+                        <PiArrowSquareOut className="h-3 w-3" />
+                    </Link>
+
+                    {!isDecided && (
+                        <div className="ml-auto flex items-center gap-2">
+                            <button
+                                type="button"
+                                onClick={() => changeStatus("REJECTED")}
+                                disabled={busy}
+                                className={cn(
+                                    "inline-flex items-center gap-1 h-8 px-3 rounded-md border text-[12px] font-medium",
+                                    "border-border bg-white text-foreground hover:bg-secondary",
+                                    "disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
+                                )}
+                            >
+                                <X className="h-3 w-3" />
+                                Reject
+                            </button>
+                            <NextStepsMenu
+                                currentStatus={applicant.status}
+                                busy={busy || messaging || isWithdrawn}
+                                messaging={messaging}
+                                onSchedule={() => setScheduling(true)}
+                                onStartChat={startChat}
+                                onAdvanceStatus={changeStatus}
+                            />
+                        </div>
+                    )}
+                </div>
+
+                {expanded && (
+                    <div className="mt-3 sm:ml-14 space-y-3">
+                        {applicant.screeningAnswers.length > 0 && (
+                            <Panel title="Answers">
+                                <div className="divide-y divide-border">
+                                    {applicant.screeningAnswers.map(
+                                        (ans, i) => (
+                                            <div
+                                                key={i}
+                                                className="py-2.5 first:pt-0"
+                                            >
+                                                <div className="text-[11.5px] font-medium text-muted-foreground leading-snug">
+                                                    <span className="tabular-nums">
+                                                        Q{i + 1}.
+                                                    </span>{" "}
+                                                    {screeningQuestions[i] ??
+                                                        "(question not available)"}
+                                                </div>
+                                                <div className="mt-1 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                                                    {ans || (
+                                                        <Dim>(no answer)</Dim>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ),
+                                    )}
+                                </div>
+                            </Panel>
+                        )}
+
+                        {applicant.coverLetter && (
+                            <Panel title="Cover note">
+                                <div className="text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                                    {applicant.coverLetter}
+                                </div>
+                            </Panel>
+                        )}
+
+                        {projects.length > 0 && (
+                            <Panel title="Projects">
+                                <ul className="space-y-1 text-[12.5px]">
+                                    {projects.map((p) => (
+                                        <li
+                                            key={p.id}
+                                            className="flex items-center gap-1.5"
+                                        >
+                                            {p.link ? (
+                                                <a
+                                                    href={p.link}
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                    className="text-orange-600 hover:underline truncate"
+                                                >
+                                                    {p.title}
+                                                </a>
+                                            ) : (
+                                                <span className="truncate">
+                                                    {p.title}
+                                                </span>
+                                            )}
+                                            {p.link && (
+                                                <PiArrowSquareOut className="h-3 w-3 text-muted-foreground shrink-0" />
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Panel>
+                        )}
+
+                        {experiences.length > 0 && (
+                            <Panel title="Experience">
+                                <ul className="space-y-1 text-[12.5px]">
+                                    {experiences.map((e) => (
+                                        <li
+                                            key={e.id}
+                                            className="flex flex-col"
+                                        >
+                                            <span className="font-medium">
+                                                {e.title}{" "}
+                                                <span className="text-muted-foreground font-normal">
+                                                    at {e.company}
+                                                </span>
+                                            </span>
+                                            <span className="text-[11px] text-muted-foreground">
+                                                {formatExperienceDates(e)}
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Panel>
+                        )}
                     </div>
                 )}
             </div>
 
-            {expanded && (
-                <div className="mt-3 sm:ml-14 space-y-3">
-                    {applicant.screeningAnswers.length > 0 && (
-                        <Panel title="Answers">
-                            <div className="divide-y divide-border">
-                                {applicant.screeningAnswers.map((ans, i) => (
-                                    <div key={i} className="py-2.5 first:pt-0">
-                                        <div className="text-[11.5px] font-medium text-muted-foreground leading-snug">
-                                            <span className="tabular-nums">
-                                                Q{i + 1}.
-                                            </span>{" "}
-                                            {screeningQuestions[i] ??
-                                                "(question not available)"}
-                                        </div>
-                                        <div className="mt-1 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                                            {ans || (
-                                                <Dim>(no answer)</Dim>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </Panel>
-                    )}
-
-                    {applicant.coverLetter && (
-                        <Panel title="Cover note">
-                            <div className="text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                                {applicant.coverLetter}
-                            </div>
-                        </Panel>
-                    )}
-
-                    {projects.length > 0 && (
-                        <Panel title="Projects">
-                            <ul className="space-y-1 text-[12.5px]">
-                                {projects.map((p) => (
-                                    <li
-                                        key={p.id}
-                                        className="flex items-center gap-1.5"
-                                    >
-                                        {p.link ? (
-                                            <a
-                                                href={p.link}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                className="text-orange-600 hover:underline truncate"
-                                            >
-                                                {p.title}
-                                            </a>
-                                        ) : (
-                                            <span className="truncate">
-                                                {p.title}
-                                            </span>
-                                        )}
-                                        {p.link && (
-                                            <PiArrowSquareOut className="h-3 w-3 text-muted-foreground shrink-0" />
-                                        )}
-                                    </li>
-                                ))}
-                            </ul>
-                        </Panel>
-                    )}
-
-                    {experiences.length > 0 && (
-                        <Panel title="Experience">
-                            <ul className="space-y-1 text-[12.5px]">
-                                {experiences.map((e) => (
-                                    <li key={e.id} className="flex flex-col">
-                                        <span className="font-medium">
-                                            {e.title}{" "}
-                                            <span className="text-muted-foreground font-normal">
-                                                at {e.company}
-                                            </span>
-                                        </span>
-                                        <span className="text-[11px] text-muted-foreground">
-                                            {formatExperienceDates(e)}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </Panel>
-                    )}
-                </div>
-            )}
-        </div>
-
-        <ScheduleInterviewDialog
-            open={scheduling}
-            applicant={applicant}
-            companyName={companyName}
-            listingTitle={listingTitle}
-            onClose={() => setScheduling(false)}
-            onScheduled={() => {
-                void onUpdateStatus(applicant.id, "INTERVIEW").catch(() => {});
-            }}
-        />
+            <ScheduleInterviewDialog
+                open={scheduling}
+                applicant={applicant}
+                companyName={companyName}
+                listingTitle={listingTitle}
+                onClose={() => setScheduling(false)}
+                onScheduled={() => {
+                    void onUpdateStatus(applicant.id, "INTERVIEW").catch(
+                        () => {},
+                    );
+                }}
+            />
         </>
     );
 }
@@ -398,7 +408,8 @@ function expandLabel(applicant: ApplicantWithStudent): string {
     const bits: string[] = [];
     if (applicant.screeningAnswers.length > 0) bits.push("answers");
     if (applicant.coverLetter) bits.push("cover");
-    if (applicant.student.studentProfile?.projects.length) bits.push("projects");
+    if (applicant.student.studentProfile?.projects.length)
+        bits.push("projects");
     if (applicant.student.studentProfile?.experiences.length)
         bits.push("experience");
     if (bits.length === 0) return "Read more";
@@ -428,13 +439,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
     );
 }
 
-function MatchBadge({
-    matched,
-    total,
-}: {
-    matched: number;
-    total: number;
-}) {
+function MatchBadge({ matched, total }: { matched: number; total: number }) {
     const strong = total > 0 && matched / total >= 0.6;
     return (
         <span
@@ -671,9 +676,12 @@ function nextStepFor(status: ApplicationStatus): {
     label: string;
     target: DecidedStatus;
 } | null {
-    if (status === "APPLIED") return { label: "Shortlist", target: "SHORTLISTED" };
-    if (status === "SHORTLISTED") return { label: "Mark as hired", target: "HIRED" };
-    if (status === "INTERVIEW") return { label: "Mark as hired", target: "HIRED" };
+    if (status === "APPLIED")
+        return { label: "Shortlist", target: "SHORTLISTED" };
+    if (status === "SHORTLISTED")
+        return { label: "Mark as hired", target: "HIRED" };
+    if (status === "INTERVIEW")
+        return { label: "Mark as hired", target: "HIRED" };
     return null;
 }
 
@@ -698,6 +706,7 @@ function NextStepsMenu({
     const menuRef = useRef<HTMLDivElement | null>(null);
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
 
@@ -763,7 +772,9 @@ function NextStepsMenu({
                 )}
             </button>
 
-            {open && mounted && pos &&
+            {open &&
+                mounted &&
+                pos &&
                 createPortal(
                     <div
                         ref={menuRef}

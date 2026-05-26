@@ -4,7 +4,6 @@ import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { ApplicationCards } from "@/src/components/applications/ApplicationCards";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
-import { ListHeader } from "@/src/components/listings/ListHeader";
 import { useMyApplications } from "@/src/hooks/useMyApplications";
 import { cn } from "@/src/lib/utils";
 
@@ -19,9 +18,7 @@ export default function ApplicationsPage() {
             (a) =>
                 a.listing.title.toLowerCase().includes(q) ||
                 a.listing.company.name.toLowerCase().includes(q) ||
-                a.listing.skillTagsRaw.some((s) =>
-                    s.toLowerCase().includes(q),
-                ),
+                a.listing.skillTagsRaw.some((s) => s.toLowerCase().includes(q)),
         );
     }, [items, query]);
 
@@ -44,13 +41,13 @@ export default function ApplicationsPage() {
                     )}
                 />
             </div>
-
+            {/* 
             <ListHeader
                 title="All applications"
                 count={filtered.length}
                 countLabel="total"
                 loading={loading}
-            />
+            /> */}
 
             <div className="mt-5">
                 <ApplicationCards

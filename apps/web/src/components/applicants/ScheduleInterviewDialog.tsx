@@ -63,6 +63,7 @@ export function ScheduleInterviewDialog({
 
     useEffect(() => {
         if (!open) return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setTitle("");
         setType("VIDEO");
         setMeetingLink("");
@@ -84,6 +85,7 @@ export function ScheduleInterviewDialog({
 
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setMounted(true);
     }, []);
     if (!open || !mounted) return null;
@@ -141,8 +143,7 @@ export function ScheduleInterviewDialog({
                 type,
                 scheduledAt: start.toISOString(),
                 endsAt: end.toISOString(),
-                meetingLink:
-                    type === "VIDEO" ? meetingLink.trim() : undefined,
+                meetingLink: type === "VIDEO" ? meetingLink.trim() : undefined,
                 hostPhone: hostPhone.trim() || undefined,
                 description: description.trim() || undefined,
             });
@@ -241,10 +242,9 @@ export function ScheduleInterviewDialog({
 
                     {type === "PHONE" && (
                         <Notice tone="amber">
-                            Video interviews have a 5× higher candidate
-                            turn-up rate than phone interviews. Consider
-                            scheduling the first round as video for faster
-                            hiring.
+                            Video interviews have a 5× higher candidate turn-up
+                            rate than phone interviews. Consider scheduling the
+                            first round as video for faster hiring.
                         </Notice>
                     )}
 
@@ -259,9 +259,7 @@ export function ScheduleInterviewDialog({
                                 id="iv-link"
                                 type="url"
                                 value={meetingLink}
-                                onChange={(e) =>
-                                    setMeetingLink(e.target.value)
-                                }
+                                onChange={(e) => setMeetingLink(e.target.value)}
                                 placeholder="https://meet.google.com/abc-defg-hij"
                                 className={inputClass}
                             />

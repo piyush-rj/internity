@@ -1,6 +1,11 @@
 import type { Request, Response } from "express";
-import { z, ZodError } from "zod";
-import { ApiError, Forbidden, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import { z } from "zod";
+import {
+    Forbidden,
+    NotFound,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 const Body = z.object({

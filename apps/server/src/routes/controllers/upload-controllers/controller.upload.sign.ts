@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
-import { z, ZodError } from "zod";
-import { ApiError, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import { z } from "zod";
+import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import {
     buildObjectKey,
     presignPut,

@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
-import { ZodError } from "zod";
-import { ApiError, InvalidRequest, NotFound, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    InvalidRequest,
+    NotFound,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { CompanyRole, prisma } from "../../../db.ts";
 
 export default async function removeCompanyMember(

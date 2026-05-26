@@ -76,8 +76,7 @@ export function EducationSection({
         try {
             await studentApi.remove_education(id);
             await onSaved();
-        } catch {
-        }
+        } catch {}
     }
 
     return (

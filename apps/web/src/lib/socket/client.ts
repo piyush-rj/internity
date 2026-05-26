@@ -32,8 +32,7 @@ export class WSClient {
         if (!ws || ws.readyState !== WebSocket.OPEN) return;
         try {
             ws.send(JSON.stringify(msg));
-        } catch {
-        }
+        } catch {}
     }
 
     addListener(listener: (msg: ServerMessage) => void): () => void {
@@ -84,8 +83,7 @@ export class WSClient {
                         token,
                     }),
                 );
-            } catch {
-            }
+            } catch {}
         });
 
         ws.addEventListener("message", (ev) => {

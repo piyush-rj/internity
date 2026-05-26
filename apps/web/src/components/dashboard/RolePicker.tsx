@@ -84,7 +84,6 @@ export function RolePicker({
                         onClick={() => pick("EMPLOYER")}
                     />
                 </div>
-
             </div>
         </div>
     );

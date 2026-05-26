@@ -246,14 +246,13 @@ function InterviewRow({
     const company = iv.application.listing.company;
     const phone = isStudent ? iv.hostPhone : iv.candidatePhone;
     const isCancelled = iv.status === "CANCELLED";
+    const [now] = useState(() => Date.now());
     const isJoinable = useMemo(() => {
         if (iv.type !== "VIDEO" || !iv.meetingLink || isCancelled) return false;
         const startsAt = new Date(iv.scheduledAt).getTime();
         const endsAt = new Date(iv.endsAt).getTime();
-        const now = Date.now();
-        // Join enabled from 10 minutes before until the end time.
         return now >= startsAt - 10 * 60_000 && now <= endsAt;
-    }, [iv, isCancelled]);
+    }, [iv, isCancelled, now]);
 
     return (
         <li className="px-6 py-5">
@@ -359,35 +358,35 @@ function InterviewRow({
                             onClick={onCancel}
                             disabled={cancelling}
                             className="h-9 px-3 text-[13px] text-rose-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
-                            >
+                        >
                             <PiCalendarXFill className="h-3.5 w-3.5" />
                             {cancelling ? "Cancelling…" : "Cancel"}
                         </Button>
-                            {iv.type === "VIDEO" && iv.meetingLink && (
-                                <a
-                                    href={iv.meetingLink}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className={cn(
-                                        "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
-                                        isJoinable
-                                            ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
-                                            : "border border-border bg-white text-foreground hover:bg-secondary",
-                                    )}
-                                >
-                                    <PiVideoCameraFill className="h-3.5 w-3.5" />
-                                    {isJoinable ? "Join now" : "Open link"}
-                                </a>
-                            )}
-                            {iv.type === "PHONE" && phone && !isStudent && (
-                                <a
-                                    href={`tel:${phone}`}
-                                    className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
-                                >
-                                    <PiPhoneFill className="h-3.5 w-3.5" />
-                                    Call
-                                </a>
-                            )}
+                        {iv.type === "VIDEO" && iv.meetingLink && (
+                            <a
+                                href={iv.meetingLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={cn(
+                                    "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
+                                    isJoinable
+                                        ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
+                                        : "border border-border bg-white text-foreground hover:bg-secondary",
+                                )}
+                            >
+                                <PiVideoCameraFill className="h-3.5 w-3.5" />
+                                {isJoinable ? "Join now" : "Open link"}
+                            </a>
+                        )}
+                        {iv.type === "PHONE" && phone && !isStudent && (
+                            <a
+                                href={`tel:${phone}`}
+                                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
+                            >
+                                <PiPhoneFill className="h-3.5 w-3.5" />
+                                Call
+                            </a>
+                        )}
                     </div>
                 )}
             </div>
