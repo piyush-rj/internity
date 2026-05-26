@@ -202,7 +202,7 @@ function ListingRow({
             )}
             <Td compact={compact} className={compact ? undefined : "min-w-50"}>
                 <Link
-                    href={`/listings/${listing.id}`}
+                    href={`/home/listings/${listing.id}`}
                     className="flex items-center gap-2.5 min-w-0"
                 >
                     <CompanyAvatar

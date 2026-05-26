@@ -217,7 +217,7 @@ function ApplyCta({
     if (applied) {
         return (
             <Link
-                href={`/listings/${listing.id}`}
+                href={`/home/listings/${listing.id}`}
                 className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-[12.5px] font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             >
                 <PiCheckCircleFill className="h-3.5 w-3.5" />
@@ -227,7 +227,7 @@ function ApplyCta({
     }
     return (
         <Link
-            href={`/listings/${listing.id}`}
+            href={`/home/listings/${listing.id}`}
             className="inline-flex items-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors transform duration-250"
         >
             Apply now

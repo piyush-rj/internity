@@ -20,11 +20,15 @@
       "Bash(xargs sed -i '' 's|/home/listings/|/listings/|g')",
       "Bash(grep -nA 8 \"View public page\" /Users/piyush/utility/internshala_clone/apps/web/src/components/admin/ListingDetailPanel.tsx)",
       "Bash(grep -nA 25 \"AdminListingListItem\\\\b\" /Users/piyush/utility/internshala_clone/apps/web/src/lib/api/listing.ts)",
-      "Bash(rg -l 'import \\\\{ z, ZodError \\\\} from \"zod\";' apps/server/src/routes/controllers)"
+      "Bash(rg -l 'import \\\\{ z, ZodError \\\\} from \"zod\";' apps/server/src/routes/controllers)",
+      "Bash(mkdir -p /Users/piyush/utility/internshala_clone/apps/web/app/home/listings/\\\\[id\\\\] && ls /Users/piyush/utility/internshala_clone/apps/web/app/home/listings 2>/dev/null)",
+      "Bash(xargs sed -i '' 's|/listings/\\\\${|/home/listings/${|g')",
+      "Bash(rg -n '\"/listings/' apps/web/src apps/web/app --type-add 'web:*.{ts,tsx}' --type web)"
     ],
     "additionalDirectories": [
       "/Users/piyush/utility/internshala_clone/apps/web/app/home/invite",
-      "/Users/piyush/utility/internshala_clone/apps/web/app/listings"
+      "/Users/piyush/utility/internshala_clone/apps/web/app/listings",
+      "/Users/piyush/utility/internshala_clone/apps/web/app/home/listings"
     ]
   }
 }

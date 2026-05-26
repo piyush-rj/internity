@@ -1,11 +1,11 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { ListingDetail } from "@/src/components/listings/ListingDetail";
 import { useListing } from "@/src/hooks/useListing";
-import { useMyApplications } from "@/src/hooks/useMyApplications";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
 export default function PublicListingPage({
@@ -14,12 +14,22 @@ export default function PublicListingPage({
     params: Promise<{ id: string }>;
 }) {
     const { id } = use(params);
-    const { listing, loading, error } = useListing(id);
+    const router = useRouter();
     const session = useUserSessionStore((s) => s.session);
-    const { items: applications, refetch: refetchApplications } =
-        useMyApplications({ enabled: !!session?.user });
+    const sessionInitialized = useUserSessionStore((s) => s.initialized);
+    const signedIn = !!session?.user;
+    const { listing, loading, error } = useListing(id);
 
-    const applied = applications.some((a) => a.listingId === id);
+    // signed-in users get the dashboard-wrapped listing detail at /home/listings/[id]
+    useEffect(() => {
+        if (sessionInitialized && signedIn) {
+            router.replace(`/home/listings/${id}`);
+        }
+    }, [sessionInitialized, signedIn, id, router]);
+
+    if (sessionInitialized && signedIn) {
+        return null;
+    }
 
     return (
         <div className="flex flex-col min-h-screen bg-neutral-50">
@@ -32,8 +42,8 @@ export default function PublicListingPage({
                 ) : (
                     <ListingDetail
                         listing={listing}
-                        applied={applied}
-                        onApplied={refetchApplications}
+                        applied={false}
+                        onApplied={async () => {}}
                     />
                 )}
             </main>

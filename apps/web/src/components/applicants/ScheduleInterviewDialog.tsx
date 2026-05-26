@@ -440,7 +440,7 @@ function TypeOption({
             )}
         >
             {recommended && (
-                <span className="absolute -top-2 left-2 rounded-full bg-orange-100 text-orange-700 text-[9px] font-semibold px-1.5 py-0.5">
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 rounded-full bg-orange-100 text-orange-700 ring-1 ring-orange-200 text-[8px] font-medium px-1.25 py-px">
                     Recommended
                 </span>
             )}

@@ -245,7 +245,7 @@ function PublicListingRow({
 }) {
     return (
         <Link
-            href={`/listings/${listing.id}`}
+            href={`/home/listings/${listing.id}`}
             className="flex items-start gap-4 px-6 py-4 hover:bg-secondary/40 transition-colors"
         >
             <span

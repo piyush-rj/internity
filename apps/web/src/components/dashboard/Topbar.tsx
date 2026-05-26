@@ -251,7 +251,7 @@ export function Topbar() {
                                     {suggestions.map((s) => (
                                         <li key={s.id}>
                                             <Link
-                                                href={`/listings/${s.id}`}
+                                                href={`/home/listings/${s.id}`}
                                                 onClick={() => setOpen(false)}
                                                 className="flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 transition-colors"
                                             >
