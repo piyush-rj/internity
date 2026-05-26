@@ -27,9 +27,7 @@ export default function HomeListingDetailPage({
     if (error || !listing) {
         return (
             <div className="mx-auto max-w-3xl px-6 py-16 text-center">
-                <h1 className="text-[20px] font-semibold">
-                    Listing not found
-                </h1>
+                <h1 className="text-[20px] font-semibold">Listing not found</h1>
                 <p className="mt-1 text-[13px] text-muted-foreground">
                     {error?.message ??
                         "This listing may have been removed or its link is invalid."}

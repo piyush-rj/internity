@@ -62,7 +62,12 @@ export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
                 onClose={() => setOpen(false)}
                 ariaLabel="Listing filters"
                 side="right"
-                width={Math.min(360, typeof window !== "undefined" ? window.innerWidth - 48 : 360)}
+                width={Math.min(
+                    360,
+                    typeof window !== "undefined"
+                        ? window.innerWidth - 48
+                        : 360,
+                )}
             >
                 <header className="flex items-center justify-between gap-2 h-13 px-4 border-b border-border shrink-0">
                     <div className="inline-flex items-center gap-2 text-[14px] font-semibold">
