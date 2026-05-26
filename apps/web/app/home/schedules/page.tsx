@@ -121,26 +121,28 @@ export default function SchedulesPage() {
                         pastCount={data.past.length}
                     />
 
-                    <section className="rounded-lg border border-border bg-card overflow-hidden mt-4">
-                        {items.length === 0 ? (
-                            <div className="px-6 py-16 text-center text-[13px] text-muted-foreground">
-                                {emptyText}
-                            </div>
-                        ) : (
-                            <ul className="divide-y divide-border">
-                                {items.map((iv) => (
+                    {items.length === 0 ? (
+                        <section className="mt-4 rounded-lg border border-border bg-card px-6 py-16 text-center text-[13px] text-muted-foreground">
+                            {emptyText}
+                        </section>
+                    ) : (
+                        <ul className="mt-4 space-y-3">
+                            {items.map((iv) => (
+                                <li
+                                    key={iv.id}
+                                    className="rounded-lg border border-border bg-card overflow-hidden"
+                                >
                                     <InterviewRow
-                                        key={iv.id}
                                         iv={iv}
                                         isStudent={isStudent}
                                         onCancel={() => cancel(iv)}
                                         cancelling={cancellingId === iv.id}
                                         isPast={tab === "past"}
                                     />
-                                ))}
-                            </ul>
-                        )}
-                    </section>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
                 </>
             )}
             <ConfirmDialog {...dialogProps} />
@@ -255,8 +257,8 @@ function InterviewRow({
     }, [iv, isCancelled, now]);
 
     return (
-        <li className="px-6 py-5">
-            <div className="flex items-start gap-4">
+        <div className="px-4 py-4 sm:px-6 sm:py-5">
+            <div className="flex items-start gap-3 sm:gap-4">
                 <Logo
                     name={company.name}
                     logoUrl={company.logoUrl}
@@ -349,48 +351,48 @@ function InterviewRow({
                         </p>
                     )}
                 </div>
-
-                {!isPast && !isCancelled && (
-                    <div className="shrink-0 flex flex-row items-center gap-2">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            onClick={onCancel}
-                            disabled={cancelling}
-                            className="h-9 px-3 text-[13px] text-rose-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
-                        >
-                            <PiCalendarXFill className="h-3.5 w-3.5" />
-                            {cancelling ? "Cancelling…" : "Cancel"}
-                        </Button>
-                        {iv.type === "VIDEO" && iv.meetingLink && (
-                            <a
-                                href={iv.meetingLink}
-                                target="_blank"
-                                rel="noreferrer"
-                                className={cn(
-                                    "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
-                                    isJoinable
-                                        ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
-                                        : "border border-border bg-white text-foreground hover:bg-secondary",
-                                )}
-                            >
-                                <PiVideoCameraFill className="h-3.5 w-3.5" />
-                                {isJoinable ? "Join now" : "Open link"}
-                            </a>
-                        )}
-                        {iv.type === "PHONE" && phone && !isStudent && (
-                            <a
-                                href={`tel:${phone}`}
-                                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
-                            >
-                                <PiPhoneFill className="h-3.5 w-3.5" />
-                                Call
-                            </a>
-                        )}
-                    </div>
-                )}
             </div>
-        </li>
+
+            {!isPast && !isCancelled && (
+                <div className="mt-4 flex flex-wrap items-center justify-end gap-2">
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        onClick={onCancel}
+                        disabled={cancelling}
+                        className="h-9 px-3 text-[13px] text-rose-600 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
+                    >
+                        <PiCalendarXFill className="h-3.5 w-3.5" />
+                        {cancelling ? "Cancelling…" : "Cancel"}
+                    </Button>
+                    {iv.type === "VIDEO" && iv.meetingLink && (
+                        <a
+                            href={iv.meetingLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={cn(
+                                "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
+                                isJoinable
+                                    ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
+                                    : "border border-border bg-white text-foreground hover:bg-secondary",
+                            )}
+                        >
+                            <PiVideoCameraFill className="h-3.5 w-3.5" />
+                            {isJoinable ? "Join now" : "Open link"}
+                        </a>
+                    )}
+                    {iv.type === "PHONE" && phone && !isStudent && (
+                        <a
+                            href={`tel:${phone}`}
+                            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
+                        >
+                            <PiPhoneFill className="h-3.5 w-3.5" />
+                            Call
+                        </a>
+                    )}
+                </div>
+            )}
+        </div>
     );
 }
 

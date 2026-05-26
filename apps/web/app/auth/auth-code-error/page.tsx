@@ -18,7 +18,7 @@ export default async function AuthCodeErrorPage({
                         "Something went wrong while completing your sign-in. Please try again."}
                 </p>
                 <Link
-                    href="/login"
+                    href="/?next=/home/dashboard"
                     className="inline-block rounded-md bg-foreground px-4 py-2 text-sm font-medium text-background"
                 >
                     Back to sign-in

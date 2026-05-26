@@ -156,7 +156,12 @@ function MessagesView() {
 
     return (
         <div className="flex h-[calc(100vh-3.25rem)] min-h-0">
-            <aside className="w-80 shrink-0 border-r border-border bg-white flex flex-col">
+            <aside
+                className={cn(
+                    "w-full md:w-80 shrink-0 border-r border-border bg-white flex-col",
+                    activeId ? "hidden md:flex" : "flex",
+                )}
+            >
                 <header className="px-4 pt-5 pb-3 space-y-3 border-b border-border">
                     <div className="flex items-center justify-between gap-2">
                         <h1 className="text-[22px] font-bold tracking-tight">
@@ -198,7 +203,12 @@ function MessagesView() {
                 </div>
             </aside>
 
-            <main className="flex-1 min-w-0 flex flex-col">
+            <main
+                className={cn(
+                    "flex-1 min-w-0 flex-col",
+                    activeId ? "flex" : "hidden md:flex",
+                )}
+            >
                 {activeId ? (
                     <ConversationView
                         key={activeId}
@@ -207,6 +217,7 @@ function MessagesView() {
                             conversations.find((c) => c.id === activeId) ?? null
                         }
                         socket={socket}
+                        onBack={() => setActiveId(null)}
                     />
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 text-center">

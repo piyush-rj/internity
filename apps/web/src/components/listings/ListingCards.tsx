@@ -78,12 +78,12 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
     return (
         <article
             className={cn(
-                "group relative rounded-lg border border-border bg-card px-5 py-4",
+                "group relative rounded-lg border border-border bg-card px-4 py-4 sm:px-5",
                 "hover:border-foreground/20 hover:shadow-sm transition-all",
             )}
         >
-            <div className="flex items-start gap-3">
-                <div className="flex flex-col items-center gap-1.5 pt-1">
+            <div className="flex items-start gap-2.5 sm:gap-3">
+                <div className="flex flex-col items-center gap-1.5 pt-1 shrink-0">
                     {canMultiApply && <RowCheckbox listing={listing} />}
                     <SaveButton listing={listing} />
                 </div>
@@ -173,7 +173,7 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                         </div>
                     )}
 
-                    <div className="mt-3 flex items-center justify-between gap-3">
+                    <div className="mt-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div className="flex items-center gap-2 flex-wrap text-[11.5px]">
                             <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 font-medium">
                                 <PiClock className="h-3 w-3" />
@@ -186,11 +186,13 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                                 </span>
                             )}
                         </div>
-                        <ApplyCta
-                            listing={listing}
-                            applied={applied}
-                            closed={closed}
-                        />
+                        <div className="self-stretch sm:self-auto">
+                            <ApplyCta
+                                listing={listing}
+                                applied={applied}
+                                closed={closed}
+                            />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -209,7 +211,7 @@ function ApplyCta({
 }) {
     if (closed) {
         return (
-            <span className="inline-flex items-center h-9 px-4 rounded-md text-[12.5px] font-medium border border-border bg-secondary text-muted-foreground">
+            <span className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium border border-border bg-secondary text-muted-foreground">
                 Closed
             </span>
         );
@@ -218,7 +220,7 @@ function ApplyCta({
         return (
             <Link
                 href={`/home/listings/${listing.id}`}
-                className="inline-flex items-center gap-1.5 h-9 px-4 rounded-md text-[12.5px] font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 h-9 px-4 rounded-md text-[12.5px] font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             >
                 <PiCheckCircleFill className="h-3.5 w-3.5" />
                 View application
@@ -228,7 +230,7 @@ function ApplyCta({
     return (
         <Link
             href={`/home/listings/${listing.id}`}
-            className="inline-flex items-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors transform duration-250"
+            className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors transform duration-250"
         >
             Apply now
         </Link>

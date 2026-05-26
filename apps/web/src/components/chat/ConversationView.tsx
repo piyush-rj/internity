@@ -25,10 +25,12 @@ export function ConversationView({
     conversationId,
     conversation,
     socket,
+    onBack,
 }: {
     conversationId: string;
     conversation: ConversationListItem | null;
     socket: ChatSocket;
+    onBack?: () => void;
 }) {
     const meId = useMeStore((s) => s.me?.id ?? null);
     const meRole = useMeStore((s) => s.me?.role ?? null);
@@ -143,7 +145,7 @@ export function ConversationView({
 
     return (
         <div className="flex flex-col h-full min-h-0 bg-neutral-50">
-            <ConversationHeader peer={peer} />
+            <ConversationHeader peer={peer} onBack={onBack} />
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto">
                 <PeerProfileCard

@@ -106,7 +106,7 @@ function ApplicantsView() {
                         }
                     />
                     <section className="rounded-lg border border-border bg-card overflow-hidden">
-                        <header className="flex items-center justify-between gap-3 px-5 py-4 border-b border-border">
+                        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border">
                             <div className="flex items-center gap-3">
                                 <div className="text-[13px] font-medium">
                                     Applicants
@@ -258,7 +258,7 @@ function ListingPicker({
     onChange: (id: string) => void;
 }) {
     return (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
             <label
                 htmlFor="listing-picker"
                 className="text-[12.5px] font-medium text-muted-foreground"
@@ -270,7 +270,7 @@ function ListingPicker({
                 value={activeId ?? ""}
                 onChange={(e) => onChange(e.target.value)}
                 className={cn(
-                    "h-9 rounded-md border border-border bg-background px-2 pr-8",
+                    "h-9 w-full sm:w-auto rounded-md border border-border bg-background px-2 pr-8",
                     "text-[13px] appearance-none",
                     "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
                 )}

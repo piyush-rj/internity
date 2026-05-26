@@ -84,7 +84,7 @@ function ApplicationItemCard({
     const location =
         listing.mode === "REMOTE" ? "Work from home" : listing.city;
     return (
-        <article className="group relative rounded-lg border border-border bg-card px-5 py-4 hover:border-foreground/20 hover:shadow-sm transition-all">
+        <article className="group relative rounded-lg border border-border bg-card px-4 py-4 sm:px-5 hover:border-foreground/20 hover:shadow-sm transition-all">
             <div className="flex items-start gap-3">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-3">

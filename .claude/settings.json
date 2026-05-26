@@ -23,7 +23,18 @@
       "Bash(rg -l 'import \\\\{ z, ZodError \\\\} from \"zod\";' apps/server/src/routes/controllers)",
       "Bash(mkdir -p /Users/piyush/utility/internshala_clone/apps/web/app/home/listings/\\\\[id\\\\] && ls /Users/piyush/utility/internshala_clone/apps/web/app/home/listings 2>/dev/null)",
       "Bash(xargs sed -i '' 's|/listings/\\\\${|/home/listings/${|g')",
-      "Bash(rg -n '\"/listings/' apps/web/src apps/web/app --type-add 'web:*.{ts,tsx}' --type web)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/api/v1/health)",
+      "Bash(curl -s \"http://localhost:8081/api/v1/listing?domain=AI&pageSize=2\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" \"http://localhost:8081/api/v1/listing?domain=NOPE\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/api/v1/admin/payments)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/api/v1/invitation/notarealtoken)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" -X POST http://localhost:8081/api/v1/company/anyid/invites)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/pricing)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/home/invite/xyz)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/admin/payments)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/home/dashboard)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/admin/overview)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/login)"
     ],
     "additionalDirectories": [
       "/Users/piyush/utility/internshala_clone/apps/web/app/home/invite",

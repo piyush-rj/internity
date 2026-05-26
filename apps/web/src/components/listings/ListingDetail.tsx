@@ -40,11 +40,11 @@ export function ListingDetail({
     );
 
     return (
-        <div className="mx-auto max-w-6xl px-6 py-8">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8">
             <Header listing={listing} closed={closed} />
 
             <div className="mt-6 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
-                <article className="space-y-6 min-w-0">
+                <article className="space-y-6 min-w-0 order-2 lg:order-1">
                     <Section title="About the role">
                         <Prose text={listing.description} />
                     </Section>
@@ -83,7 +83,7 @@ export function ListingDetail({
                     )}
                 </article>
 
-                <aside className="lg:sticky lg:top-16 lg:self-start space-y-4">
+                <aside className="order-1 lg:order-2 lg:sticky lg:top-16 lg:self-start space-y-4">
                     <div className="rounded-lg border border-border border-t-2 border-t-orange-300 bg-card p-4 space-y-3">
                         {hasKeyDetails && <KeyDetails listing={listing} />}
                         <div className={hasKeyDetails ? "pt-3" : ""}>
@@ -208,15 +208,15 @@ function Header({
     closed: boolean;
 }) {
     return (
-        <section className="rounded-lg border border-border bg-card p-6">
-            <div className="flex items-start gap-4">
+        <section className="rounded-lg border border-border bg-card p-4 sm:p-6">
+            <div className="flex items-start gap-3 sm:gap-4">
                 <CompanyAvatar
                     name={listing.company.name}
                     logoUrl={listing.company.logoUrl}
                 />
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <h1 className="text-[22px] font-semibold tracking-tight">
+                        <h1 className="text-[18px] sm:text-[22px] font-semibold tracking-tight">
                             {listing.title}
                         </h1>
                         <ModeBadge mode={listing.mode} />

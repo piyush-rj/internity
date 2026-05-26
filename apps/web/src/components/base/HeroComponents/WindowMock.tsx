@@ -16,16 +16,19 @@ export function WindowMock() {
                 className={cn(
                     "flex items-center gap-2",
                     "border-b border-border bg-card",
-                    "px-4 py-2.5",
+                    "px-3 py-2 sm:px-4 sm:py-2.5",
                 )}
             >
-                <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
-                <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
-                <div className="ml-4 text-[11px] text-muted-foreground">
-                    internity.app · Internships · Web Development
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-[#ff5f57]" />
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-[#febc2e]" />
+                <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-[#28c840]" />
+                <div className="ml-2 sm:ml-4 text-[10px] sm:text-[11px] text-muted-foreground truncate">
+                    <span className="sm:hidden">internity.app</span>
+                    <span className="hidden sm:inline">
+                        internity.app · Internships · Web Development
+                    </span>
                 </div>
-                <div className="ml-auto flex items-center gap-1.5">
+                <div className="ml-auto hidden sm:flex items-center gap-1.5">
                     <kbd
                         className={cn(
                             "rounded border border-border bg-secondary",
@@ -38,11 +41,12 @@ export function WindowMock() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-[200px_1fr]">
+            <div className="grid grid-cols-1 sm:grid-cols-[200px_1fr]">
                 <aside
                     className={cn(
+                        "hidden sm:block",
                         "border-r border-border bg-secondary/40",
-                        "p-3 min-h-110",
+                        "p-3 sm:min-h-110",
                         "text-[12px]",
                     )}
                 >
@@ -61,17 +65,17 @@ export function WindowMock() {
                     <SidebarItem label="₹20,000+" />
                 </aside>
 
-                <div className="p-4">
-                    <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-medium">
+                <div className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-3 gap-2">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-[12px] sm:text-[13px] font-medium truncate">
                                 Top matches for you
                             </span>
-                            <span className="text-[11px] text-muted-foreground">
+                            <span className="text-[11px] text-muted-foreground shrink-0">
                                 128
                             </span>
                         </div>
-                        <div className="flex gap-1.5">
+                        <div className="hidden sm:flex gap-1.5">
                             <PillBtn>Sort</PillBtn>
                             <PillBtn>Saved</PillBtn>
                         </div>
@@ -222,8 +226,8 @@ function InternshipRow({
     logo: string;
 }) {
     return (
-        <div className="flex items-center gap-3 py-3 px-2 border-b border-border last:border-0 hover:bg-secondary/40 text-[12px]">
-            <span className="relative h-9 w-9 rounded-md overflow-hidden bg-white ring-1 ring-border shrink-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 py-2.5 sm:py-3 px-1.5 sm:px-2 border-b border-border last:border-0 hover:bg-secondary/40 text-[11px] sm:text-[12px]">
+            <span className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-md overflow-hidden bg-white ring-1 ring-border shrink-0">
                 <Image
                     src={logo}
                     alt={`${company} logo`}
@@ -233,18 +237,20 @@ function InternshipRow({
                 />
             </span>
             <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                    <span className="font-medium text-foreground">{role}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                    <span className="font-medium text-foreground truncate">
+                        {role}
+                    </span>
                     <span
                         className={cn(
-                            "rounded px-1.5 py-0.5 text-[10px]",
+                            "rounded px-1.5 py-0.5 text-[9.5px] sm:text-[10px] shrink-0",
                             tagColor,
                         )}
                     >
                         {tag}
                     </span>
                 </div>
-                <div className="mt-0.5 text-muted-foreground">
+                <div className="mt-0.5 text-muted-foreground truncate">
                     {company} · {location} · {mode}
                 </div>
             </div>

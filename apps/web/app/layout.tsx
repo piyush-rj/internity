@@ -2,8 +2,10 @@ import type { Metadata } from "next";
 import { Geist_Mono, Poppins } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+import { Suspense } from "react";
 import { SessionSetter } from "@/src/lib/SessionSetter";
 import { AuthDialog } from "@/src/components/auth/AuthDialog";
+import { AuthRedirectListener } from "@/src/components/auth/AuthRedirectListener";
 import { cn } from "@/src/lib/utils";
 
 const poppins = Poppins({
@@ -39,6 +41,9 @@ export default function RootLayout({
         >
             <body className="min-h-full flex flex-col bg-background text-foreground">
                 <SessionSetter />
+                <Suspense fallback={null}>
+                    <AuthRedirectListener />
+                </Suspense>
                 {children}
                 <AuthDialog />
                 <Toaster

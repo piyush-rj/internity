@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { ChevronLeft } from "lucide-react";
 import type { ConversationPeer } from "types";
 import { usePresenceStore } from "@/src/store/usePresenceStore";
 import { ChatAvatar } from "./ChatAvatar";
@@ -8,8 +9,10 @@ import { ChatAvatar } from "./ChatAvatar";
 // sticky top bar with peer avatar, name, and live presence
 export function ConversationHeader({
     peer,
+    onBack,
 }: {
     peer: ConversationPeer | null;
+    onBack?: () => void;
 }) {
     const livePresence = usePresenceStore((s) =>
         peer ? s.presenceByUser[peer.id] : undefined,
@@ -18,6 +21,7 @@ export function ConversationHeader({
     if (!peer) {
         return (
             <header className="h-15 px-4 flex items-center gap-3 border-b border-border bg-white shrink-0">
+                {onBack && <BackButton onClick={onBack} />}
                 <div className="h-9 w-9 rounded-full bg-neutral-200 animate-pulse shrink-0" />
                 <div className="h-3 w-32 rounded-md bg-neutral-200 animate-pulse" />
             </header>
@@ -32,6 +36,7 @@ export function ConversationHeader({
         : peer;
     return (
         <header className="h-15 px-4 flex items-center gap-3 border-b border-border bg-white shrink-0">
+            {onBack && <BackButton onClick={onBack} />}
             <ChatAvatar name={peer.name} image={peer.image} size="sm" />
             <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-semibold truncate leading-tight">
@@ -40,6 +45,19 @@ export function ConversationHeader({
                 <PresenceSubtitle peer={peerWithLivePresence} />
             </div>
         </header>
+    );
+}
+
+function BackButton({ onClick }: { onClick: () => void }) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            aria-label="Back to conversations"
+            className="md:hidden h-8 w-8 -ml-1 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors shrink-0"
+        >
+            <ChevronLeft className="h-4 w-4" />
+        </button>
     );
 }
 

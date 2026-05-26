@@ -77,12 +77,12 @@ export function MyListingCard({
     return (
         <article
             className={cn(
-                "rounded-lg border border-border bg-card p-5",
+                "rounded-lg border border-border bg-card p-4 sm:p-5",
                 "hover:shadow-sm transition-shadow",
                 takenDown && "border-red-200 bg-red-50/30",
             )}
         >
-            <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start justify-between gap-3 sm:gap-4">
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         {takenDown ? (

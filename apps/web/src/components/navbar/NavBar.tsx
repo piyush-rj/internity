@@ -55,7 +55,7 @@ export function NavBar({
                 "border-b",
                 "transition-colors duration-500 ease-[cubic-bezier(0.22,1,0.36,1)]",
                 scrolled
-                    ? "border-b-transparent bg-transparent"
+                    ? "border-b-transparent bg-transparent sm:left-0 sm:right-0 left-2 right-2"
                     : `border-b-border bg-neutral-50 ${className}`,
             )}
         >

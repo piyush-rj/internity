@@ -46,10 +46,10 @@ export function ApplicationsList({
             {error ? (
                 <ErrorRow message={error.message} />
             ) : (
-                <div className={compact ? undefined : "overflow-x-auto"}>
+                <div className="overflow-x-auto">
                     <table
                         className={cn(
-                            "w-full",
+                            "w-full min-w-150",
                             compact ? "text-[12.5px]" : "text-[13px]",
                         )}
                     >

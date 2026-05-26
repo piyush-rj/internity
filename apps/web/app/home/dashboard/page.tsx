@@ -23,14 +23,14 @@ export default function DashboardPage() {
 
     return (
         <div className="relative isolate">
-            <div className="relative mx-auto max-w-6xl py-8 px-0 space-y-6">
+            <div className="relative mx-auto max-w-6xl py-6 sm:py-8 px-4 sm:px-6 space-y-5 sm:space-y-6">
                 <Greeting />
                 <StatsRow />
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                    <div className="lg:col-span-2 space-y-4">
+                    <div className="lg:col-span-2 space-y-4 min-w-0">
                         <DashboardTabs />
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-4 min-w-0">
                         <ProfileCompletion />
                     </div>
                 </div>
@@ -42,7 +42,7 @@ export default function DashboardPage() {
 function DashboardSkeleton() {
     return (
         <div className="relative isolate">
-            <div className="relative mx-auto max-w-6xl py-8 px-0 space-y-6 animate-pulse">
+            <div className="relative mx-auto max-w-6xl py-6 sm:py-8 px-4 sm:px-6 space-y-5 sm:space-y-6 animate-pulse">
                 <div className="flex items-end justify-between gap-3 mb-6">
                     <div className="h-7 w-64 rounded-md bg-secondary" />
                     <div className="h-4 w-32 rounded-md bg-secondary" />

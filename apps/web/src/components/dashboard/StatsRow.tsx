@@ -149,20 +149,20 @@ function StatCard({ stat }: { stat: Stat }) {
         <Link
             href={stat.href}
             className={cn(
-                "group relative rounded-lg border border-border bg-card/90 backdrop-blur-sm px-4 py-3.5",
+                "group relative rounded-lg border border-border bg-card/90 backdrop-blur-sm px-3 py-3 sm:px-4 sm:py-3.5",
                 "shadow-xs transition-all duration-200 ease-out",
                 "ring-0 ring-foreground/0 hover:ring-2 hover:ring-foreground/10",
             )}
         >
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2.5 sm:gap-3">
                 <span className="relative shrink-0">
                     <span
                         className={cn(
-                            "flex h-12 w-12 items-center justify-center rounded-full ring-1 ring-border/70",
+                            "flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-full ring-1 ring-border/70",
                             accentClasses[stat.accent],
                         )}
                     >
-                        <Icon className="h-5 w-5" />
+                        <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                     </span>
                     {stat.delta && (
                         <span
@@ -187,10 +187,10 @@ function StatCard({ stat }: { stat: Stat }) {
                             {stat.label}
                         </span>
                     </div>
-                    <div className="mt-0.5 text-[22px] font-semibold tracking-tight tabular-nums leading-none">
+                    <div className="mt-0.5 text-[18px] sm:text-[22px] font-semibold tracking-tight tabular-nums leading-none">
                         {stat.value}
                     </div>
-                    <div className="mt-1 text-[11.5px] text-muted-foreground truncate">
+                    <div className="mt-1 text-[11px] sm:text-[11.5px] text-muted-foreground truncate">
                         {stat.caption}
                     </div>
                 </div>

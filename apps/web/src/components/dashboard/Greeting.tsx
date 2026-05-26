@@ -14,9 +14,9 @@ export function Greeting() {
     const greeting = greetingForNow();
 
     return (
-        <div className="flex items-end justify-between gap-3 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-1 sm:gap-3 mb-4 sm:mb-6">
             <div>
-                <h1 className="text-[26px] font-semibold tracking-tight">
+                <h1 className="text-[20px] sm:text-[26px] font-semibold tracking-tight">
                     {loading ? (
                         <span className="inline-block h-7 w-56 rounded-md bg-secondary animate-pulse" />
                     ) : (
@@ -29,7 +29,9 @@ export function Greeting() {
                     )}
                 </h1>
             </div>
-            <p className="mt-1 text-[13px] text-muted-foreground">{today}</p>
+            <p className="text-[12px] sm:text-[13px] text-muted-foreground">
+                {today}
+            </p>
         </div>
     );
 }

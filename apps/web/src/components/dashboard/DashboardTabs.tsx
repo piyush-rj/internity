@@ -38,7 +38,7 @@ export function DashboardTabs() {
 
     return (
         <div className="space-y-4">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <nav
                     role="tablist"
                     aria-label="Dashboard sections"
@@ -87,7 +87,7 @@ export function DashboardTabs() {
                             ? "/home/internships"
                             : "/home/applications"
                     }
-                    className="text-neutral-600 text-xs flex items-center gap-1 hover:text-foreground transition-colors"
+                    className="text-neutral-600 text-xs inline-flex items-center gap-1 hover:text-foreground transition-colors self-start sm:self-auto"
                 >
                     {tab === "recommended"
                         ? "see all recommended jobs"

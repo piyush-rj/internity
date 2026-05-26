@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ListingCards } from "@/src/components/listings/ListingCards";
+import { ListingsFiltersMobile } from "@/src/components/listings/ListingsFiltersMobile";
 import { ListingsFiltersPanel } from "@/src/components/listings/ListingsFiltersPanel";
 import { MultiApplyBar } from "@/src/components/listings/MultiApplyBar";
 import { PaginationBar } from "@/src/components/listings/PaginationBar";
@@ -34,11 +35,7 @@ function InternshipsView() {
         >
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
                 <div className="min-w-0 space-y-5">
-                    {/* <ListHeader
-                        title="All internships"
-                        count={total}
-                        loading={loading}
-                    /> */}
+                    <ListingsFiltersMobile basePath="/home/internships" />
                     <ListingCards
                         items={items}
                         loading={loading}
@@ -52,7 +49,7 @@ function InternshipsView() {
                         total={total}
                     />
                 </div>
-                <aside className="lg:sticky lg:top-20 lg:self-start">
+                <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
                     <ListingsFiltersPanel basePath="/home/internships" />
                 </aside>
             </div>

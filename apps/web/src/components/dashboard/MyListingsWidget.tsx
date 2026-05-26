@@ -39,7 +39,7 @@ export function MyListingsWidget() {
                     <ErrorRow message={error.message} />
                 ) : (
                     <div className="overflow-x-auto">
-                        <table className="w-full text-[13px]">
+                        <table className="w-full min-w-150 text-[13px]">
                             <thead className="bg-neutral-100 border-b border-border">
                                 <tr className="text-left text-muted-foreground divide-x divide-border">
                                     <ColHeader
