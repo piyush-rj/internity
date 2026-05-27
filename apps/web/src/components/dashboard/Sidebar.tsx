@@ -23,6 +23,7 @@ import { GiTie } from "react-icons/gi";
 import type { UserRole } from "@/src/lib/api";
 import { useMeStore } from "@/src/store/useMeStore";
 import { selectTotalUnread, useChatStore } from "@/src/store/useChatStore";
+import { useMyListings } from "@/src/hooks/useMyListings";
 
 type IconComp = ComponentType<{ className?: string }>;
 
@@ -50,12 +51,6 @@ const studentNav: NavSet = {
             label: "Internships",
             icon: PiBriefcaseFill,
             href: "/home/internships",
-        },
-        {
-            key: "jobs",
-            label: "Jobs",
-            icon: PiBuildingsFill,
-            href: "/home/jobs",
         },
         {
             key: "applications",
@@ -265,6 +260,13 @@ export function SidebarBody({
                           ))}
                 </div>
 
+                {role === "EMPLOYER" && initialized && (
+                    <EmployerListingsSection
+                        active={activeKey === "manage-listings"}
+                        onNavigate={onNavigate}
+                    />
+                )}
+
                 <SectionLabel className="mt-6">Profile</SectionLabel>
                 <div className="space-y-0.5">
                     {!initialized
@@ -359,6 +361,75 @@ const NavItem = memo(function NavItem({
         </Link>
     );
 });
+
+// Slim "Your listings" block under the employer workspace nav. Lists the
+// active company's open listings (top 5) so a founder can deep-link to a
+// listing detail without clicking through My Listings → search → open.
+// Reuses the existing useMyListings hook so the data is shared with the
+// /home/manage-listings page and the dashboard widget.
+function EmployerListingsSection({
+    active,
+    onNavigate,
+}: {
+    active: boolean;
+    onNavigate?: () => void;
+}) {
+    const { items, loading } = useMyListings();
+    if (loading && items.length === 0) {
+        return (
+            <>
+                <SectionLabel className="mt-6">Your listings</SectionLabel>
+                <div className="space-y-0.5">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                        <NavItemSkeleton key={i} />
+                    ))}
+                </div>
+            </>
+        );
+    }
+    const openListings = items
+        .filter((l) => !l.closedAt && !l.takenDownAt)
+        .slice(0, 5);
+    if (openListings.length === 0) return null;
+    return (
+        <>
+            <SectionLabel className="mt-6">Your listings</SectionLabel>
+            <div className="space-y-0.5">
+                {openListings.map((l) => (
+                    <Link
+                        key={l.id}
+                        href={`/home/listings/${l.id}`}
+                        prefetch
+                        onClick={() => onNavigate?.()}
+                        className={cn(
+                            "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
+                            "text-muted-foreground hover:text-foreground/80",
+                        )}
+                        title={l.title}
+                    >
+                        <PiBriefcaseFill className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
+                        <span className="flex-1 truncate">{l.title}</span>
+                    </Link>
+                ))}
+                {items.length > openListings.length && (
+                    <Link
+                        href="/home/manage-listings"
+                        prefetch
+                        onClick={() => onNavigate?.()}
+                        className={cn(
+                            "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[11.5px] font-medium transition-colors",
+                            "text-orange-600 hover:text-orange-700",
+                            active && "opacity-70",
+                        )}
+                    >
+                        <ChevronRightIcon className="h-3 w-3 shrink-0" />
+                        <span>View all listings</span>
+                    </Link>
+                )}
+            </div>
+        </>
+    );
+}
 
 function UpgradeCard() {
     const isPremium = useMeStore((s) => s.me?.isPremium ?? false);

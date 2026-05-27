@@ -12,7 +12,7 @@ const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
 const Body = z.object({
     email: z.string().trim().toLowerCase().email("Enter a valid email"),
-    role: z.enum(["OWNER", "MEMBER"]).optional(),
+    role: z.enum(["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER"]).optional(),
 });
 
 /**

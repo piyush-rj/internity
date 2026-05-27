@@ -1,112 +1,143 @@
 "use client";
 import {
     forwardRef,
+    useEffect,
     useImperativeHandle,
+    useMemo,
+    useRef,
     useState,
     type ForwardedRef,
 } from "react";
 import { toast } from "sonner";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { CityCombobox } from "@/src/components/ui/CityCombobox";
+import { TagsInput } from "@/src/components/ui/TagsInput";
+import { StipendPicker } from "@/src/components/ui/StipendPicker";
+import { DurationPicker } from "@/src/components/ui/DurationPicker";
+import { BulletList } from "@/src/components/ui/BulletList";
+import { PerksPicker } from "@/src/components/manage-listings/PerksPicker";
+import { ScreeningQuestionsEditor } from "@/src/components/manage-listings/ScreeningQuestionsEditor";
+import { Toggle } from "@/src/components/ui/Toggle";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
     listingApi,
+    type JobTitle,
     type Listing,
-    type ListingDomain,
     type ListingInput,
-    type ListingType,
+    type ScreeningQuestion,
     type WorkMode,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
-import type { ListingTemplate } from "@/src/components/manage-listings/listingTemplates";
+import { JOB_TITLES, jobTitleLabel } from "@/src/lib/catalog/jobTitles";
+import { skillSuggestions } from "@/src/lib/catalog/skills";
+import {
+    LISTING_TEMPLATES,
+    type ListingTemplate,
+} from "@/src/components/manage-listings/listingTemplates";
+import { Wand2 } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
+type StartMode = "IMMEDIATE" | "LATER";
+
 type FormState = {
-    type: ListingType;
     title: string;
+    jobTitle: JobTitle | "";
+    customJobTitle: string;
     mode: WorkMode;
-    domain: ListingDomain | "";
     city: string;
     description: string;
-    responsibilities: string;
-    perks: string;
-    preferences: string;
-    skillTags: string;
-    screeningQuestions: string[];
-    stipendMin: string;
-    stipendMax: string;
-    durationMonths: string;
+    responsibilities: string[];
+    perks: string[];
+    preferences: string[];
+    skillTags: string[];
+    screeningQuestions: ScreeningQuestion[];
+    stipendMin: number | null;
+    stipendMax: number | null;
+    durationMonths: number | null;
+    durationWeeks: number | null;
+    startMode: StartMode;
     startDate: string;
+    startDateLatest: string;
     applyBy: string;
     openings: string;
     partTime: boolean;
+    ppo: boolean;
 };
 
 const empty: FormState = {
-    type: "INTERNSHIP",
     title: "",
+    jobTitle: "",
+    customJobTitle: "",
     mode: "ONSITE",
-    domain: "",
     city: "",
     description: "",
-    responsibilities: "",
-    perks: "",
-    preferences: "",
-    skillTags: "",
+    responsibilities: [],
+    perks: [],
+    preferences: [],
+    skillTags: [],
     screeningQuestions: [],
-    stipendMin: "",
-    stipendMax: "",
-    durationMonths: "",
+    stipendMin: null,
+    stipendMax: null,
+    durationMonths: null,
+    durationWeeks: null,
+    startMode: "IMMEDIATE",
     startDate: "",
+    startDateLatest: "",
     applyBy: "",
     openings: "",
     partTime: false,
+    ppo: false,
 };
 
-const DOMAIN_OPTIONS: { value: ListingDomain; label: string }[] = [
-    { value: "AI", label: "AI / ML" },
-    { value: "BACKEND", label: "Backend" },
-    { value: "WEB", label: "Web" },
-    { value: "MOBILE", label: "Mobile" },
-    { value: "QA", label: "QA / Testing" },
-    { value: "DESIGN", label: "Design (UI/UX)" },
-    { value: "PRODUCT", label: "Product" },
-    { value: "MARKETING", label: "Marketing" },
-    { value: "CONTENT", label: "Content / Video" },
-    { value: "SALES", label: "Sales / BD" },
-    { value: "DATA", label: "Data" },
-    { value: "HR", label: "HR" },
-    { value: "OTHER", label: "Other" },
-];
-
-const MAX_SCREENING_QUESTIONS = 5;
+const MAX_SCREENING_QUESTIONS = 3;
 const SCREENING_QUESTION_MAX = 200;
+
+// "YYYY-MM-DD" in the viewer's local timezone — used as the `min` on date
+// inputs and as the floor for past-date validation at submit. We treat
+// today as valid (so you can post a listing starting today).
+function todayIso(): string {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+}
 
 export type ListingFormHandle = {
     applyTemplate: (template: ListingTemplate) => void;
 };
 
 function fromListing(l: Listing): FormState {
+    // "Immediately" = neither end of the range is set. Once either start
+    // date is recorded the founder picked "Later" and we surface the range.
+    const startMode: StartMode =
+        l.startDate || l.startDateLatest ? "LATER" : "IMMEDIATE";
     return {
-        type: l.type,
         title: l.title ?? "",
+        jobTitle: l.jobTitle ?? "",
+        customJobTitle: l.customJobTitle ?? "",
         mode: l.mode,
-        domain: l.domain ?? "",
         city: l.city ?? "",
         description: l.description ?? "",
-        responsibilities: (l.responsibilities ?? []).join("\n"),
-        perks: (l.perks ?? []).join("\n"),
-        preferences: (l.preferences ?? []).join("\n"),
-        skillTags: (l.skillTagsRaw ?? []).join(", "),
+        responsibilities: l.responsibilities ?? [],
+        perks: l.perks ?? [],
+        preferences: l.preferences ?? [],
+        skillTags: l.skillTagsRaw ?? [],
         screeningQuestions: l.screeningQuestions ?? [],
-        stipendMin: l.stipendMin != null ? String(l.stipendMin) : "",
-        stipendMax: l.stipendMax != null ? String(l.stipendMax) : "",
-        durationMonths:
-            l.durationMonths != null ? String(l.durationMonths) : "",
+        stipendMin: l.stipendMin,
+        stipendMax: l.stipendMax,
+        durationMonths: l.durationMonths,
+        durationWeeks: l.durationWeeks ?? null,
+        startMode,
         startDate: l.startDate ? l.startDate.slice(0, 10) : "",
+        startDateLatest: l.startDateLatest
+            ? l.startDateLatest.slice(0, 10)
+            : "",
         applyBy: l.applyBy ? l.applyBy.slice(0, 10) : "",
         openings: l.openings != null ? String(l.openings) : "",
         partTime: l.partTime ?? false,
+        ppo: l.ppo ?? false,
     };
 }
 
@@ -134,45 +165,105 @@ export const ListingForm = forwardRef(function ListingForm(
         setForm((f) => ({ ...f, [k]: v }));
     }
 
+    const skillHints = useMemo(
+        () => skillSuggestions(form.jobTitle || null),
+        [form.jobTitle],
+    );
+
+    // applyTemplate has two callers with different intents:
+    //  - The top-of-page TemplatePicker is a "seed me" affordance run once
+    //    at the start; it should never clobber typed content (overwrite=false).
+    //  - The inline "Autofill details" button next to the job-title select
+    //    is an explicit "give me this role's defaults"; if the founder
+    //    changes job titles and clicks it again they expect fresh defaults,
+    //    so it overwrites (overwrite=true).
+    function applyTemplate(t: ListingTemplate, overwrite = false) {
+        setForm((prev) => {
+            const take = <T,>(prevHas: boolean, prevVal: T, fresh: T): T =>
+                overwrite || !prevHas ? fresh : prevVal;
+            return {
+                ...prev,
+                mode: overwrite ? t.mode : prev.mode,
+                // Always honour the explicit job-title pick the founder
+                // already made — never overwrite it from the template.
+                jobTitle: prev.jobTitle || (t.jobTitle ?? ""),
+                title: take(prev.title.trim().length > 0, prev.title, t.title),
+                description: take(
+                    prev.description.trim().length > 0,
+                    prev.description,
+                    t.description,
+                ),
+                responsibilities: take(
+                    prev.responsibilities.some((r) => r.trim()),
+                    prev.responsibilities,
+                    t.responsibilities,
+                ),
+                preferences: take(
+                    prev.preferences.some((p) => p.trim()),
+                    prev.preferences,
+                    t.preferences,
+                ),
+                perks: take(prev.perks.length > 0, prev.perks, t.perks),
+                skillTags: take(
+                    prev.skillTags.length > 0,
+                    prev.skillTags,
+                    t.skillTags,
+                ),
+                // Templates only carry plain-text questions; we wrap
+                // them as SHORT-type when seeding into the editor.
+                screeningQuestions: take(
+                    prev.screeningQuestions.some((q) => q.q.trim()),
+                    prev.screeningQuestions,
+                    (t.screeningQuestions ?? [])
+                        .slice(0, MAX_SCREENING_QUESTIONS)
+                        .map<ScreeningQuestion>((q) => ({
+                            q,
+                            type: "SHORT",
+                        })),
+                ),
+            };
+        });
+        toast.success(
+            overwrite
+                ? `Filled in defaults for ${t.label}. Tweak and post.`
+                : `${t.label} template applied — tweak and post.`,
+        );
+    }
+
+    // Imperative handle from the top-of-page TemplatePicker keeps the
+    // conservative "don't clobber typed content" behaviour by default.
     useImperativeHandle(
         ref,
-        () => ({
-            applyTemplate: (t) => {
-                setForm((prev) => ({
-                    ...prev,
-                    type: t.type,
-                    mode: t.mode,
-                    title: prev.title.trim() ? prev.title : t.title,
-                    description: prev.description.trim()
-                        ? prev.description
-                        : t.description,
-                    responsibilities: prev.responsibilities.trim()
-                        ? prev.responsibilities
-                        : t.responsibilities.join("\n"),
-                    preferences: prev.preferences.trim()
-                        ? prev.preferences
-                        : t.preferences.join("\n"),
-                    perks: prev.perks.trim() ? prev.perks : t.perks.join("\n"),
-                    skillTags: prev.skillTags.trim()
-                        ? prev.skillTags
-                        : t.skillTags.join(", "),
-                    screeningQuestions: prev.screeningQuestions.some((q) =>
-                        q.trim(),
-                    )
-                        ? prev.screeningQuestions
-                        : (t.screeningQuestions ?? []),
-                }));
-                toast.success(`${t.label} template applied — tweak and post.`);
-            },
-        }),
+        () => ({ applyTemplate: (t: ListingTemplate) => applyTemplate(t) }),
         [],
     );
 
+    // First template that matches the currently picked job title — used to
+    // power the inline "Autofill details" button next to the job-title
+    // selector so a founder can one-click prefill description / perks /
+    // skills without scrolling up to the template picker.
+    const matchingTemplate: ListingTemplate | null = useMemo(() => {
+        if (!form.jobTitle || form.jobTitle === "CUSTOM") return null;
+        return (
+            LISTING_TEMPLATES.find((t) => t.jobTitle === form.jobTitle) ?? null
+        );
+    }, [form.jobTitle]);
+
     async function submit() {
-        if (!form.title.trim()) {
-            toast.error("Please add a title for the listing.");
+        if (!form.jobTitle) {
+            toast.error("Pick a job title from the list.");
             return;
         }
+        if (form.jobTitle === "CUSTOM" && !form.customJobTitle.trim()) {
+            toast.error("Type your custom job title.");
+            return;
+        }
+        // Derive the listing card title from the picked job title — predefined
+        // values use the friendly label, CUSTOM uses the typed-in text.
+        const titleTrimmed =
+            form.jobTitle === "CUSTOM"
+                ? form.customJobTitle.trim()
+                : jobTitleLabel(form.jobTitle as JobTitle);
         if (!form.description.trim()) {
             toast.error("Please add a short description of the role.");
             return;
@@ -181,12 +272,48 @@ export const ListingForm = forwardRef(function ListingForm(
             toast.error("City is required for hybrid and on-site roles.");
             return;
         }
+        if (
+            form.stipendMin !== null &&
+            form.stipendMax !== null &&
+            form.stipendMax < form.stipendMin
+        ) {
+            toast.error("Max stipend must be at least the min stipend.");
+            return;
+        }
+        const today = todayIso();
+        if (form.startMode === "LATER") {
+            if (!form.startDate) {
+                toast.error("Pick a 'From' date or switch to Immediately.");
+                return;
+            }
+            if (form.startDate < today) {
+                toast.error("Start date can't be in the past.");
+                return;
+            }
+            if (form.startDateLatest && form.startDateLatest < today) {
+                toast.error("'To' date can't be in the past.");
+                return;
+            }
+            if (
+                form.startDateLatest &&
+                form.startDateLatest < form.startDate
+            ) {
+                toast.error("'To' date can't be before 'From'.");
+                return;
+            }
+        }
+        if (form.applyBy && form.applyBy < today) {
+            toast.error("'Apply by' can't be in the past.");
+            return;
+        }
 
-        const cleanedQuestions = form.screeningQuestions
-            .map((q) => q.trim())
-            .filter(Boolean);
+        // Trim each question's text and drop blank ones. Per-type config
+        // (options / idealMin / idealAnswer) is left untouched.
+        const cleanedQuestions: ScreeningQuestion[] = form.screeningQuestions
+            .map((q) => ({ ...q, q: q.q.trim() }))
+            .filter((q) => q.q.length > 0);
         const overLength = cleanedQuestions.find(
-            (q) => q.length > SCREENING_QUESTION_MAX,
+            (q) => q.q.length > SCREENING_QUESTION_MAX,
         );
         if (overLength) {
             toast.error(
@@ -194,32 +321,57 @@ export const ListingForm = forwardRef(function ListingForm(
             );
             return;
         }
+        if (cleanedQuestions.length > MAX_SCREENING_QUESTIONS) {
+            toast.error(`Up to ${MAX_SCREENING_QUESTIONS} screening questions.`);
+            return;
+        }
+        const badMcq = cleanedQuestions.find(
+            (q) =>
+                q.type === "MULTIPLE_CHOICE" &&
+                q.options.filter((o) => o.trim().length > 0).length < 2,
+        );
+        if (badMcq) {
+            toast.error(
+                "Multiple-choice questions need at least 2 non-empty options.",
+            );
+            return;
+        }
 
         const input: ListingInput = {
             companyId,
-            type: form.type,
-            title: form.title.trim(),
+            title: titleTrimmed,
+            jobTitle: form.jobTitle as JobTitle,
+            customJobTitle:
+                form.jobTitle === "CUSTOM"
+                    ? form.customJobTitle.trim()
+                    : null,
             mode: form.mode,
-            domain: form.domain || undefined,
             city: form.city.trim() || undefined,
             description: form.description.trim(),
-            responsibilities: splitLines(form.responsibilities),
-            perks: splitLines(form.perks),
-            preferences: splitLines(form.preferences),
-            skillTagsRaw: splitTags(form.skillTags),
+            responsibilities: cleanBullets(form.responsibilities),
+            perks: form.perks.length > 0 ? form.perks : undefined,
+            preferences: cleanBullets(form.preferences),
+            skillTagsRaw: form.skillTags.length > 0 ? form.skillTags : undefined,
             screeningQuestions:
                 cleanedQuestions.length > 0 ? cleanedQuestions : undefined,
-            stipendMin: numOr(form.stipendMin),
-            stipendMax: numOr(form.stipendMax),
-            durationMonths: numOr(form.durationMonths),
-            startDate: form.startDate
-                ? new Date(form.startDate).toISOString()
-                : undefined,
+            stipendMin: form.stipendMin ?? undefined,
+            stipendMax: form.stipendMax ?? undefined,
+            durationMonths: form.durationMonths ?? undefined,
+            durationWeeks: form.durationWeeks ?? undefined,
+            startDate:
+                form.startMode === "LATER" && form.startDate
+                    ? new Date(form.startDate).toISOString()
+                    : null,
+            startDateLatest:
+                form.startMode === "LATER" && form.startDateLatest
+                    ? new Date(form.startDateLatest).toISOString()
+                    : null,
             applyBy: form.applyBy
                 ? new Date(form.applyBy).toISOString()
                 : undefined,
             openings: numOr(form.openings),
             partTime: form.partTime || undefined,
+            ppo: form.ppo,
         };
 
         setSaving(true);
@@ -249,50 +401,66 @@ export const ListingForm = forwardRef(function ListingForm(
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-7">
             <Section title="Basics">
-                <Field label="Type" required>
-                    <SegmentedRadio
-                        value={form.type}
-                        onChange={(v) => set("type", v as ListingType)}
-                        options={[
-                            { value: "INTERNSHIP", label: "Internship" },
-                            { value: "JOB", label: "Job" },
-                        ]}
-                    />
-                </Field>
-                <Field label="Title" required>
-                    <input
-                        type="text"
-                        value={form.title}
-                        onChange={(e) => set("title", e.target.value)}
-                        placeholder="Frontend Developer Intern"
-                        className={inputCls()}
-                    />
-                </Field>
-                <Field
-                    label="Domain"
-                    hint="Used by students to filter the browse feed."
-                >
-                    <select
-                        value={form.domain}
-                        onChange={(e) =>
-                            set("domain", e.target.value as ListingDomain | "")
-                        }
-                        className={cn(
-                            inputCls(),
-                            "appearance-none pr-8 cursor-pointer",
+                <Field label="Job title" required>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <select
+                            value={form.jobTitle}
+                            onChange={(e) =>
+                                set(
+                                    "jobTitle",
+                                    e.target.value as JobTitle | "",
+                                )
+                            }
+                            className={cn(
+                                inputCls(),
+                                "appearance-none pr-8 cursor-pointer flex-1 min-w-50",
+                            )}
+                        >
+                            <option value="">Pick a job title</option>
+                            {JOB_TITLES.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                    {o.label}
+                                </option>
+                            ))}
+                            <option value="CUSTOM">Other (custom)</option>
+                        </select>
+                        {matchingTemplate && (
+                            <Button
+                                type="button"
+                                variant="exec-light"
+                                onClick={() =>
+                                    applyTemplate(matchingTemplate, true)
+                                }
+                                className="h-10 px-3 text-[12.5px] cursor-pointer shrink-0"
+                                title={`Replace description, perks, skills, and screening questions with the ${matchingTemplate.label} defaults.`}
+                            >
+                                <Wand2 className="h-3.5 w-3.5" />
+                                Autofill details
+                            </Button>
                         )}
-                    >
-                        <option value="">Pick a domain (optional)</option>
-                        {DOMAIN_OPTIONS.map((o) => (
-                            <option key={o.value} value={o.value}>
-                                {o.label}
-                            </option>
-                        ))}
-                    </select>
+                    </div>
                 </Field>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {form.jobTitle === "CUSTOM" && (
+                    <Field
+                        label="Custom job title"
+                        required
+                        hint="Shown to students exactly as you type it."
+                    >
+                        <input
+                            type="text"
+                            value={form.customJobTitle}
+                            onChange={(e) =>
+                                set("customJobTitle", e.target.value)
+                            }
+                            placeholder="e.g. Growth Marketing Intern"
+                            maxLength={120}
+                            className={inputCls()}
+                        />
+                    </Field>
+                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Work mode" required>
                         <div className="space-y-2">
                             <SegmentedRadio
@@ -304,22 +472,6 @@ export const ListingForm = forwardRef(function ListingForm(
                                     { value: "ONSITE", label: "On-site" },
                                 ]}
                             />
-                            <label className="inline-flex items-center gap-2 text-[12.5px] text-muted-foreground cursor-pointer select-none">
-                                <input
-                                    type="checkbox"
-                                    checked={form.mode === "REMOTE"}
-                                    onChange={(e) => {
-                                        if (e.target.checked) {
-                                            set("mode", "REMOTE");
-                                            set("city", "");
-                                        } else {
-                                            set("mode", "ONSITE");
-                                        }
-                                    }}
-                                    className="h-3.5 w-3.5 accent-brand"
-                                />
-                                Work from home (remote only)
-                            </label>
                         </div>
                     </Field>
                     {form.mode !== "REMOTE" && (
@@ -339,66 +491,85 @@ export const ListingForm = forwardRef(function ListingForm(
                     <textarea
                         value={form.description}
                         onChange={(e) => set("description", e.target.value)}
-                        placeholder="A short overview of the role and what the intern/employee will work on."
+                        placeholder="A short overview of the role and what the intern will work on."
                         rows={5}
                         maxLength={4000}
-                        className={cn(inputCls(), "min-h-28 py-2 resize-none")}
+                        className={cn(
+                            inputCls(),
+                            "h-32 overflow-y-auto py-2 resize-none",
+                        )}
                     />
                 </Field>
-                <Field label="Responsibilities" hint="One per line.">
-                    <textarea
+                <Field
+                    label="Responsibilities"
+                    hint="One point per row. Press Enter to add another."
+                >
+                    <BulletList
                         value={form.responsibilities}
-                        onChange={(e) =>
-                            set("responsibilities", e.target.value)
-                        }
-                        placeholder={
-                            "Build new UI components\nShip features end-to-end"
-                        }
-                        rows={4}
-                        className={cn(inputCls(), "min-h-24 py-2 resize-none")}
+                        onChange={(v) => set("responsibilities", v)}
+                        placeholders={[
+                            "Build new UI components",
+                            "Ship features end-to-end",
+                            "Pair on code review",
+                        ]}
+                        ariaLabel="Responsibilities"
+                        addLabel="Add a responsibility"
                     />
                 </Field>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Who can apply" hint="One per line.">
-                        <textarea
-                            value={form.preferences}
-                            onChange={(e) => set("preferences", e.target.value)}
-                            placeholder={"Available 3+ months\nKnows React"}
-                            rows={4}
-                            className={cn(
-                                inputCls(),
-                                "min-h-24 py-2 resize-none",
-                            )}
-                        />
-                    </Field>
-                    <Field label="Perks" hint="One per line.">
-                        <textarea
-                            value={form.perks}
-                            onChange={(e) => set("perks", e.target.value)}
-                            placeholder={"Flexible hours\nCertificate"}
-                            rows={4}
-                            className={cn(
-                                inputCls(),
-                                "min-h-24 py-2 resize-none",
-                            )}
-                        />
-                    </Field>
+                <Field
+                    label="Who can apply"
+                    hint="One point per row. Press Enter to add another."
+                >
+                    <BulletList
+                        value={form.preferences}
+                        onChange={(v) => set("preferences", v)}
+                        placeholders={[
+                            "Available 3+ months",
+                            "Knows React",
+                            "Has shipped a side project",
+                        ]}
+                        ariaLabel="Who can apply"
+                        addLabel="Add a requirement"
+                    />
+                </Field>
+                <div className="flex items-center justify-between gap-3 rounded-lg border border-border bg-secondary/30 px-3.5 py-2.5">
+                    <span className="text-[13px] font-medium">
+                        Does this internship come with a pre-placement offer
+                        (PPO)?
+                    </span>
+                    <Toggle
+                        checked={form.ppo}
+                        onChange={(on) => set("ppo", on)}
+                        ariaLabel="Pre-placement offer"
+                    />
                 </div>
                 <Field
-                    label="Skills"
-                    hint="Comma-separated. Used for search/filtering."
+                    label="Perks"
+                    hint="Tap to toggle, or pick Custom to type your own."
                 >
-                    <input
-                        type="text"
+                    <PerksPicker
+                        value={form.perks}
+                        onChange={(v) => set("perks", v)}
+                    />
+                </Field>
+                <Field
+                    label="Skills"
+                    hint={
+                        form.jobTitle && form.jobTitle !== "CUSTOM"
+                            ? "Suggested for your job title — type to add your own."
+                            : "Type to add skills. Suggestions appear as you type."
+                    }
+                >
+                    <TagsInput
                         value={form.skillTags}
-                        onChange={(e) => set("skillTags", e.target.value)}
-                        placeholder="React, TypeScript, Tailwind"
-                        className={inputCls()}
+                        onChange={(v) => set("skillTags", v)}
+                        suggestions={skillHints}
+                        placeholder="React, TypeScript, Figma…"
                     />
                 </Field>
             </Section>
 
-            <Section title="Screening questions (optional)">
+            <Section title={`Screening questions (up to ${MAX_SCREENING_QUESTIONS})`}>
                 <ScreeningQuestionsEditor
                     questions={form.screeningQuestions}
                     onChange={(next) => set("screeningQuestions", next)}
@@ -406,84 +577,71 @@ export const ListingForm = forwardRef(function ListingForm(
             </Section>
 
             <Section title="Compensation & logistics">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Stipend min (₹/mo)">
-                        <input
-                            type="number"
-                            min={0}
-                            value={form.stipendMin}
-                            onChange={(e) => set("stipendMin", e.target.value)}
-                            placeholder="10000"
-                            className={inputCls()}
+                <Field
+                    label="Stipend (₹/month)"
+                    hint="Pick a preset or type your own amount in the box. Leave blank if unpaid."
+                >
+                    <StipendPicker
+                        min={form.stipendMin}
+                        max={form.stipendMax}
+                        onMin={(v) => set("stipendMin", v)}
+                        onMax={(v) => set("stipendMax", v)}
+                    />
+                </Field>
+                <Field
+                    label="Duration"
+                    hint="Months (0–12) and weeks (0–3). Leave blank if open-ended."
+                >
+                    <div className="max-w-xs">
+                        <DurationPicker
+                            months={form.durationMonths}
+                            weeks={form.durationWeeks}
+                            onMonthsChange={(v) => set("durationMonths", v)}
+                            onWeeksChange={(v) => set("durationWeeks", v)}
                         />
-                    </Field>
-                    <Field label="Stipend max (₹/mo)">
-                        <input
-                            type="number"
-                            min={0}
-                            value={form.stipendMax}
-                            onChange={(e) => set("stipendMax", e.target.value)}
-                            placeholder="20000"
-                            className={inputCls()}
-                        />
-                    </Field>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Field label="Duration (months)">
-                        <input
-                            type="number"
-                            min={1}
-                            max={36}
-                            value={form.durationMonths}
-                            onChange={(e) =>
-                                set("durationMonths", e.target.value)
-                            }
-                            placeholder="3"
-                            className={inputCls()}
-                        />
-                    </Field>
+                    </div>
+                </Field>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Field label="Openings">
-                        <input
-                            type="number"
-                            min={1}
+                        <OpeningsCombo
                             value={form.openings}
-                            onChange={(e) => set("openings", e.target.value)}
-                            placeholder="2"
-                            className={inputCls()}
+                            onChange={(v) => set("openings", v)}
                         />
                     </Field>
-                    <Field label="Part time">
-                        <label className="flex items-center gap-2 h-10 text-[13px] cursor-pointer">
-                            <input
-                                type="checkbox"
+                    <Field label="Part-time / Full-time" required>
+                        <div className="flex items-center gap-6 h-10">
+                            <PartTimeRadio
+                                label="Part-time"
                                 checked={form.partTime}
-                                onChange={(e) =>
-                                    set("partTime", e.target.checked)
-                                }
-                                className="h-4 w-4 rounded border-border accent-brand"
+                                onSelect={() => set("partTime", true)}
                             />
-                            Allow part-time
-                        </label>
+                            <PartTimeRadio
+                                label="Full-time"
+                                checked={!form.partTime}
+                                onSelect={() => set("partTime", false)}
+                            />
+                        </div>
                     </Field>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Field label="Start date">
-                        <input
-                            type="date"
-                            value={form.startDate}
-                            onChange={(e) => set("startDate", e.target.value)}
-                            className={inputCls()}
-                        />
-                    </Field>
-                    <Field label="Apply by">
-                        <input
-                            type="date"
-                            value={form.applyBy}
-                            onChange={(e) => set("applyBy", e.target.value)}
-                            className={inputCls()}
-                        />
-                    </Field>
-                </div>
+                <Field label="Internship start date" required>
+                    <StartDatePicker
+                        mode={form.startMode}
+                        from={form.startDate}
+                        to={form.startDateLatest}
+                        onModeChange={(m) => set("startMode", m)}
+                        onFromChange={(v) => set("startDate", v)}
+                        onToChange={(v) => set("startDateLatest", v)}
+                    />
+                </Field>
+                <Field label="Apply by">
+                    <input
+                        type="date"
+                        value={form.applyBy}
+                        min={todayIso()}
+                        onChange={(e) => set("applyBy", e.target.value)}
+                        className={cn(inputCls(), "max-w-xs")}
+                    />
+                </Field>
             </Section>
 
             <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
@@ -515,82 +673,237 @@ function Section({
     children: React.ReactNode;
 }) {
     return (
-        <section className="rounded-lg border border-border bg-card p-5 space-y-4">
-            <h3 className="text-[14px] font-semibold text-foreground border-b border-border pb-3">
+        <section className="rounded-lg border border-border bg-card p-6 space-y-5">
+            <h3 className="text-[14px] font-semibold text-foreground border-b border-border pb-4">
                 {title}
             </h3>
-            <div className="space-y-3">{children}</div>
+            <div className="space-y-5">{children}</div>
         </section>
     );
 }
 
-// editor for up to MAX_SCREENING_QUESTIONS screening questions
-function ScreeningQuestionsEditor({
-    questions,
+function StartDatePicker({
+    mode,
+    from,
+    to,
+    onModeChange,
+    onFromChange,
+    onToChange,
+}: {
+    mode: StartMode;
+    from: string;
+    to: string;
+    onModeChange: (m: StartMode) => void;
+    onFromChange: (v: string) => void;
+    onToChange: (v: string) => void;
+}) {
+    return (
+        <div className="space-y-3">
+            <div className="flex flex-wrap gap-4">
+                <StartModeRadio
+                    label="Immediately (within next 30 days)"
+                    checked={mode === "IMMEDIATE"}
+                    onSelect={() => onModeChange("IMMEDIATE")}
+                />
+                <StartModeRadio
+                    label="Later"
+                    checked={mode === "LATER"}
+                    onSelect={() => onModeChange("LATER")}
+                />
+            </div>
+            {mode === "LATER" && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-md">
+                    <label className="block space-y-1">
+                        <span className="block text-[11.5px] font-medium text-muted-foreground">
+                            From
+                        </span>
+                        <input
+                            type="date"
+                            value={from}
+                            min={todayIso()}
+                            onChange={(e) => onFromChange(e.target.value)}
+                            className={inputCls()}
+                        />
+                    </label>
+                    <label className="block space-y-1">
+                        <span className="block text-[11.5px] font-medium text-muted-foreground">
+                            To{" "}
+                            <span className="font-normal text-muted-foreground/70">
+                                (optional)
+                            </span>
+                        </span>
+                        <input
+                            type="date"
+                            value={to}
+                            min={from || todayIso()}
+                            onChange={(e) => onToChange(e.target.value)}
+                            className={inputCls()}
+                        />
+                    </label>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function OpeningsCombo({
+    value,
     onChange,
 }: {
-    questions: string[];
-    onChange: (next: string[]) => void;
+    value: string;
+    onChange: (v: string) => void;
 }) {
-    function setAt(index: number, value: string) {
-        const next = [...questions];
-        next[index] = value;
-        onChange(next);
-    }
-    function add() {
-        if (questions.length >= MAX_SCREENING_QUESTIONS) return;
-        onChange([...questions, ""]);
-    }
-    function remove(index: number) {
-        onChange(questions.filter((_, i) => i !== index));
-    }
+    const [open, setOpen] = useState(false);
+    const wrapRef = useRef<HTMLDivElement | null>(null);
+    const inputRef = useRef<HTMLInputElement | null>(null);
+
+    useEffect(() => {
+        if (!open) return;
+        function onDoc(e: MouseEvent) {
+            if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+                setOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", onDoc);
+        return () => document.removeEventListener("mousedown", onDoc);
+    }, [open]);
+
+    const currentNum = value.trim() === "" ? null : Number(value);
 
     return (
-        <div className="space-y-2">
-            {questions.length === 0 && (
-                <p className="text-[12px] text-muted-foreground">
-                    Add quick questions students must answer at apply time —
-                    great for filtering out spam applications.
-                </p>
-            )}
-            {questions.map((q, i) => (
-                <div key={i} className="flex gap-2">
-                    <input
-                        type="text"
-                        value={q}
-                        onChange={(e) => setAt(i, e.target.value)}
-                        placeholder={`Question ${i + 1}`}
-                        maxLength={SCREENING_QUESTION_MAX}
-                        className={cn(inputCls(), "flex-1")}
-                    />
-                    <button
-                        type="button"
-                        onClick={() => remove(i)}
-                        aria-label={`Remove question ${i + 1}`}
-                        className={cn(
-                            "h-10 w-10 inline-flex items-center justify-center rounded-md shrink-0",
-                            "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-                            "transition-colors cursor-pointer",
-                        )}
-                    >
-                        ×
-                    </button>
-                </div>
-            ))}
-            {questions.length < MAX_SCREENING_QUESTIONS && (
+        <div className="relative" ref={wrapRef}>
+            <div className="flex items-center rounded-md border border-border bg-background focus-within:border-foreground/40 focus-within:ring-3 focus-within:ring-foreground/5">
+                <input
+                    ref={inputRef}
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onFocus={() => setOpen(true)}
+                    placeholder="2"
+                    className="flex-1 bg-transparent outline-none text-[13px] px-3 py-2"
+                />
                 <button
                     type="button"
-                    onClick={add}
-                    className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand hover:underline cursor-pointer"
+                    aria-label="Show openings options"
+                    onClick={() => setOpen((o) => !o)}
+                    className="px-2 py-2 text-muted-foreground hover:text-foreground cursor-pointer"
                 >
-                    + Add a question
+                    <ChevronDown className="h-3.5 w-3.5" />
                 </button>
+            </div>
+            {open && (
+                <div
+                    role="listbox"
+                    className="absolute z-20 mt-1 left-0 right-0 max-h-56 overflow-y-auto rounded-md border border-border bg-popover shadow-lg p-1"
+                >
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
+                        <button
+                            key={n}
+                            type="button"
+                            role="option"
+                            aria-selected={currentNum === n}
+                            onMouseDown={(e) => e.preventDefault()}
+                            onClick={() => {
+                                onChange(String(n));
+                                setOpen(false);
+                            }}
+                            className={cn(
+                                "block w-full text-left px-2 py-1.5 rounded-sm text-[12.5px] cursor-pointer hover:bg-accent",
+                                currentNum === n && "bg-secondary",
+                            )}
+                        >
+                            {n}
+                        </button>
+                    ))}
+                    <button
+                        type="button"
+                        onMouseDown={(e) => e.preventDefault()}
+                        onClick={() => {
+                            onChange("");
+                            setOpen(false);
+                            requestAnimationFrame(() => {
+                                inputRef.current?.focus();
+                                inputRef.current?.select();
+                            });
+                        }}
+                        className={cn(
+                            "block w-full text-left px-2 py-1.5 rounded-sm text-[12.5px] font-medium cursor-pointer",
+                            "border-t border-border mt-1 pt-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50",
+                        )}
+                    >
+                        Custom (write your own)
+                    </button>
+                </div>
             )}
-            <p className="text-[11px] text-muted-foreground">
-                Up to {MAX_SCREENING_QUESTIONS} questions. {questions.length}/
-                {MAX_SCREENING_QUESTIONS} added.
-            </p>
         </div>
+    );
+}
+
+function PartTimeRadio({
+    label,
+    checked,
+    onSelect,
+}: {
+    label: string;
+    checked: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <label className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none">
+            <input
+                type="radio"
+                name="part-time-mode"
+                checked={checked}
+                onChange={onSelect}
+                className="sr-only"
+            />
+            <span
+                className={cn(
+                    "h-4 w-4 shrink-0 rounded-full border-2 inline-flex items-center justify-center transition-colors",
+                    checked ? "border-brand" : "border-border",
+                )}
+            >
+                {checked && (
+                    <span className="h-2 w-2 rounded-full bg-brand" />
+                )}
+            </span>
+            {label}
+        </label>
+    );
+}
+
+function StartModeRadio({
+    label,
+    checked,
+    onSelect,
+}: {
+    label: string;
+    checked: boolean;
+    onSelect: () => void;
+}) {
+    return (
+        <label className="inline-flex items-center gap-2 text-[13px] cursor-pointer select-none">
+            <input
+                type="radio"
+                name="start-mode"
+                checked={checked}
+                onChange={onSelect}
+                className="sr-only"
+            />
+            <span
+                className={cn(
+                    "h-4 w-4 shrink-0 rounded-full border-2 inline-flex items-center justify-center transition-colors",
+                    checked ? "border-brand" : "border-border",
+                )}
+            >
+                {checked && (
+                    <span className="h-2 w-2 rounded-full bg-brand" />
+                )}
+            </span>
+            {label}
+        </label>
     );
 }
 
@@ -627,20 +940,9 @@ function SegmentedRadio({
     );
 }
 
-function splitLines(s: string): string[] | undefined {
-    const arr = s
-        .split("\n")
-        .map((x) => x.trim())
-        .filter(Boolean);
-    return arr.length > 0 ? arr : undefined;
-}
-
-function splitTags(s: string): string[] | undefined {
-    const arr = s
-        .split(",")
-        .map((x) => x.trim())
-        .filter(Boolean);
-    return arr.length > 0 ? arr : undefined;
+function cleanBullets(arr: string[]): string[] | undefined {
+    const cleaned = arr.map((x) => x.trim()).filter(Boolean);
+    return cleaned.length > 0 ? cleaned : undefined;
 }
 
 function numOr(s: string): number | undefined {

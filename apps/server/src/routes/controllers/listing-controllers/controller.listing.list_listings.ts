@@ -5,40 +5,30 @@ import {
     ResponseWriter,
     handleApiError,
 } from "../../../utils/api-response.ts";
-import {
-    ListingDomain,
-    ListingType,
-    Prisma,
-    WorkMode,
-    prisma,
-} from "../../../db.ts";
+import { JobTitle, Prisma, WorkMode, prisma } from "../../../db.ts";
+
+const JOB_TITLE_VALUES = [
+    "AI",
+    "BACKEND",
+    "WEB",
+    "MOBILE",
+    "QA",
+    "DESIGN",
+    "PRODUCT",
+    "MARKETING",
+    "CONTENT",
+    "SALES",
+    "DATA",
+    "HR",
+    "CUSTOM",
+] as const;
 
 const Query = z.object({
-    type: z.enum(["INTERNSHIP", "JOB"]).optional(),
     q: z.string().optional(),
     city: z.string().optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
-    domain: z
-        .enum([
-            "AI",
-            "BACKEND",
-            "WEB",
-            "MOBILE",
-            "QA",
-            "DESIGN",
-            "PRODUCT",
-            "MARKETING",
-            "CONTENT",
-            "SALES",
-            "DATA",
-            "HR",
-            "OTHER",
-        ])
-        .optional(),
+    jobTitle: z.enum(JOB_TITLE_VALUES).optional(),
     skills: z.string().optional(),
-    companySize: z
-        .enum(["1-10", "11-50", "51-200", "201-500", "500+"])
-        .optional(),
     stipendMin: z.coerce.number().int().optional(),
     durationMax: z.coerce.number().int().optional(),
     partTime: z.enum(["true", "false"]).optional(),
@@ -64,7 +54,7 @@ export default async function listListings(
             closedAt: null,
             takenDownAt: null,
             pausedAt: null,
-            postedBy: { isBanned: false },
+            postedBy: { isBanned: false, deletedAt: null },
             AND: [
                 {
                     OR: [
@@ -74,14 +64,19 @@ export default async function listListings(
                 },
             ],
         };
-        if (q.type) where.type = q.type as ListingType;
         if (q.mode) where.mode = q.mode as WorkMode;
-        if (q.domain) where.domain = q.domain as ListingDomain;
+        if (q.jobTitle) where.jobTitle = q.jobTitle as JobTitle;
         if (q.city) where.city = { contains: q.city, mode: "insensitive" };
         if (q.q && q.q.trim()) {
             const needle = q.q.trim();
             where.OR = [
                 { title: { contains: needle, mode: "insensitive" } },
+                {
+                    customJobTitle: {
+                        contains: needle,
+                        mode: "insensitive",
+                    },
+                },
                 {
                     company: {
                         name: { contains: needle, mode: "insensitive" },
@@ -99,9 +94,6 @@ export default async function listListings(
         if (q.skills) {
             const tags = normalize(q.skills.split(","));
             if (tags.length > 0) where.skillTagsRaw = { hasSome: tags };
-        }
-        if (q.companySize) {
-            where.company = { size: q.companySize };
         }
 
         const [total, items] = await Promise.all([

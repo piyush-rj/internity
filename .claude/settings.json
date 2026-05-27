@@ -34,7 +34,13 @@
       "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/admin/payments)",
       "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/home/dashboard)",
       "Bash(curl -s -o /dev/null -w \"%{http_code} -> %{redirect_url}\\\\n\" http://localhost:3000/admin/overview)",
-      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/login)"
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:3000/login)",
+      "Bash(sed -n '45,65p' apps/server/src/routes/controllers/company-controllers/controller.company.admin_get.ts)",
+      "Bash(sed -n '37,55p' apps/server/src/routes/controllers/interview-controllers/controller.interview.list_mine.ts)",
+      "Bash(ps -p 88877 -o pid,command)",
+      "Bash(kill 88877)",
+      "Bash(npx eslint *)",
+      "Bash(npx prisma *)"
     ],
     "additionalDirectories": [
       "/Users/piyush/utility/internshala_clone/apps/web/app/home/invite",

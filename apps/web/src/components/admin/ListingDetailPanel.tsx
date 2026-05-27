@@ -125,8 +125,8 @@ function DetailContent({
                 <Facts>
                     <Fact
                         Icon={Briefcase}
-                        label="Type"
-                        value={`${listing.type} · ${listing.mode}`}
+                        label="Mode"
+                        value={listing.mode}
                     />
                     {listing.city && (
                         <Fact
@@ -175,7 +175,12 @@ function DetailContent({
                 <Section title="Screening questions">
                     <ol className="space-y-1.5 text-[12.5px] text-foreground/90 list-decimal pl-5 marker:text-muted-foreground marker:tabular-nums">
                         {listing.screeningQuestions.map((q, i) => (
-                            <li key={i}>{q}</li>
+                            <li key={i}>
+                                {q.q}
+                                <span className="ml-1 text-[11px] uppercase tracking-wide text-muted-foreground">
+                                    · {q.type.replace("_", " ").toLowerCase()}
+                                </span>
+                            </li>
                         ))}
                     </ol>
                 </Section>

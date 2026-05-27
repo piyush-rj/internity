@@ -14,7 +14,14 @@ import {
     type CompanyRole,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import {
+    COMPANY_ROLE_BADGE_STYLE,
+    COMPANY_ROLE_HINT,
+    COMPANY_ROLE_LABEL,
+    SELECTABLE_COMPANY_ROLES,
+} from "@/src/lib/catalog/companyRoles";
 import { useConfirm } from "@/src/hooks/useConfirm";
+import { RoleChangeConfirmDialog } from "@/src/components/company/RoleChangeConfirmDialog";
 import { cn } from "@/src/lib/utils";
 
 export function MembersCard({
@@ -151,12 +158,22 @@ function Row({
 }) {
     const [busy, setBusy] = useState(false);
     const { confirm, dialogProps } = useConfirm();
+    // Role change goes through an explicit confirmation step. We stash the
+    // intended next role here while the dialog is open; on cancel we drop
+    // it and the <select> re-reads from member.role (which snaps back).
+    const [pendingRole, setPendingRole] = useState<CompanyRole | null>(null);
 
-    async function changeRole(role: CompanyRole) {
+    function proposeRoleChange(role: CompanyRole) {
         if (busy || role === member.role) return;
+        setPendingRole(role);
+    }
+
+    async function confirmRoleChange() {
+        if (!pendingRole) return;
         setBusy(true);
         try {
-            await onUpdateRole(member.userId, role);
+            await onUpdateRole(member.userId, pendingRole);
+            setPendingRole(null);
         } finally {
             setBusy(false);
         }
@@ -180,29 +197,50 @@ function Row({
         }
     }
 
+    const isDeleted = !!member.user.deletedAt;
+
     return (
         <div className="flex items-center gap-3 px-5 py-3">
-            <UserAvatar
-                name={member.user.name}
-                image={member.user.image ?? null}
-            />
+            <div className={cn(isDeleted && "opacity-60 grayscale")}>
+                <UserAvatar
+                    name={member.user.name}
+                    image={member.user.image ?? null}
+                />
+            </div>
             <div className="flex-1 min-w-0">
-                <div className="text-[13px] font-medium truncate">
-                    {member.user.name}
+                <div className="flex items-center gap-1.5 flex-wrap">
+                    <span
+                        className={cn(
+                            "text-[13px] font-medium truncate",
+                            isDeleted && "text-muted-foreground",
+                        )}
+                    >
+                        {member.user.name}
+                    </span>
                     {isSelf && (
-                        <span className="ml-1.5 text-[11px] font-normal text-muted-foreground">
+                        <span className="text-[11px] font-normal text-muted-foreground">
                             (you)
                         </span>
                     )}
+                    {isDeleted && <DeletedBadge />}
                 </div>
-                <div className="text-[11.5px] text-muted-foreground truncate">
+                <div
+                    className={cn(
+                        "text-[11.5px] text-muted-foreground truncate",
+                        isDeleted && "line-through",
+                    )}
+                >
                     {member.user.email}
                 </div>
             </div>
-            {canManage && !isSelf ? (
+            {canManage && !isSelf && !isDeleted ? (
                 <select
-                    value={member.role}
-                    onChange={(e) => changeRole(e.target.value as CompanyRole)}
+                    value={
+                        member.role === "OWNER" ? "FOUNDER_OWNER" : member.role
+                    }
+                    onChange={(e) =>
+                        proposeRoleChange(e.target.value as CompanyRole)
+                    }
                     disabled={busy}
                     className={cn(
                         "h-8 rounded-md border border-border bg-background px-2 pr-7",
@@ -210,8 +248,11 @@ function Row({
                         "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
                     )}
                 >
-                    <option value="OWNER">Owner</option>
-                    <option value="MEMBER">Member</option>
+                    {SELECTABLE_COMPANY_ROLES.map((r) => (
+                        <option key={r} value={r}>
+                            {COMPANY_ROLE_LABEL[r]}
+                        </option>
+                    ))}
                 </select>
             ) : (
                 <RoleBadge role={member.role} />
@@ -232,7 +273,28 @@ function Row({
                 </button>
             )}
             <ConfirmDialog {...dialogProps} />
+            <RoleChangeConfirmDialog
+                open={pendingRole !== null}
+                memberName={member.user.name ?? "this teammate"}
+                memberEmail={member.user.email}
+                currentRole={member.role}
+                nextRole={pendingRole ?? member.role}
+                busy={busy}
+                onCancel={() => setPendingRole(null)}
+                onConfirm={confirmRoleChange}
+            />
         </div>
+    );
+}
+
+function DeletedBadge() {
+    return (
+        <span
+            className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600"
+            title="This teammate deleted their account. Remove them to free up the seat."
+        >
+            Account deleted
+        </span>
     );
 }
 
@@ -249,7 +311,7 @@ function InviteForm({
     const [role, setRole] = useState<CompanyRole>("MEMBER");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [createdLink, setCreatedLink] = useState<string | null>(null);
+    const [createdCode, setCreatedCode] = useState<string | null>(null);
 
     async function submit() {
         const trimmed = email.trim();
@@ -264,7 +326,7 @@ function InviteForm({
                 companyId,
                 { email: trimmed, role },
             );
-            setCreatedLink(buildInviteUrl(invitation.token));
+            setCreatedCode(invitation.token);
             setEmail("");
             await onCreated();
         } catch (err) {
@@ -278,26 +340,27 @@ function InviteForm({
         }
     }
 
-    if (createdLink) {
+    if (createdCode) {
         return (
             <div className="space-y-3">
                 <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3">
                     <div className="text-[12.5px] font-medium text-emerald-900 inline-flex items-center gap-1.5">
                         <Check className="h-3.5 w-3.5" />
-                        Invite created — share this link
+                        Invite created — share this company code
                     </div>
                     <p className="mt-1 text-[11.5px] text-emerald-900/80 leading-relaxed">
-                        They&apos;ll sign in (or sign up) and join your team
-                        automatically. The link works for 14 days.
+                        They&apos;ll sign in, paste this code on{" "}
+                        <span className="font-mono">/home/join</span>, and join
+                        your team automatically. The code works for 14 days.
                     </p>
                 </div>
-                <CopyLinkRow url={createdLink} />
+                <CopyCodeRow code={createdCode} />
                 <div className="flex items-center justify-end gap-2">
                     <Button
                         type="button"
                         variant="exec-light"
                         onClick={() => {
-                            setCreatedLink(null);
+                            setCreatedCode(null);
                         }}
                         className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                     >
@@ -334,12 +397,17 @@ function InviteForm({
                         onChange={(e) => setRole(e.target.value as CompanyRole)}
                         className={cn(inputCls(), "pr-8 appearance-none")}
                     >
-                        <option value="MEMBER">Member</option>
-                        <option value="OWNER">Owner</option>
+                        {SELECTABLE_COMPANY_ROLES.map((r) => (
+                            <option key={r} value={r}>
+                                {COMPANY_ROLE_LABEL[r]}
+                            </option>
+                        ))}
                     </select>
                 </Field>
             </div>
-
+            <p className="text-[11px] text-muted-foreground">
+                {COMPANY_ROLE_HINT[role]}
+            </p>
             {error && (
                 <div className="flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 text-[12.5px] text-destructive">
                     <Info className="h-3.5 w-3.5 mt-0.5 shrink-0" />
@@ -364,7 +432,7 @@ function InviteForm({
                     disabled={saving}
                     className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                 >
-                    {saving ? "Creating…" : "Create invite link"}
+                    {saving ? "Creating…" : "Create company code"}
                 </Button>
             </div>
         </div>
@@ -419,14 +487,14 @@ function InviteRow({
     loading: boolean;
 }) {
     const [busy, setBusy] = useState(false);
-    const url = buildInviteUrl(invitation.token);
+    const code = invitation.token;
 
     async function copy() {
         try {
-            await navigator.clipboard.writeText(url);
-            toast.success("Link copied — share it with your teammate.");
+            await navigator.clipboard.writeText(code);
+            toast.success("Code copied — share it with your teammate.");
         } catch {
-            toast.error("Couldn't copy. Select the URL manually.");
+            toast.error("Couldn't copy. Select the code manually.");
         }
     }
 
@@ -455,7 +523,7 @@ function InviteRow({
                     {invitation.email}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
-                    {prettyRole(invitation.role)} · expires{" "}
+                    {COMPANY_ROLE_LABEL[invitation.role]} · expires{" "}
                     {timeUntil(invitation.expiresAt)}
                 </div>
             </div>
@@ -466,7 +534,7 @@ function InviteRow({
                 className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-md text-[11.5px] font-medium border border-border bg-background hover:bg-secondary cursor-pointer"
             >
                 <Copy className="h-3 w-3" />
-                Copy link
+                Copy code
             </button>
             {canManage && (
                 <button
@@ -483,23 +551,24 @@ function InviteRow({
     );
 }
 
-function CopyLinkRow({ url }: { url: string }) {
+function CopyCodeRow({ code }: { code: string }) {
     const [copied, setCopied] = useState(false);
     async function copy() {
         try {
-            await navigator.clipboard.writeText(url);
+            await navigator.clipboard.writeText(code);
             setCopied(true);
             setTimeout(() => setCopied(false), 1500);
         } catch {
-            toast.error("Couldn't copy. Select the URL manually.");
+            toast.error("Couldn't copy. Select the code manually.");
         }
     }
     return (
         <div className="flex items-center gap-2 rounded-md border border-border bg-card p-2">
             <input
                 readOnly
-                value={url}
-                className="flex-1 bg-transparent text-[12px] font-mono text-foreground/80 outline-none min-w-0 truncate"
+                value={code}
+                aria-label="Company invite code"
+                className="flex-1 bg-transparent text-[12px] font-mono text-foreground/80 outline-none min-w-0 truncate tracking-wide"
                 onClick={(e) => e.currentTarget.select()}
             />
             <Button
@@ -550,22 +619,14 @@ function UserAvatar({ name, image }: { name: string; image: string | null }) {
 }
 
 function RoleBadge({ role }: { role: CompanyRole }) {
-    const styles: Record<CompanyRole, string> = {
-        OWNER: "bg-brand/10 text-brand border-brand/20",
-        MEMBER: "bg-secondary text-foreground border-border",
-    };
-    const labels: Record<CompanyRole, string> = {
-        OWNER: "Owner",
-        MEMBER: "Member",
-    };
     return (
         <span
             className={cn(
                 "rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
-                styles[role],
+                COMPANY_ROLE_BADGE_STYLE[role],
             )}
         >
-            {labels[role]}
+            {COMPANY_ROLE_LABEL[role]}
         </span>
     );
 }
@@ -606,15 +667,6 @@ function ErrorRow({ message }: { message: string }) {
 }
 
 /* ------------------------------- helpers --------------------------------- */
-
-function buildInviteUrl(token: string): string {
-    if (typeof window === "undefined") return `/home/invite/${token}`;
-    return `${window.location.origin}/home/invite/${token}`;
-}
-
-function prettyRole(role: CompanyRole): string {
-    return role === "OWNER" ? "Owner" : "Member";
-}
 
 function timeUntil(iso: string): string {
     const ms = new Date(iso).getTime() - Date.now();

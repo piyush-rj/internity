@@ -6,6 +6,7 @@ import {
     ResponseWriter,
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { canManageListings } from "../../../utils/company-roles.ts";
 
 const LISTING_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
@@ -36,6 +37,11 @@ export default async function renewListing(
             },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (!canManageListings(member.role)) {
+            throw new Forbidden(
+                "Your role can't renew listings — ask a founder or co-founder.",
+            );
+        }
 
         const updated = await prisma.listing.update({
             where: { id },

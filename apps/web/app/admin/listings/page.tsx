@@ -216,8 +216,7 @@ function ListingRow({
                 </div>
                 <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
                     {listing.company.name}
-                    {listing.city ? ` · ${listing.city}` : ""} · {listing.type}{" "}
-                    · {listing.mode}
+                    {listing.city ? ` · ${listing.city}` : ""} · {listing.mode}
                 </div>
             </div>
             <div className="text-right text-[10.5px] text-muted-foreground tabular-nums shrink-0">

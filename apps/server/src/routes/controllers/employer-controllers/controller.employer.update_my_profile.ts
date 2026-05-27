@@ -12,6 +12,12 @@ const Body = z.object({
     lastName: z.string().nullable().optional(),
     phone: z.string().nullable().optional(),
     jobTitle: z.string().nullable().optional(),
+    linkedinUrl: z
+        .string()
+        .url("Enter a valid LinkedIn URL")
+        .nullable()
+        .optional(),
+    country: z.string().nullable().optional(),
 });
 
 export default async function updateMyEmployerProfile(
@@ -36,6 +42,10 @@ export default async function updateMyEmployerProfile(
                 ...(body.lastName !== undefined && { lastName: body.lastName }),
                 ...(body.phone !== undefined && { phone: body.phone }),
                 ...(body.jobTitle !== undefined && { jobTitle: body.jobTitle }),
+                ...(body.linkedinUrl !== undefined && {
+                    linkedinUrl: body.linkedinUrl,
+                }),
+                ...(body.country !== undefined && { country: body.country }),
             },
         });
         api.ok({ profile });

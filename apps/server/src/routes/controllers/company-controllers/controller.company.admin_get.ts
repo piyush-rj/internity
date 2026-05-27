@@ -52,7 +52,7 @@ export default async function adminGetCompany(
                     select: {
                         id: true,
                         title: true,
-                        type: true,
+                        jobTitle: true,
                         mode: true,
                         city: true,
                         applyBy: true,

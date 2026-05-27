@@ -7,6 +7,8 @@ import {
     PiBriefcaseFill,
     PiCheckCircleFill,
     PiCurrencyInrFill,
+    PiFlagFill,
+    PiGraduationCapFill,
     PiHouseFill,
     PiUsersFill,
 } from "react-icons/pi";
@@ -46,6 +48,18 @@ const NAV: Item[] = [
         label: "Founders",
         icon: PiUsersFill,
         href: "/admin/founders",
+    },
+    {
+        key: "students",
+        label: "Students",
+        icon: PiGraduationCapFill,
+        href: "/admin/students",
+    },
+    {
+        key: "reports",
+        label: "Reports",
+        icon: PiFlagFill,
+        href: "/admin/reports",
     },
     {
         key: "payments",

@@ -8,6 +8,7 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { NotificationType, prisma } from "../../../db.ts";
+import { canManageApplicants } from "../../../utils/company-roles.ts";
 import { notify } from "../../../services/notifications.ts";
 
 const Body = z.object({
@@ -33,6 +34,10 @@ const Body = z.object({
         .trim()
         .max(1500, "Keep the description under 1500 characters")
         .optional(),
+    // IANA timezone the host picked (e.g. "Asia/Kolkata"). Defaults to the
+    // host's detected zone on the client; stored verbatim so the candidate
+    // can render both their local time and the host's stated time.
+    timezone: z.string().trim().min(1).max(80).optional(),
 });
 
 // schedules an interview, cancelling any existing scheduled one as reschedule
@@ -96,11 +101,16 @@ export default async function scheduleInterview(
                     userId: req.user!.id,
                 },
             },
-            select: { userId: true },
+            select: { userId: true, role: true },
         });
         if (!member) {
             throw new Forbidden(
                 "Only the company's team can schedule interviews",
+            );
+        }
+        if (!canManageApplicants(member.role)) {
+            throw new Forbidden(
+                "Your role can't schedule interviews — ask a founder, co-founder, or HR.",
             );
         }
 
@@ -130,6 +140,7 @@ export default async function scheduleInterview(
                 candidatePhone:
                     application.student.studentProfile?.phone ?? null,
                 description: body.description ?? null,
+                timezone: body.timezone ?? null,
             },
         });
 

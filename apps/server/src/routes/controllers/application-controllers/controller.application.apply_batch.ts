@@ -120,7 +120,13 @@ export default async function applyBatch(
                 skipped.push({ listingId: id, reason: "ALREADY_APPLIED" });
                 continue;
             }
-            if (l.screeningQuestions.length > 0) {
+            // screeningQuestions is jsonb; treat any non-empty array as a
+            // screening-required signal so the caller routes through the
+            // per-listing apply flow.
+            const sq = Array.isArray(l.screeningQuestions)
+                ? l.screeningQuestions
+                : [];
+            if (sq.length > 0) {
                 skipped.push({ listingId: id, reason: "SCREENING_REQUIRED" });
                 continue;
             }

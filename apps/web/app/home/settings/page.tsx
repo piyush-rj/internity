@@ -1,15 +1,19 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, LogOut } from "lucide-react";
+import { toast } from "sonner";
+import { Check, LogOut, Trash2 } from "lucide-react";
 import { createClient } from "@/src/lib/supabase/client";
 import { PiArrowSquareOut } from "react-icons/pi";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { EmployerProfileCard } from "@/src/components/settings/EmployerProfileCard";
 import { Button } from "@/src/components/ui/button";
-import type { UserRole } from "@/src/lib/api";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
+import { accountApi, type UserRole } from "@/src/lib/api";
+import { ApiClientError } from "@/src/lib/apiClient";
 import { useMe } from "@/src/hooks/useMe";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
@@ -19,11 +23,48 @@ export default function SettingsPage() {
     const { me, loading } = useMe();
     const router = useRouter();
     const supabase = createClient();
+    const [confirmDelete, setConfirmDelete] = useState(false);
+    const [deleting, setDeleting] = useState(false);
+    const [soleOwnerMessage, setSoleOwnerMessage] = useState<string | null>(
+        null,
+    );
 
     async function handleSignOut() {
         await supabase.auth.signOut();
         router.replace("/");
         router.refresh();
+    }
+
+    async function handleDelete() {
+        setDeleting(true);
+        try {
+            await accountApi.deleteAccount();
+            await supabase.auth.signOut();
+            toast.success("Your account has been deleted.");
+            router.replace("/");
+            router.refresh();
+        } catch (err) {
+            // Sole-owner-of-a-company case is the one path the user can
+            // actually act on, so surface it as a dedicated dialog with the
+            // company names baked into the message — a passing toast would
+            // be too easy to miss.
+            if (
+                err instanceof ApiClientError &&
+                err.code === "SOLE_OWNER"
+            ) {
+                setSoleOwnerMessage(err.message);
+                setConfirmDelete(false);
+            } else {
+                toast.error(
+                    err instanceof ApiClientError
+                        ? err.message
+                        : "Couldn't delete your account. Try again.",
+                );
+                setConfirmDelete(false);
+            }
+        } finally {
+            setDeleting(false);
+        }
     }
 
     const name = me?.name ?? session?.user?.name ?? "—";
@@ -110,6 +151,56 @@ export default function SettingsPage() {
                     </Button>
                 </header>
             </section>
+
+            <section className="rounded-lg border border-destructive/30 bg-destructive/5 overflow-hidden">
+                <header className="flex items-center justify-between gap-3 px-5 py-4">
+                    <div className="min-w-0">
+                        <h2 className="text-[14px] font-semibold text-destructive">
+                            Delete account
+                        </h2>
+                        <p className="mt-0.5 text-[12px] text-muted-foreground">
+                            Removes your profile and listings from public view.
+                            This can&rsquo;t be undone.
+                        </p>
+                    </div>
+                    <Button
+                        type="button"
+                        onClick={() => setConfirmDelete(true)}
+                        className="h-9 px-3.5 text-[12.5px] cursor-pointer bg-red-600"
+                    >
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Delete
+                    </Button>
+                </header>
+            </section>
+
+            <ConfirmDialog
+                open={confirmDelete}
+                title="Delete your account?"
+                description="You'll be removed from every team you're on, your profile and personal data will be wiped, and you'll be signed out immediately. Listings you posted stay with the company so your teammates can keep using them. This can't be undone."
+                confirmLabel="Yes, delete my account"
+                cancelLabel="Cancel"
+                variant="destructive"
+                busy={deleting}
+                onCancel={() => setConfirmDelete(false)}
+                onConfirm={handleDelete}
+            />
+
+            <ConfirmDialog
+                open={soleOwnerMessage !== null}
+                title="You're the only owner of a company"
+                description={
+                    soleOwnerMessage ??
+                    "Transfer ownership to a teammate or close the company before deleting your account."
+                }
+                confirmLabel="Open Company settings"
+                cancelLabel="Not now"
+                onCancel={() => setSoleOwnerMessage(null)}
+                onConfirm={() => {
+                    setSoleOwnerMessage(null);
+                    router.push("/home/company");
+                }}
+            />
         </EmptySection>
     );
 }

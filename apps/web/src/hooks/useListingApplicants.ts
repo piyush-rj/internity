@@ -6,6 +6,7 @@ import {
     listingApi,
     type ApplicantWithStudent,
     type ApplicationStatus,
+    type ScreeningQuestion,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 
@@ -13,7 +14,7 @@ type DecidedStatus = Exclude<ApplicationStatus, "WITHDRAWN">;
 
 export type ListingApplicantsState = {
     items: ApplicantWithStudent[];
-    screeningQuestions: string[];
+    screeningQuestions: ScreeningQuestion[];
     skillTagsRaw: string[];
     loading: boolean;
     error: ApiClientError | Error | null;
@@ -28,7 +29,9 @@ export function useListingApplicants(
     listingId: string | null,
 ): ListingApplicantsState {
     const [items, setItems] = useState<ApplicantWithStudent[]>([]);
-    const [screeningQuestions, setScreeningQuestions] = useState<string[]>([]);
+    const [screeningQuestions, setScreeningQuestions] = useState<
+        ScreeningQuestion[]
+    >([]);
     const [skillTagsRaw, setSkillTagsRaw] = useState<string[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ApiClientError | Error | null>(null);

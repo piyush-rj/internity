@@ -42,6 +42,28 @@ export type AdminPaymentsResponse = {
     total: number;
 };
 
+export type AdminStudentListItem = {
+    id: string;
+    userId: string;
+    firstName: string;
+    lastName: string | null;
+    phone: string | null;
+    city: string | null;
+    college: string | null;
+    branch: string | null;
+    createdAt: string;
+    applicationsCount: number;
+    user: {
+        id: string;
+        name: string | null;
+        email: string | null;
+        image: string | null;
+        isBanned: boolean;
+        banReason: string | null;
+        createdAt: string;
+    };
+};
+
 export const adminApi = {
     get_stats: () => api.get<AdminPlatformStats>("/admin/stats"),
     set_user_ban: (
@@ -53,4 +75,16 @@ export const adminApi = {
         page?: number;
         pageSize?: number;
     }) => api.get<AdminPaymentsResponse>("/admin/payments", params),
+    list_students: (params?: {
+        q?: string;
+        banned?: "true" | "false";
+        page?: number;
+        pageSize?: number;
+    }) =>
+        api.get<{
+            items: AdminStudentListItem[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/admin/students", params),
 };

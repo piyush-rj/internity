@@ -28,9 +28,6 @@ const schema = z.object({
     ADMIN_EMAILS: z.string().optional().default(""),
     ADMIN_EMAIL: z.string().optional().default(""),
 
-    // Google OAuth for Calendar / Meet link generation. All optional so dev
-    // doesn't break without the integration; the schedule controller falls
-    // back to the paste-link flow when these are missing.
     GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
     GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
     GOOGLE_OAUTH_REDIRECT_URI: z.string().url().optional(),
@@ -56,7 +53,6 @@ export const ADMIN_EMAIL_SET: ReadonlySet<string> = new Set(
         .filter(Boolean),
 );
 
-// true if the user has admin role or a whitelisted email
 export function isAdminUser(user: {
     role: string;
     email: string | null;

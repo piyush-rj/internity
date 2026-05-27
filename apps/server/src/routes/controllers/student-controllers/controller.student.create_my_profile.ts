@@ -1,7 +1,23 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
-import { prisma, type Gender } from "../../../db.ts";
+import { prisma, type Gender, type JobTitle } from "../../../db.ts";
+
+const JOB_TITLE_VALUES = [
+    "AI",
+    "BACKEND",
+    "WEB",
+    "MOBILE",
+    "QA",
+    "DESIGN",
+    "PRODUCT",
+    "MARKETING",
+    "CONTENT",
+    "SALES",
+    "DATA",
+    "HR",
+    "CUSTOM",
+] as const;
 
 const Body = z.object({
     firstName: z.string().min(1),
@@ -26,6 +42,7 @@ const Body = z.object({
         .optional(),
     college: z.string().nullable().optional(),
     branch: z.string().nullable().optional(),
+    interestedJobTitles: z.array(z.enum(JOB_TITLE_VALUES)).optional(),
 });
 
 export default async function createMyProfile(
@@ -49,6 +66,11 @@ export default async function createMyProfile(
                 portfolioUrl: body.portfolioUrl ?? null,
                 college: body.college ?? null,
                 branch: body.branch ?? null,
+                interestedJobTitles: body.interestedJobTitles
+                    ? (Array.from(
+                          new Set(body.interestedJobTitles),
+                      ) as JobTitle[])
+                    : [],
             },
         });
         api.created({ profile }, "Profile created");

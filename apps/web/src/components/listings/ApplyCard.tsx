@@ -2,8 +2,18 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { Check, X } from "lucide-react";
-import { listingApi } from "@/src/lib/api";
+import { Check, X, Wand2 } from "lucide-react";
+import {
+    listingApi,
+    resumeApi,
+    type Resume,
+    type ScreeningAnswer,
+    type ScreeningQuestion,
+} from "@/src/lib/api";
+import {
+    ScreeningAnswerInput,
+    isAnswered,
+} from "@/src/components/listings/ScreeningAnswerInput";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Button } from "@/src/components/ui/button";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
@@ -13,7 +23,6 @@ import { useMyProfileStore } from "@/src/store/useMyProfileStore";
 import { cn } from "@/src/lib/utils";
 
 const COVER_LIMIT = 150;
-const ANSWER_LIMIT = 500;
 
 export function ApplyCard({
     listingId,
@@ -27,7 +36,7 @@ export function ApplyCard({
     postedById: string;
     closed: boolean;
     applied: boolean;
-    screeningQuestions?: string[];
+    screeningQuestions?: ScreeningQuestion[];
     onApplied: () => Promise<void> | void;
 }) {
     const { me } = useMe();
@@ -97,8 +106,6 @@ export function ApplyCard({
     );
 }
 
-type Step = "questions" | "cover";
-
 function ApplyDialog({
     open,
     onClose,
@@ -109,10 +116,11 @@ function ApplyDialog({
     open: boolean;
     onClose: () => void;
     listingId: string;
-    screeningQuestions: string[];
+    screeningQuestions: ScreeningQuestion[];
     onApplied: () => Promise<void> | void;
 }) {
     const hasQuestions = screeningQuestions.length > 0;
+    const { me } = useMe();
     const profile = useMyProfileStore((s) => s.profile);
     const profileInitialized = useMyProfileStore((s) => s.initialized);
     const initProfile = useMyProfileStore((s) => s.init);
@@ -123,24 +131,46 @@ function ApplyDialog({
     }, [open, profileInitialized, initProfile]);
 
     const [coverLetter, setCoverLetter] = useState<string>("");
-    const [answers, setAnswers] = useState<string[]>(() =>
-        screeningQuestions.map(() => ""),
+    const [answers, setAnswers] = useState<ScreeningAnswer[]>(() =>
+        screeningQuestions.map(() => ({ value: "" })),
     );
-    const [step, setStep] = useState<Step>(
-        hasQuestions ? "questions" : "cover",
-    );
+    const [resumes, setResumes] = useState<Resume[]>([]);
+    const [resumeId, setResumeId] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [showResumeWarning, setShowResumeWarning] = useState<boolean>(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setMounted(true);
+    }, []);
 
     useEffect(() => {
         if (!open) return;
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setStep(hasQuestions ? "questions" : "cover");
         setAnswers((prev) => {
             if (prev.length === screeningQuestions.length) return prev;
-            return screeningQuestions.map((_, i) => prev[i] ?? "");
+            return screeningQuestions.map(
+                (_, i) => prev[i] ?? { value: "" },
+            );
         });
-    }, [open, hasQuestions, screeningQuestions]);
+        // load resumes when the dialog opens
+        let cancelled = false;
+        (async () => {
+            try {
+                const res = await resumeApi.list();
+                if (cancelled) return;
+                setResumes(res.items);
+                const def = res.items.find((r) => r.isDefault) ?? res.items[0];
+                setResumeId(def?.id ?? null);
+            } catch {
+                if (!cancelled) setResumes([]);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [open, screeningQuestions]);
 
     useEffect(() => {
         if (!open) return;
@@ -151,36 +181,16 @@ function ApplyDialog({
         return () => window.removeEventListener("keydown", onKey);
     }, [open, onClose, submitting]);
 
-    const [mounted, setMounted] = useState(false);
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setMounted(true);
-    }, []);
-
     if (!open || !mounted) return null;
 
     const overCover = coverLetter.length > COVER_LIMIT;
-    const overAnswer =
-        answers.find((a) => a.length > ANSWER_LIMIT) !== undefined;
     const missingAnswerIndex = hasQuestions
-        ? answers.findIndex((a) => a.trim().length === 0)
+        ? screeningQuestions.findIndex(
+              (q, i) => !isAnswered(q, answers[i]),
+          )
         : -1;
-    const questionsReady = !overAnswer && missingAnswerIndex === -1;
-    const coverReady = !overCover;
-
-    function goToCoverStep() {
-        if (overAnswer) {
-            toast.error(
-                `Keep each screening answer under ${ANSWER_LIMIT} characters.`,
-            );
-            return;
-        }
-        if (missingAnswerIndex !== -1) {
-            toast.error(`Please answer question ${missingAnswerIndex + 1}.`);
-            return;
-        }
-        setStep("cover");
-    }
+    const ready = !overCover && missingAnswerIndex === -1;
+    const selectedResume = resumes.find((r) => r.id === resumeId) ?? null;
 
     function onApplyClick() {
         if (overCover) {
@@ -189,17 +199,15 @@ function ApplyDialog({
             );
             return;
         }
-        if (overAnswer) {
-            toast.error(
-                `Keep each screening answer under ${ANSWER_LIMIT} characters.`,
-            );
-            return;
-        }
         if (missingAnswerIndex !== -1) {
             toast.error(`Please answer question ${missingAnswerIndex + 1}.`);
             return;
         }
-        if (profileInitialized && !profile?.resumeUrl) {
+        if (
+            resumes.length === 0 &&
+            profileInitialized &&
+            !profile?.resumeUrl
+        ) {
             setShowResumeWarning(true);
             return;
         }
@@ -211,15 +219,14 @@ function ApplyDialog({
         try {
             await listingApi.apply(listingId, {
                 coverLetter: coverLetter.trim() || undefined,
-                screeningAnswers: hasQuestions
-                    ? answers.map((a) => a.trim())
-                    : undefined,
+                screeningAnswers: hasQuestions ? answers : undefined,
+                resumeUrl: selectedResume?.url ?? undefined,
             });
             markApplied(listingId);
             await onApplied();
             toast.success("Application sent.");
             setCoverLetter("");
-            setAnswers(screeningQuestions.map(() => ""));
+            setAnswers(screeningQuestions.map(() => ({ value: "" })));
             onClose();
         } catch (err) {
             toast.error(
@@ -250,11 +257,9 @@ function ApplyDialog({
                 )}
             >
                 <header className="flex items-center justify-between px-5 h-13 border-b border-border shrink-0">
-                    <div className="min-w-0">
-                        <h2 className="text-[14px] font-semibold">
-                            Apply to this listing
-                        </h2>
-                    </div>
+                    <h2 className="text-[14px] font-semibold">
+                        Apply to this listing
+                    </h2>
                     <button
                         type="button"
                         onClick={onClose}
@@ -266,149 +271,163 @@ function ApplyDialog({
                     </button>
                 </header>
 
-                <div className="flex-1 px-5 py-4 overflow-y-auto">
-                    {step === "questions" && hasQuestions && (
+                <div className="flex-1 px-5 py-4 overflow-y-auto space-y-5">
+                    {hasQuestions && (
                         <section className="space-y-3">
                             <div className="text-[12.5px] font-medium">
                                 A few quick questions from the employer
                             </div>
-                            {screeningQuestions.map((q, i) => {
-                                const overThis =
-                                    answers[i]!.length > ANSWER_LIMIT;
-                                return (
-                                    <label key={i} className="block space-y-1">
-                                        <span className="block text-[12.5px] text-foreground/90">
-                                            <span className="font-medium tabular-nums text-muted-foreground">
-                                                Q{i + 1}.
-                                            </span>{" "}
-                                            {q}
-                                        </span>
-                                        <textarea
-                                            value={answers[i]}
-                                            onChange={(e) =>
-                                                setAnswers((prev) =>
-                                                    prev.map((a, j) =>
-                                                        j === i
-                                                            ? e.target.value
-                                                            : a,
-                                                    ),
-                                                )
-                                            }
-                                            rows={3}
-                                            maxLength={ANSWER_LIMIT}
-                                            placeholder="Your answer"
-                                            className={cn(
-                                                "w-full rounded-lg border bg-background px-3 py-2",
-                                                "text-[13px] placeholder:text-muted-foreground/70",
-                                                "outline-none focus:ring-3 focus:ring-foreground/5",
-                                                "resize-none h-24",
-                                                overThis
-                                                    ? "border-destructive/50 focus:border-destructive/60"
-                                                    : "border-border focus:border-foreground/40",
-                                            )}
-                                        />
-                                        <div
-                                            className={cn(
-                                                "text-right text-[11px] tabular-nums",
-                                                overThis
-                                                    ? "text-destructive"
-                                                    : "text-muted-foreground",
-                                            )}
-                                        >
-                                            {answers[i]!.length}/{ANSWER_LIMIT}
-                                        </div>
-                                    </label>
-                                );
-                            })}
+                            {screeningQuestions.map((q, i) => (
+                                <ScreeningAnswerInput
+                                    key={i}
+                                    index={i}
+                                    question={q}
+                                    answer={answers[i]}
+                                    onChange={(next) =>
+                                        setAnswers((prev) =>
+                                            prev.map((a, j) =>
+                                                j === i ? next : a,
+                                            ),
+                                        )
+                                    }
+                                />
+                            ))}
                         </section>
                     )}
 
-                    {step === "cover" && (
-                        <label className="block space-y-1">
-                            <span className="block text-[12.5px] font-medium">
+                    <label className="block space-y-1">
+                        <div className="flex items-baseline justify-between gap-2">
+                            <span className="text-[12.5px] font-medium">
                                 Cover note{" "}
                                 <span className="text-muted-foreground font-normal">
                                     (optional)
                                 </span>
                             </span>
-                            <textarea
-                                value={coverLetter}
-                                onChange={(e) => setCoverLetter(e.target.value)}
-                                placeholder="One or two lines about why you’re a great fit. Skip if you just want to apply."
-                                rows={3}
-                                maxLength={COVER_LIMIT}
-                                className={cn(
-                                    "w-full rounded-lg border bg-background px-3 py-2",
-                                    "text-[13px] placeholder:text-muted-foreground/70",
-                                    "outline-none focus:ring-3 focus:ring-foreground/5",
-                                    "resize-none h-24",
-                                    overCover
-                                        ? "border-destructive/50 focus:border-destructive/60"
-                                        : "border-border focus:border-foreground/40",
+                            {me?.lastCoverLetter &&
+                                me.lastCoverLetter !== coverLetter && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setCoverLetter(
+                                                me.lastCoverLetter ?? "",
+                                            );
+                                            toast.success(
+                                                "Filled in your last cover note. Tweak it for this role.",
+                                            );
+                                        }}
+                                        className={cn(
+                                            "inline-flex items-center gap-1 text-[11.5px] font-medium",
+                                            "text-orange-600 hover:text-orange-700 cursor-pointer",
+                                        )}
+                                    >
+                                        <Wand2 className="h-3 w-3" />
+                                        Use my last cover note
+                                    </button>
                                 )}
-                            />
-                            <div
-                                className={cn(
-                                    "text-right text-[11px] tabular-nums",
-                                    overCover
-                                        ? "text-destructive"
-                                        : "text-muted-foreground",
-                                )}
-                            >
-                                {coverLetter.length}/{COVER_LIMIT}
+                        </div>
+                        <textarea
+                            value={coverLetter}
+                            onChange={(e) => setCoverLetter(e.target.value)}
+                            placeholder="One or two lines about why you’re a great fit. Skip if you just want to apply."
+                            rows={3}
+                            maxLength={COVER_LIMIT}
+                            className={cn(
+                                "w-full rounded-lg border bg-background px-3 py-2",
+                                "text-[13px] placeholder:text-muted-foreground/70",
+                                "outline-none focus:ring-3 focus:ring-foreground/5",
+                                "resize-none h-24",
+                                overCover
+                                    ? "border-destructive/50 focus:border-destructive/60"
+                                    : "border-border focus:border-foreground/40",
+                            )}
+                        />
+                        <div
+                            className={cn(
+                                "text-right text-[11px] tabular-nums",
+                                overCover
+                                    ? "text-destructive"
+                                    : "text-muted-foreground",
+                            )}
+                        >
+                            {coverLetter.length}/{COVER_LIMIT}
+                        </div>
+                    </label>
+
+                    <section className="space-y-2">
+                        <div className="text-[12.5px] font-medium">
+                            Resume{" "}
+                            <span className="text-muted-foreground font-normal">
+                                {resumes.length > 0
+                                    ? `(${resumes.length}/4)`
+                                    : "(none uploaded)"}
+                            </span>
+                        </div>
+                        {resumes.length === 0 ? (
+                            <p className="text-[12px] text-muted-foreground rounded-md border border-border bg-secondary/40 px-3 py-2">
+                                You haven&rsquo;t uploaded any resume yet. You can
+                                still apply with just a cover note — most
+                                employers expect a resume though.
+                            </p>
+                        ) : (
+                            <div className="space-y-1.5">
+                                {resumes.map((r) => (
+                                    <label
+                                        key={r.id}
+                                        className={cn(
+                                            "flex items-center gap-3 rounded-md border px-3 py-2 cursor-pointer",
+                                            r.id === resumeId
+                                                ? "border-foreground/40 bg-secondary/50"
+                                                : "border-border hover:bg-secondary/30",
+                                        )}
+                                    >
+                                        <input
+                                            type="radio"
+                                            name="resume"
+                                            checked={r.id === resumeId}
+                                            onChange={() => setResumeId(r.id)}
+                                            className="h-3.5 w-3.5 accent-foreground"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[12.5px] font-medium truncate">
+                                                {r.fileName}
+                                                {r.isDefault && (
+                                                    <span className="ml-2 text-[10.5px] text-emerald-700">
+                                                        Default
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="text-[11px] text-muted-foreground">
+                                                {r.lastUsedAt
+                                                    ? `Last used ${new Date(r.lastUsedAt).toLocaleDateString("en-IN")}`
+                                                    : `Uploaded ${new Date(r.createdAt).toLocaleDateString("en-IN")}`}
+                                            </div>
+                                        </div>
+                                    </label>
+                                ))}
                             </div>
-                        </label>
-                    )}
+                        )}
+                    </section>
                 </div>
 
                 <footer className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border shrink-0">
-                    {step === "questions" ? (
-                        <>
-                            <Button
-                                type="button"
-                                variant="exec-light"
-                                onClick={onClose}
-                                disabled={submitting}
-                                className="h-9 px-3 text-[12.5px] cursor-pointer"
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="exec-dark"
-                                onClick={goToCoverStep}
-                                disabled={submitting || !questionsReady}
-                                className="h-9 px-3 text-[12.5px] cursor-pointer"
-                            >
-                                Next
-                            </Button>
-                        </>
-                    ) : (
-                        <>
-                            <Button
-                                type="button"
-                                variant="exec-light"
-                                onClick={
-                                    hasQuestions
-                                        ? () => setStep("questions")
-                                        : onClose
-                                }
-                                disabled={submitting}
-                                className="h-9 px-3 text-[12.5px] cursor-pointer"
-                            >
-                                {hasQuestions ? "Back" : "Cancel"}
-                            </Button>
-                            <Button
-                                type="button"
-                                variant="exec-dark"
-                                onClick={onApplyClick}
-                                disabled={submitting || !coverReady}
-                                className="h-9 px-3 text-[12.5px] cursor-pointer"
-                            >
-                                {submitting ? "Submitting…" : "Apply"}
-                            </Button>
-                        </>
-                    )}
+                    <Button
+                        type="button"
+                        variant="exec-light"
+                        onClick={onClose}
+                        disabled={submitting}
+                        className="h-9 px-3 text-[12.5px] cursor-pointer"
+                    >
+                        Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="exec-dark"
+                        onClick={onApplyClick}
+                        disabled={submitting || !ready}
+                        className="h-9 px-3 text-[12.5px] cursor-pointer"
+                    >
+                        {submitting ? "Submitting…" : "Apply"}
+                    </Button>
                 </footer>
             </div>
             <ConfirmDialog

@@ -2,7 +2,6 @@ import type { Request, Response } from "express";
 import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
-// returns platform-wide counters for the admin overview dashboard
 export default async function getAdminStats(
     req: Request,
     res: Response,

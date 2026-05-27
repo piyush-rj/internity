@@ -20,6 +20,26 @@ import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
 
+const COMMON_TIMEZONES: readonly string[] = [
+    "Asia/Kolkata",
+    "Asia/Karachi",
+    "Asia/Dhaka",
+    "Asia/Dubai",
+    "Asia/Singapore",
+    "Asia/Tokyo",
+    "Asia/Shanghai",
+    "Europe/London",
+    "Europe/Berlin",
+    "Europe/Paris",
+    "America/New_York",
+    "America/Chicago",
+    "America/Denver",
+    "America/Los_Angeles",
+    "America/Sao_Paulo",
+    "Australia/Sydney",
+    "Pacific/Auckland",
+];
+
 type Props = {
     open: boolean;
     applicant: ApplicantWithStudent;
@@ -59,6 +79,11 @@ export function ScheduleInterviewDialog({
     const [startTime, setStartTime] = useState("");
     const [endTime, setEndTime] = useState("");
     const [description, setDescription] = useState("");
+    const [timezone, setTimezone] = useState<string>(
+        typeof Intl !== "undefined"
+            ? Intl.DateTimeFormat().resolvedOptions().timeZone || "Asia/Kolkata"
+            : "Asia/Kolkata",
+    );
     const [submitting, setSubmitting] = useState(false);
 
     useEffect(() => {
@@ -146,6 +171,7 @@ export function ScheduleInterviewDialog({
                 meetingLink: type === "VIDEO" ? meetingLink.trim() : undefined,
                 hostPhone: hostPhone.trim() || undefined,
                 description: description.trim() || undefined,
+                timezone,
             });
             toast.success("Interview scheduled");
             onScheduled();
@@ -306,6 +332,29 @@ export function ScheduleInterviewDialog({
                         </Field>
                     </div>
 
+                    <Field
+                        label="Timezone"
+                        help="Candidate sees both this and their local time."
+                    >
+                        <select
+                            value={timezone}
+                            onChange={(e) => setTimezone(e.target.value)}
+                            className={cn(
+                                inputClass,
+                                "appearance-none pr-8 cursor-pointer",
+                            )}
+                        >
+                            {COMMON_TIMEZONES.map((tz) => (
+                                <option key={tz} value={tz}>
+                                    {tz}
+                                </option>
+                            ))}
+                            {!COMMON_TIMEZONES.includes(timezone) && (
+                                <option value={timezone}>{timezone}</option>
+                            )}
+                        </select>
+                    </Field>
+
                     <div className="rounded-lg border border-border bg-secondary/40 px-3 py-2.5 text-[12px]">
                         <div className="text-muted-foreground">
                             Applicant&rsquo;s contact number
@@ -345,11 +394,10 @@ export function ScheduleInterviewDialog({
                             id="iv-desc"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            rows={5}
                             maxLength={1500}
                             className={cn(
                                 inputClass,
-                                "resize-y leading-relaxed",
+                                "h-30 py-2 resize-none leading-relaxed",
                             )}
                         />
                     </Field>
@@ -495,8 +543,6 @@ function isHttpUrl(s: string): boolean {
 
 function defaultDescription(name: string, company: string): string {
     return `Hi ${name.split(" ")[0]},
-
 Looking forward to chatting with you about the role at ${company}. Please confirm your availability or let me know if you'd like to reschedule.
-
 Thanks!`;
 }

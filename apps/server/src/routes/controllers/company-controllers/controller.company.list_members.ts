@@ -13,7 +13,13 @@ export default async function listCompanyMembers(
             orderBy: { joinedAt: "asc" },
             include: {
                 user: {
-                    select: { id: true, name: true, email: true, image: true },
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        image: true,
+                        deletedAt: true,
+                    },
                 },
             },
         });

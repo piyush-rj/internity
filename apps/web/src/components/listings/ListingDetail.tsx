@@ -16,8 +16,11 @@ import {
 } from "react-icons/pi";
 import type { ListingDetail as ListingDetailType } from "@/src/hooks/useListing";
 import { ApplyCard } from "@/src/components/listings/ApplyCard";
+import { ShareMenu } from "@/src/components/listings/ShareMenu";
+import { ReportListingButton } from "@/src/components/listings/ReportListingButton";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
+import { formatDuration } from "@/src/lib/format/duration";
 import { cn } from "@/src/lib/utils";
 
 export function ListingDetail({
@@ -30,10 +33,14 @@ export function ListingDetail({
     onApplied: () => Promise<void> | void;
 }) {
     const closed = !!listing.closedAt;
+    const durationLabel = formatDuration(
+        listing.durationMonths,
+        listing.durationWeeks,
+    );
     const hasKeyDetails = !!(
         listing.applyBy ||
         listing.startDate ||
-        listing.durationMonths ||
+        durationLabel ||
         listing.stipendMin ||
         listing.stipendMax ||
         listing.openings
@@ -84,9 +91,17 @@ export function ListingDetail({
                 </article>
 
                 <aside className="order-1 lg:order-2 lg:sticky lg:top-16 lg:self-start space-y-4">
-                    <div className="rounded-lg border border-border border-t-2 border-t-orange-300 bg-card p-4 space-y-3">
+                    <div className="rounded-lg border border-border bg-card p-4 space-y-3">
                         {hasKeyDetails && <KeyDetails listing={listing} />}
                         <div className={hasKeyDetails ? "pt-3" : ""}>
+                            <div className="mb-3 flex items-center justify-between gap-2">
+                                <ShareMenu
+                                    url={`/listings/${listing.id}`}
+                                    title={listing.title}
+                                    company={listing.company.name}
+                                />
+                                <ReportListingButton listingId={listing.id} />
+                            </div>
                             <ApplyCard
                                 listingId={listing.id}
                                 postedById={listing.postedById}
@@ -207,6 +222,10 @@ function Header({
     listing: ListingDetailType;
     closed: boolean;
 }) {
+    const durationLabel = formatDuration(
+        listing.durationMonths,
+        listing.durationWeeks,
+    );
     return (
         <section className="rounded-lg border border-border bg-card p-4 sm:p-6">
             <div className="flex items-start gap-3 sm:gap-4">
@@ -236,11 +255,7 @@ function Header({
                     <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[12px] text-muted-foreground">
                         <Meta
                             icon={<PiBriefcase className="h-3.5 w-3.5" />}
-                            text={
-                                listing.type === "INTERNSHIP"
-                                    ? "Internship"
-                                    : "Job"
-                            }
+                            text="Internship"
                         />
                         {(listing.stipendMin || listing.stipendMax) && (
                             <Meta
@@ -248,10 +263,10 @@ function Header({
                                 text={`${formatStipend(listing.stipendMin, listing.stipendMax)}/mo`}
                             />
                         )}
-                        {listing.durationMonths && (
+                        {durationLabel && (
                             <Meta
                                 icon={<PiClock className="h-3.5 w-3.5" />}
-                                text={`${listing.durationMonths} months`}
+                                text={durationLabel}
                             />
                         )}
                         {listing.city && (
@@ -292,6 +307,10 @@ function SaveToggle({ listing }: { listing: ListingDetailType }) {
 }
 
 function KeyDetails({ listing }: { listing: ListingDetailType }) {
+    const durationLabel = formatDuration(
+        listing.durationMonths,
+        listing.durationWeeks,
+    );
     return (
         <dl className="grid grid-cols-1 gap-y-2 text-[12.5px]">
             {listing.applyBy && (
@@ -308,11 +327,11 @@ function KeyDetails({ listing }: { listing: ListingDetailType }) {
                     value={formatDate(listing.startDate)}
                 />
             )}
-            {listing.durationMonths && (
+            {durationLabel && (
                 <Row
                     icon={<PiClock className="h-3.5 w-3.5" />}
                     label="Duration"
-                    value={`${listing.durationMonths} months`}
+                    value={durationLabel}
                 />
             )}
             {(listing.stipendMin || listing.stipendMax) && (

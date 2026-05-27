@@ -19,6 +19,7 @@ import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
+import { formatDuration } from "@/src/lib/format/duration";
 import { cn } from "@/src/lib/utils";
 
 export function ListingList({
@@ -240,11 +241,10 @@ function ListingRow({
             </Td>
             {!compact && (
                 <Td className="text-muted-foreground tabular-nums">
-                    {listing.durationMonths ? (
-                        <>{listing.durationMonths} months</>
-                    ) : (
-                        <Dash />
-                    )}
+                    {formatDuration(
+                        listing.durationMonths,
+                        listing.durationWeeks,
+                    ) ?? <Dash />}
                 </Td>
             )}
             {!compact && (

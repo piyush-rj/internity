@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ListingCards } from "@/src/components/listings/ListingCards";
@@ -13,6 +13,7 @@ import {
     PAGE_SIZE,
 } from "@/src/components/listings/filtersFromSearchParams";
 import { useListings } from "@/src/hooks/useListings";
+import { useAppliedStore } from "@/src/store/useAppliedStore";
 
 export default function InternshipsPage() {
     return (
@@ -24,9 +25,23 @@ export default function InternshipsPage() {
 
 function InternshipsView() {
     const sp = useSearchParams();
-    const filters = filtersFromSearchParams(sp, { type: "INTERNSHIP" });
+    const filters = filtersFromSearchParams(sp);
     const { items, total, page, pageSize, loading, error } =
         useListings(filters);
+
+    // Applied/Not-applied is a client-side post-filter because the server
+    // doesn't know who applied to what for browse queries.
+    const appliedMode = sp?.get("applied") ?? "";
+    const appliedIds = useAppliedStore((s) => s.appliedIds);
+    const visibleItems = useMemo(() => {
+        if (appliedMode === "applied") {
+            return items.filter((l) => appliedIds[l.id]);
+        }
+        if (appliedMode === "not_applied") {
+            return items.filter((l) => !appliedIds[l.id]);
+        }
+        return items;
+    }, [items, appliedMode, appliedIds]);
 
     return (
         <EmptySection
@@ -37,7 +52,7 @@ function InternshipsView() {
                 <div className="min-w-0 space-y-5">
                     <ListingsFiltersMobile basePath="/home/internships" />
                     <ListingCards
-                        items={items}
+                        items={visibleItems}
                         loading={loading}
                         error={error}
                         emptyText="No internships match these filters. Try widening your search."

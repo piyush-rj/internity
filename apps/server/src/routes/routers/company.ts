@@ -11,7 +11,8 @@ import {
     InvalidRequest,
     ResponseWriter,
 } from "../../utils/api-response.ts";
-import { CompanyRole, prisma } from "../../db.ts";
+import { prisma } from "../../db.ts";
+import { canManageCompany } from "../../utils/company-roles.ts";
 import { requireAdmin, requireAuth } from "../../middleware/auth.ts";
 import createCompany from "../controllers/company-controllers/controller.company.create.ts";
 import getCompanyBySlug from "../controllers/company-controllers/controller.company.get_by_slug.ts";
@@ -27,8 +28,10 @@ import createCompanyInvitation from "../controllers/company-controllers/controll
 import listCompanyInvitations from "../controllers/company-controllers/controller.company.list_invitations.ts";
 import revokeCompanyInvitation from "../controllers/company-controllers/controller.company.revoke_invitation.ts";
 
-// middleware that allows only company members or owners
-function requireCompanyMember(opts: { ownerOnly?: boolean } = {}) {
+// Gate a route on company membership; optionally require the caller's
+// CompanyRole to satisfy a capability (e.g. founder-only actions like
+// inviting members or editing the company profile).
+function requireCompanyMember(opts: { adminOnly?: boolean } = {}) {
     return async (
         req: Request,
         res: Response,
@@ -44,8 +47,10 @@ function requireCompanyMember(opts: { ownerOnly?: boolean } = {}) {
                 },
             });
             if (!member) throw new Forbidden("Not a member of this company");
-            if (opts.ownerOnly && member.role !== CompanyRole.OWNER) {
-                throw new Forbidden("Owner-only action");
+            if (opts.adminOnly && !canManageCompany(member.role)) {
+                throw new Forbidden(
+                    "Only founders and co-founders can do this",
+                );
             }
             next();
         } catch (err) {
@@ -69,34 +74,34 @@ router.get("/admin/list", requireAdmin, adminListCompanies);
 router.get("/admin/:id", requireAdmin, adminGetCompany);
 
 router.get("/:slug", getCompanyBySlug);
-router.patch("/:id", requireCompanyMember({ ownerOnly: true }), updateCompany);
+router.patch("/:id", requireCompanyMember({ adminOnly: true }), updateCompany);
 router.post("/:id/verification", requireAdmin, setCompanyVerification);
 router.get("/:id/members", requireCompanyMember(), listCompanyMembers);
 router.post(
     "/:id/members",
-    requireCompanyMember({ ownerOnly: true }),
+    requireCompanyMember({ adminOnly: true }),
     addCompanyMember,
 );
 router.patch(
     "/:id/members/:userId",
-    requireCompanyMember({ ownerOnly: true }),
+    requireCompanyMember({ adminOnly: true }),
     updateCompanyMemberRole,
 );
 router.delete(
     "/:id/members/:userId",
-    requireCompanyMember({ ownerOnly: true }),
+    requireCompanyMember({ adminOnly: true }),
     removeCompanyMember,
 );
 
 router.get("/:id/invites", requireCompanyMember(), listCompanyInvitations);
 router.post(
     "/:id/invites",
-    requireCompanyMember({ ownerOnly: true }),
+    requireCompanyMember({ adminOnly: true }),
     createCompanyInvitation,
 );
 router.delete(
     "/:id/invites/:inviteId",
-    requireCompanyMember({ ownerOnly: true }),
+    requireCompanyMember({ adminOnly: true }),
     revokeCompanyInvitation,
 );
 

@@ -5,13 +5,33 @@ import {
     NotFound,
     ResponseWriter,
 } from "../../../utils/api-response.ts";
-import { CompanyVerificationStatus, prisma } from "../../../db.ts";
+import {
+    CompanyVerificationStatus,
+    OrganizationType,
+    prisma,
+} from "../../../db.ts";
+
+const ORG_TYPES = [
+    "SOLO_FOUNDER",
+    "STARTUP_TEAM",
+    "BOOTSTRAPPED_STARTUP",
+    "PRIVATE_LIMITED",
+    "LLP",
+    "AGENCY",
+    "FREELANCER",
+    "STUDENT_STARTUP",
+    "OTHER",
+] as const;
 
 const Body = z.object({
     name: z.string().min(1).optional(),
     logoUrl: z.string().url().nullable().optional(),
     website: z.string().url("Enter a valid website URL").nullable().optional(),
-    linkedinUrl: z.string().url("Enter a valid LinkedIn URL").min(1).optional(),
+    linkedinUrl: z
+        .string()
+        .url("Enter a valid LinkedIn URL")
+        .nullable()
+        .optional(),
     foundingYear: z
         .number()
         .int()
@@ -25,6 +45,8 @@ const Body = z.object({
     industry: z.string().nullable().optional(),
     size: z.string().nullable().optional(),
     city: z.string().nullable().optional(),
+    country: z.string().nullable().optional(),
+    organizationType: z.enum(ORG_TYPES).nullable().optional(),
 });
 
 export default async function updateCompany(
@@ -48,6 +70,12 @@ export default async function updateCompany(
         if (body.industry !== undefined) data.industry = body.industry;
         if (body.size !== undefined) data.size = body.size;
         if (body.city !== undefined) data.city = body.city;
+        if (body.country !== undefined) data.country = body.country;
+        if (body.organizationType !== undefined)
+            data.organizationType =
+                body.organizationType === null
+                    ? null
+                    : (body.organizationType as OrganizationType);
 
         // edit-and-resubmit transitions a rejected company back to pending
         if (c.verificationStatus === CompanyVerificationStatus.REJECTED) {

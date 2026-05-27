@@ -7,7 +7,8 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { bucket, publicUrlFor } from "../../../core/storage.ts";
-import { AssetKind, CompanyRole, prisma } from "../../../db.ts";
+import { AssetKind, prisma } from "../../../db.ts";
+import { canManageCompany } from "../../../utils/company-roles.ts";
 
 const Body = z.object({
     kind: z.enum(["RESUME", "COMPANY_LOGO", "PROFILE_IMAGE"]),
@@ -15,7 +16,12 @@ const Body = z.object({
     contentType: z.string().min(1),
     sizeBytes: z.number().int().positive(),
     companyId: z.string().nullable().optional(),
+    // RESUME only: file name shown in the resume picker. Falls back to a
+    // generic label.
+    fileName: z.string().max(120).nullable().optional(),
 });
+
+const MAX_RESUMES_PER_STUDENT = 4;
 
 export default async function confirmUpload(
     req: Request,
@@ -38,8 +44,10 @@ export default async function confirmUpload(
                     companyId_userId: { companyId: body.companyId, userId },
                 },
             });
-            if (!member || member.role !== CompanyRole.OWNER) {
-                throw new Forbidden("Owner-only action");
+            if (!member || !canManageCompany(member.role)) {
+                throw new Forbidden(
+                    "Only founders and co-founders can update the company logo",
+                );
             }
         }
 
@@ -57,10 +65,36 @@ export default async function confirmUpload(
                 },
             });
             if (kind === AssetKind.RESUME) {
-                await tx.studentProfile.updateMany({
+                const profile = await tx.studentProfile.findUnique({
                     where: { userId },
-                    data: { resumeUrl: url },
+                    select: { id: true, resumes: { select: { id: true } } },
                 });
+                if (profile) {
+                    if (profile.resumes.length >= MAX_RESUMES_PER_STUDENT) {
+                        throw new InvalidRequest(
+                            `You can keep up to ${MAX_RESUMES_PER_STUDENT} resumes. Delete one before uploading another.`,
+                        );
+                    }
+                    const isFirst = profile.resumes.length === 0;
+                    await tx.resume.create({
+                        data: {
+                            studentId: profile.id,
+                            assetId: created.id,
+                            fileName: body.fileName?.trim() || "Resume",
+                            url,
+                            sizeBytes: body.sizeBytes,
+                            isDefault: isFirst,
+                        },
+                    });
+                    // Keep the denormalised default URL in sync (only when
+                    // this upload becomes the default — i.e. the first one).
+                    if (isFirst) {
+                        await tx.studentProfile.update({
+                            where: { id: profile.id },
+                            data: { resumeUrl: url },
+                        });
+                    }
+                }
             } else if (kind === AssetKind.PROFILE_IMAGE) {
                 await tx.user.update({
                     where: { id: userId },

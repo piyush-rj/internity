@@ -9,7 +9,7 @@ import { CompanyRole, prisma } from "../../../db.ts";
 
 const Body = z.object({
     email: z.string().email(),
-    role: z.enum(["OWNER", "MEMBER"]).optional(),
+    role: z.enum(["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER"]).optional(),
 });
 
 export default async function addCompanyMember(

@@ -44,7 +44,7 @@ export default async function listMyInterviews(
                             select: {
                                 id: true,
                                 title: true,
-                                type: true,
+                                jobTitle: true,
                                 company: {
                                     select: {
                                         id: true,
@@ -63,6 +63,7 @@ export default async function listMyInterviews(
                         name: true,
                         email: true,
                         image: true,
+                        deletedAt: true,
                     },
                 },
                 candidate: {
@@ -71,6 +72,7 @@ export default async function listMyInterviews(
                         name: true,
                         email: true,
                         image: true,
+                        deletedAt: true,
                     },
                 },
             },

@@ -1,13 +1,28 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Calendar, Info, MapPin, Phone, User, Users } from "lucide-react";
+import {
+    Calendar,
+    Check,
+    Info,
+    MapPin,
+    Phone,
+    Target,
+    User,
+    Users,
+} from "lucide-react";
 import {
     Field,
     inputCls,
     StepShell,
 } from "@/src/components/profile-wizard/utils";
-import { studentApi, type Gender, type StudentProfile } from "@/src/lib/api";
+import {
+    studentApi,
+    type Gender,
+    type JobTitle,
+    type StudentProfile,
+} from "@/src/lib/api";
+import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
 
@@ -19,6 +34,7 @@ type FormState = {
     dob: string;
     gender: Gender | "";
     bio: string;
+    interestedJobTitles: JobTitle[];
 };
 
 const empty: FormState = {
@@ -29,6 +45,7 @@ const empty: FormState = {
     dob: "",
     gender: "",
     bio: "",
+    interestedJobTitles: [],
 };
 
 function fromProfile(p: StudentProfile | null): FormState {
@@ -41,6 +58,7 @@ function fromProfile(p: StudentProfile | null): FormState {
         dob: p.dob ? p.dob.slice(0, 10) : "",
         gender: p.gender ?? "",
         bio: p.bio ?? "",
+        interestedJobTitles: p.interestedJobTitles ?? [],
     };
 }
 
@@ -85,6 +103,10 @@ export function BasicsStep({
             dob: form.dob ? new Date(form.dob).toISOString() : undefined,
             gender: form.gender || undefined,
             bio: form.bio.trim() || undefined,
+            interestedJobTitles:
+                form.interestedJobTitles.length > 0
+                    ? form.interestedJobTitles
+                    : [],
         };
         try {
             if (profile) {
@@ -208,6 +230,52 @@ export function BasicsStep({
                         </select>
                     </Field>
                 </div>
+
+                <Field
+                    label="Interested roles"
+                    icon={<Target className="h-3.5 w-3.5" />}
+                    hint="Pick the roles you want. We'll rank matching listings first on your feed."
+                >
+                    <div className="flex flex-wrap gap-1.5">
+                        {JOB_TITLES.map((o) => {
+                            const selected = form.interestedJobTitles.includes(
+                                o.value,
+                            );
+                            return (
+                                <button
+                                    key={o.value}
+                                    type="button"
+                                    onClick={() => {
+                                        setForm((f) => {
+                                            const next = new Set(
+                                                f.interestedJobTitles,
+                                            );
+                                            if (next.has(o.value))
+                                                next.delete(o.value);
+                                            else next.add(o.value);
+                                            return {
+                                                ...f,
+                                                interestedJobTitles:
+                                                    Array.from(next),
+                                            };
+                                        });
+                                    }}
+                                    className={cn(
+                                        "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px] cursor-pointer transition-colors",
+                                        selected
+                                            ? "border-orange-500 bg-orange-50 text-orange-700"
+                                            : "border-border bg-background text-foreground hover:bg-secondary",
+                                    )}
+                                >
+                                    {selected && (
+                                        <Check className="h-3 w-3" />
+                                    )}
+                                    {o.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </Field>
 
                 <Field
                     label="Short bio"

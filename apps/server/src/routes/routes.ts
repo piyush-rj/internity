@@ -15,6 +15,8 @@ import chatRouter from "./routers/chat.ts";
 import adminRouter from "./routers/admin.ts";
 import interviewRouter from "./routers/interview.ts";
 import invitationRouter from "./routers/invitation.ts";
+import resumeRouter from "./routers/resume.ts";
+import reportRouter from "./routers/report.ts";
 
 const v1: Router = Router();
 
@@ -37,5 +39,7 @@ v1.use("/chat", chatRouter);
 v1.use("/admin", adminRouter);
 v1.use("/interview", interviewRouter);
 v1.use("/invitation", invitationRouter);
+v1.use("/resume", resumeRouter);
+v1.use("/report", reportRouter);
 
 export default v1;

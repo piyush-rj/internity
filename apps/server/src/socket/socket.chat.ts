@@ -159,6 +159,22 @@ export class ChatSocket {
             return;
         }
 
+        // Refuse to deliver into a dead inbox — the other side won't ever
+        // read it and the sender deserves to know that up front rather than
+        // sending into a void.
+        const peerDeleted =
+            ws.user.id === conv.studentId
+                ? conv.recruiter.deletedAt
+                : conv.student.deletedAt;
+        if (peerDeleted) {
+            ws.send({
+                type: MESSAGE_TYPE.ERROR,
+                code: SOCKET_ERROR_CODE.FORBIDDEN,
+                message: "This person deleted their account.",
+            });
+            return;
+        }
+
         const msg = await SocketDbService.createMessage(
             conversationId,
             ws.user.id,

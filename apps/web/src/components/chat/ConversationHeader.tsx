@@ -34,15 +34,34 @@ export function ConversationHeader({
               lastSeenAt: livePresence.lastSeenAt,
           }
         : peer;
+    const isDeleted = !!peer.deletedAt;
     return (
         <header className="h-15 px-4 flex items-center gap-3 border-b border-border bg-white shrink-0">
             {onBack && <BackButton onClick={onBack} />}
-            <ChatAvatar name={peer.name} image={peer.image} size="sm" />
+            <ChatAvatar
+                name={isDeleted ? "?" : peer.name}
+                image={isDeleted ? null : peer.image}
+                size="sm"
+            />
             <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-semibold truncate leading-tight">
-                    {peer.name ?? "Unknown"}
+                <div className="flex items-center gap-1.5">
+                    <div
+                        className={
+                            isDeleted
+                                ? "text-[13.5px] font-semibold truncate leading-tight text-muted-foreground italic"
+                                : "text-[13.5px] font-semibold truncate leading-tight"
+                        }
+                    >
+                        {isDeleted ? "Deleted account" : (peer.name ?? "Unknown")}
+                    </div>
                 </div>
-                <PresenceSubtitle peer={peerWithLivePresence} />
+                {isDeleted ? (
+                    <div className="text-[11px] leading-tight text-muted-foreground truncate">
+                        This person deleted their account
+                    </div>
+                ) : (
+                    <PresenceSubtitle peer={peerWithLivePresence} />
+                )}
             </div>
         </header>
     );

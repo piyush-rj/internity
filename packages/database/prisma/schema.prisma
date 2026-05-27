@@ -22,10 +22,10 @@ model User {
 
   googleId String? @unique
 
-  role          UserRole @default(STUDENT)
-  roleConfirmed Boolean  @default(false)
-  isBanned      Boolean  @default(false)
-  banReason     String?  @db.Text
+  role          UserRole  @default(STUDENT)
+  roleConfirmed Boolean   @default(false)
+  isBanned      Boolean   @default(false)
+  banReason     String?   @db.Text
   bannedAt      DateTime?
 
   isPremium    Boolean   @default(false)
@@ -33,6 +33,16 @@ model User {
 
   isOnline   Boolean   @default(false)
   lastSeenAt DateTime?
+
+  // Soft-delete. Set when the user hits "delete my account"; everything else
+  // stays for audit but the row is excluded from all surfaces.
+  deletedAt DateTime?
+
+  // For employers who belong to multiple companies — points to the company
+  // currently in focus across the dashboard. Always one of their
+  // companyMemberships, or null pre-creation/pre-join.
+  activeCompanyId String?
+  activeCompany   Company? @relation("UserActiveCompany", fields: [activeCompanyId], references: [id], onDelete: SetNull)
 
   // Google OAuth (Calendar API) — set when the user connects their Google
   // account to auto-generate Meet links. Tokens stored plaintext for MVP;
@@ -49,14 +59,14 @@ model User {
   studentProfile     StudentProfile?
   employerProfile    EmployerProfile?
   companyMemberships CompanyMember[]
-  listingsPosted     Listing[]        @relation("ListingPostedBy")
-  listingsTakenDown  Listing[]        @relation("ListingTakenDownBy")
+  listingsPosted     Listing[]          @relation("ListingPostedBy")
+  listingsTakenDown  Listing[]          @relation("ListingTakenDownBy")
   applications       Application[]
   savedListings      SavedListing[]
   assets             Asset[]
   notifications      Notification[]
   payments           Payment[]
-  messagesSent       Message[]        @relation("MessageSentBy")
+  messagesSent       Message[]          @relation("MessageSentBy")
   conversationReads  ConversationRead[]
 
   studentConversations   Conversation[] @relation("StudentConversations")
@@ -67,6 +77,12 @@ model User {
 
   companyInvitesSent     CompanyInvitation[] @relation("CompanyInvitesSent")
   companyInvitesAccepted CompanyInvitation[] @relation("CompanyInvitesAccepted")
+
+  reportsFiled    Report[] @relation("ReportReporter")
+  reportsAgainst  Report[] @relation("ReportTargetStudent")
+  reportsResolved Report[] @relation("ReportResolvedBy")
+
+  @@index([deletedAt])
 }
 
 model StudentProfile {
@@ -80,9 +96,22 @@ model StudentProfile {
   city      String?
   dob       DateTime?
   gender    Gender?
-  bio       String?  @db.Text
+  bio       String?   @db.Text
 
-  resumeUrl    String? // pointer to latest resume Asset.url
+  // Roles the student is looking for. Drives ranking on the listings feed
+  // and prefills the post-application "roles you matched" UI. Stored as a
+  // typed array so we can join cheaply against Listing.jobTitle.
+  interestedJobTitles JobTitle[] @default([])
+
+  // Carbon-copy of the last cover letter the student submitted on Apply.
+  // Used to one-click prefill subsequent applications. Cleared if they ever
+  // delete their account (the account-delete path nulls profile PII).
+  lastCoverLetter String? @db.Text
+
+  // Default/primary resume URL — mirrors the Resume row flagged isDefault.
+  // Kept denormalised because most reads (search cards, public profile)
+  // just need one URL without joining a child table.
+  resumeUrl    String?
   linkedinUrl  String?
   portfolioUrl String?
 
@@ -97,11 +126,37 @@ model StudentProfile {
   skills         StudentSkill[]
   certifications Certification[]
   languages      Language[]
+  resumes        Resume[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([city])
+}
+
+// Student-managed resume file. A student can keep up to 4 (enforced in the
+// controller) and exactly one is flagged isDefault — that's the one auto-
+// selected on apply. Application.resumeUrl snapshots whichever was chosen
+// at apply time so deletes here don't break past applications.
+model Resume {
+  id        String         @id @default(cuid())
+  studentId String
+  student   StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  assetId String?
+  asset   Asset?  @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  fileName  String
+  url       String
+  sizeBytes Int?
+
+  isDefault  Boolean   @default(false)
+  lastUsedAt DateTime?
+
+  createdAt DateTime @default(now())
+
+  @@index([studentId])
+  @@index([assetId])
 }
 
 model Education {
@@ -204,27 +259,32 @@ model EmployerProfile {
   phone       String?
   jobTitle    String?
   linkedinUrl String?
+  country     String? @default("India")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Company {
-  id          String  @id @default(cuid())
-  name        String
-  slug        String  @unique
-  logoUrl     String?
-  website     String?
-  linkedinUrl String?
-  about       String? @db.Text
-  industry    String?
-  size        String?
-  city        String?
+  id           String  @id @default(cuid())
+  name         String
+  slug         String  @unique
+  logoUrl      String?
+  website      String?
+  linkedinUrl  String?
+  about        String? @db.Text
+  industry     String?
+  size         String?
+  city         String?
+  country      String? @default("India")
   foundingYear Int?
 
-  // Admin verification gate. A company starts PENDING and cannot post
-  // listings until APPROVED. REJECTED carries a rejectionNote and can be
-  // edited+resubmitted (which flips status back to PENDING).
+  organizationType OrganizationType?
+
+  // Admin verification gate. Listings can still be posted while PENDING —
+  // they just don't display the "Verified" badge until APPROVED. REJECTED
+  // carries a rejectionNote and can be edited+resubmitted (which flips
+  // status back to PENDING).
   verificationStatus CompanyVerificationStatus @default(PENDING)
   rejectionNote      String?                   @db.Text
   submittedAt        DateTime?
@@ -236,6 +296,7 @@ model Company {
   members     CompanyMember[]
   invitations CompanyInvitation[]
   listings    Listing[]
+  activeFor   User[]              @relation("UserActiveCompany")
 
   @@index([verificationStatus, submittedAt])
 }
@@ -290,34 +351,50 @@ model Listing {
   postedById String
   postedBy   User   @relation("ListingPostedBy", fields: [postedById], references: [id], onDelete: Cascade)
 
-  type        ListingType
   title       String
   mode        WorkMode
   city        String?
-  description String      @db.Text
+  description String   @db.Text
 
-  // High-level category for browse filtering. Optional so older posts
-  // don't break; new ones surface it in the post-listing form.
-  domain      ListingDomain?
+  // The picked job-title bucket from the predefined list, or CUSTOM when the
+  // employer typed their own. customJobTitle holds the free-text only when
+  // jobTitle = CUSTOM; for predefined picks it's null and the display title
+  // is the friendly label for the enum value.
+  jobTitle       JobTitle?
+  customJobTitle String?
 
   responsibilities String[]
   perks            String[]
   preferences      String[]
   skillTagsRaw     String[] // free-text snapshot; normalised m2m below
 
-  // Optional founder-defined screening questions. When non-empty, students
-  // must submit answers (same count, same order) at apply time. Capped at 5
-  // per the "no long forms" product principle.
-  screeningQuestions String[]
+  // Optional founder-defined screening questions. Stored as JSON because
+  // each entry is now a structured object: { q, type, options?, ideal? }
+  // where type is one of SHORT, YES_NO, MULTIPLE_CHOICE, NUMBERS, SCALE_1_5.
+  // Capped at 3 per the "no long forms" product principle. When non-empty,
+  // students must submit answers (same count, same order) at apply time.
+  screeningQuestions Json @default("[]")
 
-  stipendMin     Int?
-  stipendMax     Int?
-  currency       String?   @default("INR")
-  durationMonths Int?
-  startDate      DateTime?
-  applyBy        DateTime?
-  openings       Int?      @default(1)
-  partTime       Boolean   @default(false)
+  stipendMin      Int?
+  stipendMax      Int?
+  currency        String?   @default("INR")
+  // Duration is split into a months component and a weeks component so the
+  // UI can render short engagements honestly (e.g. "2 months 3 weeks").
+  // Either or both may be set; ranking treats `durationMonths * 4 +
+  // durationWeeks` as the equivalent total weeks.
+  durationMonths  Int?
+  durationWeeks   Int?
+  // Start date is either a single target ("Immediately" = both null; the
+  // listing implies a within-30-days start) or a range. When startDateLatest
+  // is set, students see "Start between X and Y" — otherwise just startDate.
+  startDate       DateTime?
+  startDateLatest DateTime?
+  applyBy         DateTime?
+  openings        Int?      @default(1)
+  partTime        Boolean   @default(false)
+  // Pre-placement offer flag. Asked as a separate yes/no on the form so it
+  // surfaces prominently on the listing card; not stored as a perk.
+  ppo             Boolean   @default(false)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -333,16 +410,18 @@ model Listing {
   // Admin moderation (soft-removal). When takenDownAt is set the listing
   // becomes hidden from public browse + the founder's own listings show it
   // as "Removed by admin" with the reason. An admin can restore it.
-  takenDownAt     DateTime?
-  takedownReason  String?  @db.Text
-  takenDownById   String?
-  takenDownBy     User?    @relation("ListingTakenDownBy", fields: [takenDownById], references: [id], onDelete: SetNull)
+  takenDownAt    DateTime?
+  takedownReason String?   @db.Text
+  takenDownById  String?
+  takenDownBy    User?     @relation("ListingTakenDownBy", fields: [takenDownById], references: [id], onDelete: SetNull)
 
   skills       ListingSkill[]
   applications Application[]
   savedBy      SavedListing[]
+  reports      Report[]       @relation("ReportTargetListing")
 
-  @@index([type, createdAt])
+  @@index([createdAt])
+  @@index([jobTitle])
   @@index([companyId])
   @@index([postedById])
   @@index([city])
@@ -376,9 +455,12 @@ model Application {
   coverLetter String?           @db.Text
   resumeUrl   String? // snapshot of resume at time of apply
 
-  // Parallel to Listing.screeningQuestions at the moment of apply. Same
-  // indices, same length. Empty array when the listing had no questions.
-  screeningAnswers String[]
+  // Parallel to Listing.screeningQuestions at apply time. Same length and
+  // order. Each entry is { value: string | number } so we can round-trip
+  // the per-type response shape (text for SHORT, "yes"/"no" for YES_NO,
+  // an option label for MULTIPLE_CHOICE, a number for NUMBERS/SCALE_1_5).
+  // Empty array when the listing had no questions.
+  screeningAnswers Json @default("[]")
 
   appliedAt       DateTime  @default(now())
   statusUpdatedAt DateTime  @default(now())
@@ -420,6 +502,10 @@ model Interview {
 
   scheduledAt DateTime
   endsAt      DateTime
+
+  // IANA timezone of the host at schedule time (e.g. "Asia/Kolkata"). UI
+  // displays scheduledAt in this TZ alongside the viewer's local TZ.
+  timezone String?
 
   // VIDEO: founder pastes Meet/Zoom/Teams URL here. PHONE: null.
   meetingLink String?
@@ -525,6 +611,8 @@ model Asset {
 
   createdAt DateTime @default(now())
 
+  resumes Resume[]
+
   @@index([userId, kind])
 }
 
@@ -567,6 +655,39 @@ model Notification {
   @@index([userId, readAt])
 }
 
+// Abuse report filed against either a Listing (by a student) or a Student
+// (by an employer). Surfaces in the admin queue; admin reviews and decides.
+// No automatic takedown — admin must act.
+model Report {
+  id String @id @default(cuid())
+
+  reporterId String
+  reporter   User   @relation("ReportReporter", fields: [reporterId], references: [id], onDelete: Cascade)
+
+  targetType ReportTargetType
+
+  targetListingId String?
+  targetListing   Listing? @relation("ReportTargetListing", fields: [targetListingId], references: [id], onDelete: Cascade)
+
+  targetStudentId String?
+  targetStudent   User?   @relation("ReportTargetStudent", fields: [targetStudentId], references: [id], onDelete: Cascade)
+
+  reason String @db.Text
+
+  status         ReportStatus @default(OPEN)
+  resolvedById   String?
+  resolvedBy     User?        @relation("ReportResolvedBy", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt     DateTime?
+  resolutionNote String?      @db.Text
+
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+  @@index([targetListingId])
+  @@index([targetStudentId])
+  @@index([reporterId])
+}
+
 enum UserRole {
   STUDENT
   EMPLOYER
@@ -580,20 +701,17 @@ enum Gender {
   PREFER_NOT_TO_SAY
 }
 
-enum ListingType {
-  INTERNSHIP
-  JOB
-}
-
 enum WorkMode {
   REMOTE
   HYBRID
   ONSITE
 }
 
-// High-level category for the browse-page Domain filter. Values mirror the
-// sample internship roles in the spec, grouped into a tractable filter set.
-enum ListingDomain {
+// Predefined job-title buckets shown in the post-listing dropdown. Each
+// value maps 1:1 to a friendly display label (resolved in the web app's
+// job-title catalog). CUSTOM means the employer typed their own title;
+// in that case Listing.customJobTitle holds the text.
+enum JobTitle {
   AI
   BACKEND
   WEB
@@ -606,6 +724,20 @@ enum ListingDomain {
   SALES
   DATA
   HR
+  CUSTOM
+}
+
+// Company self-description, asked once at company-creation time. Used on
+// the public company page and surfaces in admin verification review.
+enum OrganizationType {
+  SOLO_FOUNDER
+  STARTUP_TEAM
+  BOOTSTRAPPED_STARTUP
+  PRIVATE_LIMITED
+  LLP
+  AGENCY
+  FREELANCER
+  STUDENT_STARTUP
   OTHER
 }
 
@@ -629,9 +761,18 @@ enum InterviewStatus {
   COMPLETED
 }
 
+// Role within a company.
+//   FOUNDER_OWNER, CO_FOUNDER → full admin (post listings, edit company, manage team).
+//   HR                        → manage applicants + interviews; cannot edit listings or team.
+//   MEMBER                    → post listings only; no team / company admin.
+// Legacy `OWNER` is mapped to FOUNDER_OWNER by a data migration; kept here so
+// existing rows in any not-yet-migrated environment still parse.
 enum CompanyRole {
-  OWNER
+  FOUNDER_OWNER
+  CO_FOUNDER
+  HR
   MEMBER
+  OWNER
 }
 
 enum CompanyVerificationStatus {
@@ -666,4 +807,15 @@ enum PaymentStatus {
   CREATED
   SUCCESS
   FAILED
+}
+
+enum ReportTargetType {
+  LISTING
+  STUDENT
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
 }

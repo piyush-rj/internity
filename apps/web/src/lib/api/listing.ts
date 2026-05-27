@@ -3,11 +3,16 @@ import type {
     Application,
     ApplicationStatus,
     CompanyVerificationStatus,
+    JobTitle,
     Listing,
-    ListingDomain,
-    ListingType,
     ListingWithCompany,
     Paginated,
+    Report,
+    ReportStatus,
+    ReportTargetType,
+    Resume,
+    ScreeningAnswer,
+    ScreeningQuestion,
     StudentProfile,
     User,
     WorkMode,
@@ -39,6 +44,7 @@ export type ApplicantStudentExperience = {
 
 export type ApplicantWithStudent = Application & {
     student: Pick<User, "id" | "name" | "email" | "image"> & {
+        deletedAt: string | null;
         studentProfile:
             | (Pick<
                   StudentProfile,
@@ -69,39 +75,38 @@ export type AdminListingStateFilter = "live" | "closed" | "takendown" | "all";
 
 export type ListingInput = {
     companyId: string;
-    type: ListingType;
     title: string;
+    jobTitle?: JobTitle | null;
+    customJobTitle?: string | null;
     mode: WorkMode;
-    domain?: ListingDomain;
     city?: string;
     description: string;
     responsibilities?: string[];
     perks?: string[];
     preferences?: string[];
     skillTagsRaw?: string[];
-    screeningQuestions?: string[];
+    screeningQuestions?: ScreeningQuestion[];
     stipendMin?: number;
     stipendMax?: number;
     durationMonths?: number;
-    startDate?: string;
+    durationWeeks?: number;
+    startDate?: string | null;
+    startDateLatest?: string | null;
     applyBy?: string;
     openings?: number;
     partTime?: boolean;
+    ppo?: boolean;
 };
 
-export type CompanySize = "1-10" | "11-50" | "51-200" | "201-500" | "500+";
-
 export type ListingListFilters = {
-    type?: ListingType;
     q?: string;
     city?: string;
     mode?: WorkMode;
-    domain?: ListingDomain;
+    jobTitle?: JobTitle;
     skills?: string;
     stipendMin?: number;
     durationMax?: number;
     partTime?: "true" | "false";
-    companySize?: CompanySize;
     page?: number;
     pageSize?: number;
 };
@@ -156,7 +161,11 @@ export const listingApi = {
 
     apply: (
         listingId: string,
-        input: { coverLetter?: string; screeningAnswers?: string[] },
+        input: {
+            coverLetter?: string;
+            screeningAnswers?: ScreeningAnswer[];
+            resumeUrl?: string | null;
+        },
     ) =>
         api.post<{ application: Application }>(
             `/listing/${listingId}/apply`,
@@ -165,7 +174,7 @@ export const listingApi = {
     list_applicants: (listingId: string) =>
         api.get<{
             items: ApplicantWithStudent[];
-            screeningQuestions: string[];
+            screeningQuestions: ScreeningQuestion[];
             skillTagsRaw: string[];
         }>(`/listing/${listingId}/applications`),
 
@@ -259,6 +268,65 @@ export const uploadApi = {
         contentType: string;
         sizeBytes: number;
         companyId?: string;
+        fileName?: string;
     }) => api.post<{ asset: unknown }>("/upload/confirm", input),
     remove: (assetId: string) => api.delete<{ ok: true }>(`/upload/${assetId}`),
+};
+
+export const resumeApi = {
+    list: () => api.get<{ items: Resume[] }>("/resume"),
+    setDefault: (id: string) =>
+        api.post<{ ok: true }>(`/resume/${id}/default`),
+    remove: (id: string) => api.delete<{ ok: true }>(`/resume/${id}`),
+};
+
+export const reportApi = {
+    create: (input: {
+        targetType: ReportTargetType;
+        targetListingId?: string | null;
+        targetStudentId?: string | null;
+        reason: string;
+    }) => api.post<{ report: Report }>("/report", input),
+    admin_list: (params: {
+        status?: ReportStatus;
+        targetType?: ReportTargetType;
+        page?: number;
+        pageSize?: number;
+    }) =>
+        api.get<{
+            items: Array<
+                Report & {
+                    reporter: Pick<User, "id" | "name" | "email">;
+                    targetListing: {
+                        id: string;
+                        title: string;
+                        company: {
+                            id: string;
+                            name: string;
+                            slug: string;
+                        };
+                    } | null;
+                    targetStudent: Pick<
+                        User,
+                        "id" | "name" | "email"
+                    > & { isBanned: boolean } | null;
+                    resolvedBy: Pick<User, "id" | "name" | "email"> | null;
+                }
+            >;
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/report/admin", params as Record<string, unknown>),
+    admin_resolve: (
+        id: string,
+        input: { status: "RESOLVED" | "DISMISSED"; note?: string },
+    ) => api.post<{ report: Report }>(`/report/admin/${id}/resolve`, input),
+};
+
+export const accountApi = {
+    switchCompany: (companyId: string | null) =>
+        api.post<{ activeCompanyId: string | null }>("/auth/switch-company", {
+            companyId,
+        }),
+    deleteAccount: () => api.delete<{ ok: true }>("/auth/me"),
 };

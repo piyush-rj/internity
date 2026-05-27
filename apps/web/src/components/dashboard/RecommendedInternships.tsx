@@ -5,7 +5,6 @@ import { useListings } from "@/src/hooks/useListings";
 
 export function RecommendedInternships() {
     const { items, loading, error } = useListings({
-        type: "INTERNSHIP",
         pageSize: 4,
     });
 

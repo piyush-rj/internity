@@ -188,3 +188,19 @@ body {
     @apply font-sans;
   }
 }
+
+@layer base {
+  /* Hide the native up/down spinner buttons on every numeric input. The
+     product never uses them — our pickers expose a dropdown instead — and
+     they make the inputs feel mismatched against the rest of the form.
+     Opt-in retention is possible via .with-spinner if ever needed. */
+  input[type="number"]::-webkit-outer-spin-button,
+  input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+}

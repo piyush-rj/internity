@@ -68,6 +68,12 @@ export default async function acceptCompanyInvitation(
                     acceptedById: req.user!.id,
                 },
             });
+            // Switch focus to the joined company so the dashboard reflects it
+            // immediately. Doesn't disturb other memberships.
+            await tx.user.update({
+                where: { id: req.user!.id },
+                data: { activeCompanyId: invite.companyId },
+            });
             return member;
         });
 

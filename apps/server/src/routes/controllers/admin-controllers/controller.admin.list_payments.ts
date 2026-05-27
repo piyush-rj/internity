@@ -9,11 +9,6 @@ const Query = z.object({
     pageSize: z.coerce.number().int().min(1).max(100).default(50),
 });
 
-/**
- * GET /admin/payments — admin-only paginated list of every payment row.
- * Joins the founder + their primary company so the table can show who
- * paid for what without N+1 lookups on the client.
- */
 export default async function listPayments(
     req: Request,
     res: Response,

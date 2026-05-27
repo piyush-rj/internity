@@ -6,6 +6,7 @@ import { PiBuildings, PiUsers } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
 import { useCompanyMembers } from "@/src/hooks/useCompanyMembers";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
+import { COMPANY_ROLE_LABEL } from "@/src/lib/catalog/companyRoles";
 import { cn } from "@/src/lib/utils";
 
 export function CompanySnapshot() {
@@ -52,7 +53,9 @@ export function CompanySnapshot() {
                     <Stat
                         label="Your role"
                         value={
-                            membership?.role === "OWNER" ? "Owner" : "Member"
+                            membership
+                                ? COMPANY_ROLE_LABEL[membership.role]
+                                : "—"
                         }
                     />
                 </dl>

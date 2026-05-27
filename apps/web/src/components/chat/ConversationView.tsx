@@ -109,9 +109,13 @@ export function ConversationView({
         el.scrollTop = el.scrollHeight;
     }, [messages.length]);
 
+    const peerDeleted = !!peer?.deletedAt;
     const trimmedDraft = draft.trim();
     const canSend =
-        trimmedDraft.length > 0 && socket.status === "open" && !!meId;
+        trimmedDraft.length > 0 &&
+        socket.status === "open" &&
+        !!meId &&
+        !peerDeleted;
 
     function handleSend() {
         if (!canSend || !meId) return;
@@ -141,7 +145,9 @@ export function ConversationView({
     );
 
     const viewProfileHref =
-        meRole === "EMPLOYER" && peer ? `/student/${peer.id}` : null;
+        meRole === "EMPLOYER" && peer && !peerDeleted
+            ? `/student/${peer.id}`
+            : null;
 
     return (
         <div className="flex flex-col h-full min-h-0 bg-neutral-50">
@@ -192,12 +198,22 @@ export function ConversationView({
                 </div>
             </div>
 
+            {peerDeleted && (
+                <div className="px-5 py-2 border-t border-neutral-200 bg-zinc-50 text-[12px] text-muted-foreground text-center">
+                    This person deleted their account. You can&rsquo;t send any
+                    new messages in this thread.
+                </div>
+            )}
+
             <Composer
                 draft={draft}
                 onDraftChange={setDraft}
                 onSend={handleSend}
                 canSend={canSend}
                 connecting={socket.status !== "open"}
+                disabledReason={
+                    peerDeleted ? "This person deleted their account" : null
+                }
             />
         </div>
     );

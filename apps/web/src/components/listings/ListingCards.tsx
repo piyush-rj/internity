@@ -17,6 +17,7 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import { useIsApplied } from "@/src/store/useAppliedStore";
 import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
+import { formatDuration } from "@/src/lib/format/duration";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { cn } from "@/src/lib/utils";
@@ -132,12 +133,17 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                                 <span>{stipend} /mo</span>
                             </li>
                         )}
-                        {listing.durationMonths && (
+                        {formatDuration(
+                            listing.durationMonths,
+                            listing.durationWeeks,
+                        ) && (
                             <li className="inline-flex items-center gap-1.5 tabular-nums">
                                 <PiClock className="h-3.5 w-3.5 text-muted-foreground" />
                                 <span>
-                                    {listing.durationMonths} month
-                                    {listing.durationMonths === 1 ? "" : "s"}
+                                    {formatDuration(
+                                        listing.durationMonths,
+                                        listing.durationWeeks,
+                                    )}
                                 </span>
                             </li>
                         )}

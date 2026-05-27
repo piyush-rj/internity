@@ -20,6 +20,7 @@ import {
     type CompanyUpdateInput,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { INDUSTRIES } from "@/src/lib/catalog/industries";
 import { cn } from "@/src/lib/utils";
 
 export function CompanyInfoCard({
@@ -238,7 +239,7 @@ function EditForm({
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Field label="LinkedIn URL" required>
+                <Field label="Company LinkedIn" required>
                     <input
                         type="url"
                         value={form.linkedinUrl}
@@ -247,7 +248,7 @@ function EditForm({
                         className={inputCls()}
                     />
                 </Field>
-                <Field label="Website">
+                <Field label="Company Website">
                     <input
                         type="url"
                         value={form.website}
@@ -270,12 +271,18 @@ function EditForm({
                     />
                 </Field>
                 <Field label="Industry">
-                    <input
-                        type="text"
+                    <select
                         value={form.industry}
                         onChange={(e) => set("industry", e.target.value)}
-                        className={inputCls()}
-                    />
+                        className={cn(inputCls(), "pr-8 appearance-none")}
+                    >
+                        <option value="">Pick industry</option>
+                        {INDUSTRIES.map((i) => (
+                            <option key={i} value={i}>
+                                {i}
+                            </option>
+                        ))}
+                    </select>
                 </Field>
                 <Field label="Team size" required>
                     <input

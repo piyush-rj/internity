@@ -263,7 +263,6 @@ function PublicListingRow({
                     <span className="text-[14px] font-medium truncate">
                         {listing.title}
                     </span>
-                    <TypeBadge type={listing.type} />
                     <ModeBadge mode={listing.mode} />
                 </div>
                 <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground">
@@ -328,14 +327,6 @@ function Fact({ icon, text }: { icon: React.ReactNode; text: string }) {
             </span>
             <span className="truncate">{text}</span>
         </div>
-    );
-}
-
-function TypeBadge({ type }: { type: Listing["type"] }) {
-    return (
-        <span className="rounded-md border border-border bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {type === "INTERNSHIP" ? "Internship" : "Job"}
-        </span>
     );
 }
 

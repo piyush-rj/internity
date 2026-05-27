@@ -8,6 +8,7 @@ import {
     useState,
 } from "react";
 import Link from "next/link";
+import { Search } from "lucide-react";
 import { toast } from "sonner";
 import {
     PiCalendarBlankFill,
@@ -93,11 +94,24 @@ export default function SchedulesPage() {
     }
 
     const [tab, setTab] = useState<TabKey>("upcoming");
-    const items = tab === "upcoming" ? data.upcoming : data.past;
-    const emptyText =
-        tab === "upcoming"
-            ? "Nothing on your calendar right now."
-            : "No past interviews yet.";
+    const [query, setQuery] = useState("");
+    const filtered = useMemo(() => {
+        const q = query.trim().toLowerCase();
+        if (!q) return data;
+        const match = (iv: InterviewWithRelations) =>
+            iv.application.listing.company.name.toLowerCase().includes(q);
+        return {
+            upcoming: data.upcoming.filter(match),
+            past: data.past.filter(match),
+        };
+    }, [data, query]);
+    const items = tab === "upcoming" ? filtered.upcoming : filtered.past;
+    const hasQuery = query.trim().length > 0;
+    const emptyText = hasQuery
+        ? "No interviews match this company."
+        : tab === "upcoming"
+          ? "Nothing on your calendar right now."
+          : "No past interviews yet.";
 
     return (
         <EmptySection
@@ -114,11 +128,26 @@ export default function SchedulesPage() {
                 <SkeletonList />
             ) : (
                 <>
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                        <input
+                            type="text"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            placeholder="Search by company"
+                            className={cn(
+                                "w-full h-10 rounded-lg border border-border bg-card pl-9 pr-3",
+                                "text-[13px] placeholder:text-muted-foreground/70",
+                                "outline-none focus:border-brand/40 focus:ring-3 focus:ring-brand/15",
+                            )}
+                        />
+                    </div>
+
                     <Tabs
                         tab={tab}
                         onChange={setTab}
-                        upcomingCount={data.upcoming.length}
-                        pastCount={data.past.length}
+                        upcomingCount={filtered.upcoming.length}
+                        pastCount={filtered.past.length}
                     />
 
                     {items.length === 0 ? (
@@ -244,7 +273,10 @@ function InterviewRow({
     isPast?: boolean;
 }) {
     const counterpart = isStudent ? iv.host : iv.candidate;
-    const counterpartName = counterpart.name ?? counterpart.email ?? "—";
+    const counterpartDeleted = !!counterpart.deletedAt;
+    const counterpartName = counterpartDeleted
+        ? "Deleted account"
+        : (counterpart.name ?? counterpart.email ?? "—");
     const company = iv.application.listing.company;
     const phone = isStudent ? iv.hostPhone : iv.candidatePhone;
     const isCancelled = iv.status === "CANCELLED";
@@ -271,11 +303,19 @@ function InterviewRow({
                         </h3>
                         <TypeChip type={iv.type} />
                         {isCancelled && <CancelledChip />}
+                        {counterpartDeleted && <DeletedChip />}
                     </div>
                     <div className="mt-0.5 text-[13px] text-foreground/70 truncate">
                         with{" "}
-                        {isStudent ? (
-                            <span className="font-medium text-foreground/90">
+                        {isStudent || counterpartDeleted ? (
+                            <span
+                                className={cn(
+                                    "font-medium",
+                                    counterpartDeleted
+                                        ? "text-muted-foreground italic"
+                                        : "text-foreground/90",
+                                )}
+                            >
                                 {counterpartName}
                             </span>
                         ) : (
@@ -314,7 +354,7 @@ function InterviewRow({
                             icon={
                                 <PiClockFill className="h-3.5 w-3.5 text-orange-600/80" />
                             }
-                            text={`${formatTime(iv.scheduledAt)} – ${formatTime(iv.endsAt)}`}
+                            text={`${formatTime(iv.scheduledAt)} – ${formatTime(iv.endsAt)} ${localTzShort()}`}
                         />
                         {phone && (
                             <Meta
@@ -325,18 +365,36 @@ function InterviewRow({
                             />
                         )}
                     </div>
+                    {iv.timezone && iv.timezone !== localTzName() && (
+                        <p className="mt-1.5 text-[11.5px] text-muted-foreground">
+                            Host&rsquo;s time:{" "}
+                            {formatInTimezone(iv.scheduledAt, iv.timezone)} (
+                            {iv.timezone})
+                        </p>
+                    )}
 
-                    {iv.type === "VIDEO" && iv.meetingLink && (
-                        <a
-                            href={iv.meetingLink}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-orange-600 hover:text-orange-800 hover:underline max-w-full truncate"
-                            title={iv.meetingLink}
-                        >
-                            <PiVideoCameraFill className="h-3.5 w-3.5 shrink-0" />
-                            <span className="truncate">{iv.meetingLink}</span>
-                        </a>
+                    {iv.type === "VIDEO" &&
+                        iv.meetingLink &&
+                        !counterpartDeleted && (
+                            <a
+                                href={iv.meetingLink}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="mt-3 inline-flex items-center gap-1.5 text-[12.5px] font-medium text-orange-600 hover:text-orange-800 hover:underline max-w-full truncate"
+                                title={iv.meetingLink}
+                            >
+                                <PiVideoCameraFill className="h-3.5 w-3.5 shrink-0" />
+                                <span className="truncate">
+                                    {iv.meetingLink}
+                                </span>
+                            </a>
+                        )}
+
+                    {counterpartDeleted && !isCancelled && (
+                        <p className="mt-3 text-[12.5px] text-muted-foreground italic">
+                            The other party deleted their account. Cancel this
+                            interview to clear it from your calendar.
+                        </p>
                     )}
 
                     {iv.description && (
@@ -365,11 +423,13 @@ function InterviewRow({
                         <PiCalendarXFill className="h-3.5 w-3.5" />
                         {cancelling ? "Cancelling…" : "Cancel"}
                     </Button>
-                    {iv.type === "VIDEO" && iv.meetingLink && (
-                        <a
-                            href={iv.meetingLink}
-                            target="_blank"
-                            rel="noreferrer"
+                    {!counterpartDeleted &&
+                        iv.type === "VIDEO" &&
+                        iv.meetingLink && (
+                            <a
+                                href={iv.meetingLink}
+                                target="_blank"
+                                rel="noreferrer"
                             className={cn(
                                 "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
                                 isJoinable
@@ -381,15 +441,18 @@ function InterviewRow({
                             {isJoinable ? "Join now" : "Open link"}
                         </a>
                     )}
-                    {iv.type === "PHONE" && phone && !isStudent && (
-                        <a
-                            href={`tel:${phone}`}
-                            className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
-                        >
-                            <PiPhoneFill className="h-3.5 w-3.5" />
-                            Call
-                        </a>
-                    )}
+                    {!counterpartDeleted &&
+                        iv.type === "PHONE" &&
+                        phone &&
+                        !isStudent && (
+                            <a
+                                href={`tel:${phone}`}
+                                className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium border border-border bg-white text-foreground hover:bg-secondary"
+                            >
+                                <PiPhoneFill className="h-3.5 w-3.5" />
+                                Call
+                            </a>
+                        )}
                 </div>
             )}
         </div>
@@ -452,6 +515,17 @@ function CancelledChip() {
     return (
         <span className="inline-flex items-center rounded-md bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 text-[11px] font-medium">
             Cancelled
+        </span>
+    );
+}
+
+function DeletedChip() {
+    return (
+        <span
+            className="inline-flex items-center rounded-md bg-zinc-100 text-zinc-600 border border-zinc-200 px-2 py-0.5 text-[11px] font-medium"
+            title="The other party deleted their account. Cancel this interview to clear it from your calendar."
+        >
+            Account deleted
         </span>
     );
 }
@@ -527,4 +601,38 @@ function formatTime(iso: string): string {
         hour: "numeric",
         minute: "2-digit",
     });
+}
+
+function localTzName(): string {
+    try {
+        return Intl.DateTimeFormat().resolvedOptions().timeZone || "";
+    } catch {
+        return "";
+    }
+}
+
+function localTzShort(): string {
+    try {
+        const parts = new Intl.DateTimeFormat("en-US", {
+            timeZoneName: "short",
+        }).formatToParts(new Date());
+        return parts.find((p) => p.type === "timeZoneName")?.value ?? "";
+    } catch {
+        return "";
+    }
+}
+
+function formatInTimezone(iso: string, tz: string): string {
+    try {
+        return new Date(iso).toLocaleString("en-US", {
+            timeZone: tz,
+            weekday: "short",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit",
+        });
+    } catch {
+        return formatDateTime(iso);
+    }
 }

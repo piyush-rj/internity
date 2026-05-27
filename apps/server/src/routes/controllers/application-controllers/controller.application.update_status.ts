@@ -7,6 +7,7 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { ApplicationStatus, NotificationType, prisma } from "../../../db.ts";
+import { canManageApplicants } from "../../../utils/company-roles.ts";
 import { notify } from "../../../services/notifications.ts";
 
 const Body = z.object({
@@ -51,6 +52,11 @@ export default async function updateApplicationStatus(
             },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (!canManageApplicants(member.role)) {
+            throw new Forbidden(
+                "Your role can't change applicant status.",
+            );
+        }
 
         const status = body.status as ApplicationStatus;
         const updated = await prisma.application.update({

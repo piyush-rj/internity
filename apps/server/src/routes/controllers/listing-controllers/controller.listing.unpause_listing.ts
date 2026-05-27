@@ -6,6 +6,7 @@ import {
     ResponseWriter,
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { canManageListings } from "../../../utils/company-roles.ts";
 
 // clears pausedAt so the listing accepts applications again
 export default async function unpauseListing(
@@ -29,6 +30,11 @@ export default async function unpauseListing(
             },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (!canManageListings(member.role)) {
+            throw new Forbidden(
+                "Your role can't resume listings — ask a founder or co-founder.",
+            );
+        }
 
         const updated = await prisma.listing.update({
             where: { id },

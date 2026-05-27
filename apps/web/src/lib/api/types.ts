@@ -2,9 +2,8 @@
 
 export type UserRole = "STUDENT" | "EMPLOYER" | "ADMIN";
 export type Gender = "MALE" | "FEMALE" | "OTHER" | "PREFER_NOT_TO_SAY";
-export type ListingType = "INTERNSHIP" | "JOB";
 export type WorkMode = "REMOTE" | "HYBRID" | "ONSITE";
-export type ListingDomain =
+export type JobTitle =
     | "AI"
     | "BACKEND"
     | "WEB"
@@ -17,6 +16,16 @@ export type ListingDomain =
     | "SALES"
     | "DATA"
     | "HR"
+    | "CUSTOM";
+export type OrganizationType =
+    | "SOLO_FOUNDER"
+    | "STARTUP_TEAM"
+    | "BOOTSTRAPPED_STARTUP"
+    | "PRIVATE_LIMITED"
+    | "LLP"
+    | "AGENCY"
+    | "FREELANCER"
+    | "STUDENT_STARTUP"
     | "OTHER";
 export type ApplicationStatus =
     | "APPLIED"
@@ -25,9 +34,35 @@ export type ApplicationStatus =
     | "HIRED"
     | "REJECTED"
     | "WITHDRAWN";
-export type CompanyRole = "OWNER" | "MEMBER";
+// Mirrors the server CompanyRole enum. Legacy `OWNER` rows are emitted by
+// the server only if the data migration hasn't run yet — UI should treat
+// OWNER and FOUNDER_OWNER as the same seat.
+export type CompanyRole =
+    | "FOUNDER_OWNER"
+    | "CO_FOUNDER"
+    | "HR"
+    | "MEMBER"
+    | "OWNER";
 export type CompanyVerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type AssetKind = "RESUME" | "COMPANY_LOGO" | "PROFILE_IMAGE";
+export type ReportTargetType = "LISTING" | "STUDENT";
+export type ReportStatus = "OPEN" | "RESOLVED" | "DISMISSED";
+
+export type ScreeningResponseType =
+    | "SHORT"
+    | "YES_NO"
+    | "MULTIPLE_CHOICE"
+    | "NUMBERS"
+    | "SCALE_1_5";
+
+export type ScreeningQuestion =
+    | { q: string; type: "SHORT" }
+    | { q: string; type: "YES_NO"; idealAnswer?: "yes" | "no" | null }
+    | { q: string; type: "MULTIPLE_CHOICE"; options: string[] }
+    | { q: string; type: "NUMBERS"; idealMin?: number | null }
+    | { q: string; type: "SCALE_1_5"; idealMin?: number | null };
+
+export type ScreeningAnswer = { value: string | number };
 
 export type User = {
     id: string;
@@ -98,6 +133,18 @@ export type Language = {
     proficiency: number | null;
 };
 
+export type Resume = {
+    id: string;
+    studentId: string;
+    assetId: string | null;
+    fileName: string;
+    url: string;
+    sizeBytes: number | null;
+    isDefault: boolean;
+    lastUsedAt: string | null;
+    createdAt: string;
+};
+
 export type StudentProfile = {
     id: string;
     userId: string;
@@ -113,12 +160,15 @@ export type StudentProfile = {
     portfolioUrl: string | null;
     college: string | null;
     branch: string | null;
+    interestedJobTitles: JobTitle[];
+    lastCoverLetter: string | null;
     educations: Education[];
     experiences: WorkExperience[];
     projects: Project[];
     skills: StudentSkill[];
     certifications: Certification[];
     languages: Language[];
+    resumes?: Resume[];
 };
 
 export type EmployerProfile = {
@@ -129,6 +179,7 @@ export type EmployerProfile = {
     phone: string | null;
     jobTitle: string | null;
     linkedinUrl: string | null;
+    country: string | null;
 };
 
 export type Company = {
@@ -142,7 +193,9 @@ export type Company = {
     industry: string | null;
     size: string | null;
     city: string | null;
+    country: string | null;
     foundingYear: number | null;
+    organizationType: OrganizationType | null;
     verificationStatus: CompanyVerificationStatus;
     rejectionNote: string | null;
     submittedAt: string | null;
@@ -160,25 +213,28 @@ export type Listing = {
     id: string;
     companyId: string;
     postedById: string;
-    type: ListingType;
     title: string;
     mode: WorkMode;
-    domain: ListingDomain | null;
+    jobTitle: JobTitle | null;
+    customJobTitle: string | null;
     city: string | null;
     description: string;
     responsibilities: string[];
     perks: string[];
     preferences: string[];
     skillTagsRaw: string[];
-    screeningQuestions: string[];
+    screeningQuestions: ScreeningQuestion[];
     stipendMin: number | null;
     stipendMax: number | null;
     currency: string | null;
     durationMonths: number | null;
+    durationWeeks: number | null;
     startDate: string | null;
+    startDateLatest: string | null;
     applyBy: string | null;
     openings: number | null;
     partTime: boolean;
+    ppo: boolean;
     createdAt: string;
     updatedAt: string;
     closedAt: string | null;
@@ -206,7 +262,7 @@ export type Application = {
     appliedAt: string;
     statusUpdatedAt: string;
     seenAt: string | null;
-    screeningAnswers: string[];
+    screeningAnswers: ScreeningAnswer[];
 };
 
 export type SavedListing = {
@@ -225,6 +281,20 @@ export type Asset = {
     url: string | null;
     contentType: string | null;
     sizeBytes: number | null;
+    createdAt: string;
+};
+
+export type Report = {
+    id: string;
+    reporterId: string;
+    targetType: ReportTargetType;
+    targetListingId: string | null;
+    targetStudentId: string | null;
+    reason: string;
+    status: ReportStatus;
+    resolvedById: string | null;
+    resolvedAt: string | null;
+    resolutionNote: string | null;
     createdAt: string;
 };
 

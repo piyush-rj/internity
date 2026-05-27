@@ -266,7 +266,7 @@ function DetailContent({
                                             {l.title}
                                         </div>
                                         <div className="text-[11.5px] text-muted-foreground">
-                                            {l.type} · {l.mode}
+                                            {l.mode}
                                             {l.city
                                                 ? ` · ${l.city}`
                                                 : ""} · {l._count.applications}{" "}

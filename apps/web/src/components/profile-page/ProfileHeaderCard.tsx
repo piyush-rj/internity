@@ -72,6 +72,16 @@ export function ProfileHeaderCard({
                                 <Pencil className="h-3.5 w-3.5" />
                             </button>
                         )}
+                        {profile && me?.id && (
+                            <a
+                                href={`/student/${me.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
+                            >
+                                View public page →
+                            </a>
+                        )}
                     </div>
 
                     <dl className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[13px]">

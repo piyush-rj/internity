@@ -1,0 +1,16 @@
+export const PERK_SUGGESTIONS: readonly string[] = [
+    "Certificate",
+    "Letter of recommendation",
+    "Flexible work hours",
+    "5 days a week",
+    "Informal dress code",
+    "Free snacks & beverages",
+    "Mentorship",
+    "Stipend on time",
+    "Travel reimbursement",
+    "Stock options",
+    "Health insurance",
+    "Work from home",
+    "Skill training",
+    "Performance bonus",
+];

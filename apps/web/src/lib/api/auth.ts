@@ -1,5 +1,5 @@
 import { api } from "../apiClient";
-import type { User, UserRole } from "./types";
+import type { JobTitle, User, UserRole } from "./types";
 
 export type MeResponse = {
     id: string;
@@ -14,6 +14,12 @@ export type MeResponse = {
     needsOnboarding: boolean;
     hasStudentProfile: boolean;
     hasEmployerProfile: boolean;
+    // Roles the student picked in their profile — drives feed ranking and
+    // any "matched roles" UI.
+    interestedJobTitles: JobTitle[];
+    // The cover letter the student submitted on their most recent apply.
+    // Used as the one-click prefill on subsequent Apply forms.
+    lastCoverLetter: string | null;
 };
 
 export const authApi = {

@@ -16,16 +16,33 @@ export function PeerProfileCard({
     viewProfileHref: string | null;
 }) {
     if (!peer) return null;
+    const isDeleted = !!peer.deletedAt;
     return (
         <div className="flex flex-col items-center text-center px-6 pt-8 pb-6">
-            <ChatAvatar name={peer.name} image={peer.image} size="lg" />
-            <h2 className="mt-3 text-[16px] font-semibold tracking-tight">
-                {peer.name ?? "Unknown"}
+            <ChatAvatar
+                name={isDeleted ? "?" : peer.name}
+                image={isDeleted ? null : peer.image}
+                size="lg"
+            />
+            <h2
+                className={cn(
+                    "mt-3 text-[16px] font-semibold tracking-tight",
+                    isDeleted && "text-muted-foreground italic",
+                )}
+            >
+                {isDeleted ? "Deleted account" : (peer.name ?? "Unknown")}
             </h2>
-            {subtitle && (
+            {isDeleted ? (
                 <p className="mt-0.5 text-[12px] text-muted-foreground">
-                    {subtitle}
+                    This person deleted their account. Their messages stay on
+                    record but you can&rsquo;t reach them anymore.
                 </p>
+            ) : (
+                subtitle && (
+                    <p className="mt-0.5 text-[12px] text-muted-foreground">
+                        {subtitle}
+                    </p>
+                )
             )}
             {viewProfileHref && (
                 <Link

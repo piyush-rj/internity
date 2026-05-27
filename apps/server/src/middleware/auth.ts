@@ -5,7 +5,7 @@ import {
     ResponseWriter,
     Unauthorized,
 } from "../utils/api-response.ts";
-import { verifyToken } from "../core/jwt.ts";
+import { verifyToken, type SupabaseClaims } from "../core/jwt.ts";
 import { prisma, type UserRole } from "../db.ts";
 import { isAdminUser } from "../config/config.ts";
 
@@ -54,11 +54,29 @@ export async function requireAuth(
         const email = claims.email ?? null;
         const phone = claims.phone ?? null;
 
-        let user = await prisma.user.findUnique({ where: { supabaseUserId } });
+        // Resolve the public.User row for this Supabase identity. Soft-deleted
+        // rows are treated as if they don't exist — the JIT-create branch
+        // below will give the caller a fresh row, which is what makes the
+        // "delete account, sign back in, see the new-user flow" UX work.
+        let user = await prisma.user.findUnique({
+            where: { supabaseUserId },
+        });
+
+        // Stale link from a row deleted before this middleware was hardened —
+        // free the supabaseUserId so JIT-create can re-use it without
+        // colliding with the unique constraint.
+        if (user?.deletedAt) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { supabaseUserId: null },
+            });
+            user = null;
+        }
 
         if (!user && (email || phone)) {
             user = await prisma.user.findFirst({
                 where: {
+                    deletedAt: null,
                     OR: [
                         ...(email ? [{ email }] : []),
                         ...(phone ? [{ phone }] : []),
@@ -73,7 +91,22 @@ export async function requireAuth(
             }
         }
 
-        if (!user) throw new Unauthorized();
+        // First sign-in (or sign-in after a deletion) — bootstrap a fresh
+        // public.User row from whatever Supabase put in the JWT. The DB
+        // trigger does the same thing on auth.users INSERT/UPDATE; this is
+        // the runtime fallback for the case where the trigger didn't fire
+        // (e.g., a returning user whose auth.users row already existed).
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    supabaseUserId,
+                    email,
+                    phone,
+                    name: nameFromClaims(claims),
+                    image: avatarFromClaims(claims),
+                },
+            });
+        }
 
         // banned users are blocked except admins
         if (user.isBanned && user.role !== "ADMIN") {
@@ -95,6 +128,18 @@ export async function requireAuth(
         console.error(err);
         api.internalError();
     }
+}
+
+function nameFromClaims(claims: SupabaseClaims): string | null {
+    const md = claims.user_metadata ?? {};
+    const full = (md.full_name ?? md.name) as unknown;
+    return typeof full === "string" && full.trim() ? full.trim() : null;
+}
+
+function avatarFromClaims(claims: SupabaseClaims): string | null {
+    const md = claims.user_metadata ?? {};
+    const url = md.avatar_url as unknown;
+    return typeof url === "string" && url.trim() ? url.trim() : null;
 }
 
 export function requireRole(...roles: UserRole[]) {

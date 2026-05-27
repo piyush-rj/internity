@@ -8,6 +8,8 @@ export type ConversationParticipants = {
     id: string;
     studentId: string;
     recruiterId: string;
+    student: { deletedAt: Date | null };
+    recruiter: { deletedAt: Date | null };
 };
 
 export class SocketDbService {
@@ -16,7 +18,13 @@ export class SocketDbService {
     ): Promise<ConversationParticipants | null> {
         return prisma.conversation.findUnique({
             where: { id: conversationId },
-            select: { id: true, studentId: true, recruiterId: true },
+            select: {
+                id: true,
+                studentId: true,
+                recruiterId: true,
+                student: { select: { deletedAt: true } },
+                recruiter: { select: { deletedAt: true } },
+            },
         });
     }
 

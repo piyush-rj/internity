@@ -6,6 +6,7 @@ import type {
     CompanyVerificationStatus,
     EmployerProfile,
     Listing,
+    OrganizationType,
     User,
 } from "./types";
 
@@ -15,6 +16,7 @@ export type EmployerProfileInput = {
     phone?: string;
     jobTitle?: string;
     linkedinUrl?: string;
+    country?: string;
 };
 
 export type CompanyInput = {
@@ -22,28 +24,28 @@ export type CompanyInput = {
     slug: string;
     logoUrl?: string;
     website?: string;
-    linkedinUrl: string;
+    linkedinUrl?: string;
     foundingYear: number;
     about: string;
     industry?: string;
     size: string;
     city?: string;
+    country: string;
+    organizationType: OrganizationType;
 };
 
 export type CompanyUpdateInput = Partial<
-    Omit<
-        CompanyInput,
-        "slug" | "linkedinUrl" | "foundingYear" | "about" | "size"
-    >
+    Omit<CompanyInput, "slug" | "foundingYear" | "about" | "size">
 > & {
-    linkedinUrl?: string;
     foundingYear?: number;
     about?: string;
     size?: string;
 };
 
 export type CompanyMemberWithUser = CompanyMember & {
-    user: Pick<User, "id" | "name" | "email" | "image">;
+    user: Pick<User, "id" | "name" | "email" | "image"> & {
+        deletedAt: string | null;
+    };
 };
 
 export type AdminCompanyListItem = Company & {
@@ -84,7 +86,7 @@ export type AdminCompanyDetailMember = {
 export type AdminCompanyListingSnapshot = {
     id: string;
     title: string;
-    type: "INTERNSHIP" | "JOB";
+    jobTitle: string | null;
     mode: "REMOTE" | "HYBRID" | "ONSITE";
     city: string | null;
     applyBy: string | null;

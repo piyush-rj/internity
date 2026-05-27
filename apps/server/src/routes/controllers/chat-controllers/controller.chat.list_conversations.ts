@@ -28,6 +28,7 @@ export default async function listConversations(
                     image: true,
                     isOnline: true,
                     lastSeenAt: true,
+                    deletedAt: true,
                 },
             },
             recruiter: {
@@ -38,6 +39,7 @@ export default async function listConversations(
                     image: true,
                     isOnline: true,
                     lastSeenAt: true,
+                    deletedAt: true,
                 },
             },
             messages: {
@@ -101,6 +103,9 @@ export default async function listConversations(
                     isOnline: peer.isOnline,
                     lastSeenAt: peer.lastSeenAt
                         ? peer.lastSeenAt.toISOString()
+                        : null,
+                    deletedAt: peer.deletedAt
+                        ? peer.deletedAt.toISOString()
                         : null,
                 },
                 lastMessageAt: c.lastMessageAt.toISOString(),

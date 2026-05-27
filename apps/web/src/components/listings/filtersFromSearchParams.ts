@@ -1,11 +1,10 @@
 import type {
-    ListingDomain,
+    JobTitle,
     ListingListFilters,
-    ListingType,
     WorkMode,
 } from "@/src/lib/api";
 
-const DOMAINS = [
+const JOB_TITLES_LIST = [
     "AI",
     "BACKEND",
     "WEB",
@@ -18,7 +17,7 @@ const DOMAINS = [
     "SALES",
     "DATA",
     "HR",
-    "OTHER",
+    "CUSTOM",
 ] as const;
 
 export const PAGE_SIZE = 20;
@@ -26,11 +25,9 @@ export const PAGE_SIZE = 20;
 // parses url search params into a listing filters object
 export function filtersFromSearchParams(
     sp: URLSearchParams | null,
-    overrides: { type?: ListingType } = {},
 ): ListingListFilters {
     const filters: ListingListFilters = {
         pageSize: PAGE_SIZE,
-        ...overrides,
     };
     if (!sp) return filters;
 
@@ -45,9 +42,9 @@ export function filtersFromSearchParams(
         filters.mode = mode as WorkMode;
     }
 
-    const domain = sp.get("domain");
-    if (domain && (DOMAINS as readonly string[]).includes(domain)) {
-        filters.domain = domain as ListingDomain;
+    const jobTitle = sp.get("jobTitle");
+    if (jobTitle && (JOB_TITLES_LIST as readonly string[]).includes(jobTitle)) {
+        filters.jobTitle = jobTitle as JobTitle;
     }
 
     const skills = sp.get("skills")?.trim();
@@ -64,17 +61,6 @@ export function filtersFromSearchParams(
     }
 
     if (sp.get("partTime") === "true") filters.partTime = "true";
-
-    const companySize = sp.get("companySize");
-    if (
-        companySize === "1-10" ||
-        companySize === "11-50" ||
-        companySize === "51-200" ||
-        companySize === "201-500" ||
-        companySize === "500+"
-    ) {
-        filters.companySize = companySize;
-    }
 
     const page = Number(sp.get("page"));
     if (Number.isFinite(page) && page > 1) filters.page = page;

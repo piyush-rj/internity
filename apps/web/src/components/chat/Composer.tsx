@@ -13,12 +13,14 @@ export function Composer({
     onSend,
     canSend,
     connecting,
+    disabledReason = null,
 }: {
     draft: string;
     onDraftChange: (v: string) => void;
     onSend: () => void;
     canSend: boolean;
     connecting: boolean;
+    disabledReason?: string | null;
 }) {
     const taRef = useRef<HTMLTextAreaElement>(null);
     const hasText = draft.trim().length > 0;
@@ -54,7 +56,7 @@ export function Composer({
                 >
                     <textarea
                         ref={taRef}
-                        value={draft}
+                        value={disabledReason ? "" : draft}
                         onChange={(e) => onDraftChange(e.target.value)}
                         onKeyDown={(e) => {
                             if (e.key === "Enter" && !e.shiftKey) {
@@ -62,12 +64,20 @@ export function Composer({
                                 onSend();
                             }
                         }}
-                        placeholder={connecting ? "Connecting…" : "Message"}
+                        placeholder={
+                            disabledReason
+                                ? disabledReason
+                                : connecting
+                                  ? "Connecting…"
+                                  : "Message"
+                        }
+                        disabled={!!disabledReason}
                         rows={1}
                         className={cn(
                             "flex-1 resize-none bg-transparent outline-none",
                             "text-[13px] leading-6 placeholder:text-muted-foreground",
                             "py-1 transition-all transform duration-200",
+                            disabledReason && "cursor-not-allowed",
                         )}
                     />
 

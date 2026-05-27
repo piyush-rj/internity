@@ -28,9 +28,11 @@ import {
     type ApplicantStudentEducation,
     type ApplicantStudentExperience,
     type ApplicationStatus,
+    type ScreeningQuestion,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { cn } from "@/src/lib/utils";
+import { ReportStudentButton } from "./ReportStudentButton";
 import { ScheduleInterviewDialog } from "./ScheduleInterviewDialog";
 
 type DecidedStatus = Exclude<ApplicationStatus, "WITHDRAWN">;
@@ -61,7 +63,7 @@ export function ApplicantCard({
     onUpdateStatus,
 }: {
     applicant: ApplicantWithStudent;
-    screeningQuestions?: string[];
+    screeningQuestions?: ScreeningQuestion[];
     listingSkillTags?: string[];
     listingTitle?: string;
     companyName?: string;
@@ -75,10 +77,12 @@ export function ApplicantCard({
 
     const { student } = applicant;
     const profile = student.studentProfile;
-    const displayName =
-        `${profile?.firstName ?? ""}${profile?.lastName ? " " + profile.lastName : ""}`.trim() ||
-        student.name ||
-        "(no name)";
+    const isDeleted = !!student.deletedAt;
+    const displayName = isDeleted
+        ? "Deleted account"
+        : `${profile?.firstName ?? ""}${profile?.lastName ? " " + profile.lastName : ""}`.trim() ||
+          student.name ||
+          "(no name)";
     const isWithdrawn = applicant.status === "WITHDRAWN";
     const isDecided =
         applicant.status === "HIRED" ||
@@ -102,6 +106,12 @@ export function ApplicantCard({
 
     async function startChat() {
         if (messaging || isWithdrawn) return;
+        if (isDeleted) {
+            toast.error(
+                "This applicant deleted their account. You can't reach them.",
+            );
+            return;
+        }
         setMessaging(true);
         try {
             const { id } = await chatApi.start_conversation(applicant.id);
@@ -136,15 +146,22 @@ export function ApplicantCard({
                     <div className="flex-1 min-w-0 space-y-1.5">
                         <div className="flex items-center gap-3 flex-wrap">
                             <div className="flex items-center gap-2 min-w-0 flex-1">
-                                <Link
-                                    href={`/student/${student.id}`}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="text-[14px] font-semibold truncate hover:underline hover:text-orange-600 transition-colors"
-                                >
-                                    {displayName}
-                                </Link>
-                                {match && (
+                                {isDeleted ? (
+                                    <span className="text-[14px] font-semibold truncate text-muted-foreground italic">
+                                        {displayName}
+                                    </span>
+                                ) : (
+                                    <Link
+                                        href={`/student/${student.id}`}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="text-[14px] font-semibold truncate hover:underline hover:text-orange-600 transition-colors"
+                                    >
+                                        {displayName}
+                                    </Link>
+                                )}
+                                {isDeleted && <DeletedBadge />}
+                                {!isDeleted && match && (
                                     <MatchBadge
                                         matched={match.matched}
                                         total={match.total}
@@ -256,15 +273,22 @@ export function ApplicantCard({
                             )}
                         </button>
                     )}
-                    <Link
-                        href={`/student/${student.id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground hover:text-foreground"
-                    >
-                        View profile
-                        <PiArrowSquareOut className="h-3 w-3" />
-                    </Link>
+                    {!isDeleted && (
+                        <Link
+                            href={`/student/${student.id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground hover:text-foreground"
+                        >
+                            View profile
+                            <PiArrowSquareOut className="h-3 w-3" />
+                        </Link>
+                    )}
+                    <ReportStudentButton
+                        studentId={student.id}
+                        studentName={displayName}
+                        disabled={isDeleted}
+                    />
 
                     {!isDecided && (
                         <div className="ml-auto flex items-center gap-2">
@@ -285,7 +309,16 @@ export function ApplicantCard({
                                 currentStatus={applicant.status}
                                 busy={busy || messaging || isWithdrawn}
                                 messaging={messaging}
-                                onSchedule={() => setScheduling(true)}
+                                deleted={isDeleted}
+                                onSchedule={() => {
+                                    if (isDeleted) {
+                                        toast.error(
+                                            "This applicant deleted their account. You can't schedule an interview.",
+                                        );
+                                        return;
+                                    }
+                                    setScheduling(true);
+                                }}
                                 onStartChat={startChat}
                                 onAdvanceStatus={changeStatus}
                             />
@@ -308,12 +341,17 @@ export function ApplicantCard({
                                                     <span className="tabular-nums">
                                                         Q{i + 1}.
                                                     </span>{" "}
-                                                    {screeningQuestions[i] ??
+                                                    {screeningQuestions[i]
+                                                        ?.q ??
                                                         "(question not available)"}
                                                 </div>
                                                 <div className="mt-1 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
-                                                    {ans || (
+                                                    {ans.value === "" ||
+                                                    ans.value === null ||
+                                                    ans.value === undefined ? (
                                                         <Dim>(no answer)</Dim>
+                                                    ) : (
+                                                        String(ans.value)
                                                     )}
                                                 </div>
                                             </div>
@@ -435,6 +473,17 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
             )}
         >
             {labels[status]}
+        </span>
+    );
+}
+
+function DeletedBadge() {
+    return (
+        <span
+            className="inline-flex items-center rounded-md border border-zinc-200 bg-zinc-100 px-1.5 py-0.5 text-[10px] font-medium text-zinc-600"
+            title="This applicant deleted their account. Their application stays on record but you can't contact them."
+        >
+            Account deleted
         </span>
     );
 }
@@ -689,6 +738,7 @@ function NextStepsMenu({
     currentStatus,
     busy,
     messaging,
+    deleted,
     onSchedule,
     onStartChat,
     onAdvanceStatus,
@@ -696,6 +746,7 @@ function NextStepsMenu({
     currentStatus: ApplicationStatus;
     busy: boolean;
     messaging: boolean;
+    deleted: boolean;
     onSchedule: () => void;
     onStartChat: () => void;
     onAdvanceStatus: (next: DecidedStatus) => void;
@@ -787,7 +838,12 @@ function NextStepsMenu({
                     >
                         <MenuItem
                             icon={<CalendarClock className="h-3.5 w-3.5" />}
-                            label="Schedule an interview"
+                            label={
+                                deleted
+                                    ? "Schedule (account deleted)"
+                                    : "Schedule an interview"
+                            }
+                            disabled={deleted}
                             onClick={() => {
                                 setOpen(false);
                                 onSchedule();
@@ -795,8 +851,14 @@ function NextStepsMenu({
                         />
                         <MenuItem
                             icon={<MessageSquare className="h-3.5 w-3.5" />}
-                            label={messaging ? "Opening chat…" : "Start a chat"}
-                            disabled={messaging}
+                            label={
+                                deleted
+                                    ? "Chat (account deleted)"
+                                    : messaging
+                                      ? "Opening chat…"
+                                      : "Start a chat"
+                            }
+                            disabled={messaging || deleted}
                             onClick={() => {
                                 setOpen(false);
                                 onStartChat();

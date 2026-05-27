@@ -12,6 +12,7 @@ export type ScheduleInterviewInput = {
     meetingLink?: string;
     hostPhone?: string;
     description?: string;
+    timezone?: string;
 };
 
 export type InterviewParty = {
@@ -19,12 +20,13 @@ export type InterviewParty = {
     name: string | null;
     email: string | null;
     image: string | null;
+    deletedAt: string | null;
 };
 
 export type InterviewListing = {
     id: string;
     title: string;
-    type: "INTERNSHIP" | "JOB";
+    jobTitle: string | null;
     company: {
         id: string;
         name: string;
@@ -42,6 +44,7 @@ export type Interview = {
     type: InterviewType;
     scheduledAt: string;
     endsAt: string;
+    timezone: string | null;
     meetingLink: string | null;
     hostPhone: string | null;
     candidatePhone: string | null;

@@ -12,8 +12,28 @@ export default async function getMe(
         const user = await prisma.user.findUnique({
             where: { id: req.user!.id },
             include: {
-                studentProfile: { select: { id: true } },
+                studentProfile: {
+                    select: {
+                        id: true,
+                        interestedJobTitles: true,
+                        lastCoverLetter: true,
+                    },
+                },
                 employerProfile: { select: { id: true } },
+                companyMemberships: {
+                    include: {
+                        company: {
+                            select: {
+                                id: true,
+                                name: true,
+                                slug: true,
+                                logoUrl: true,
+                                verificationStatus: true,
+                            },
+                        },
+                    },
+                    orderBy: { joinedAt: "asc" },
+                },
             },
         });
         if (!user) {
@@ -33,6 +53,15 @@ export default async function getMe(
             needsOnboarding: !user.name || user.name.trim().length === 0,
             hasStudentProfile: user.studentProfile !== null,
             hasEmployerProfile: user.employerProfile !== null,
+            interestedJobTitles:
+                user.studentProfile?.interestedJobTitles ?? [],
+            lastCoverLetter: user.studentProfile?.lastCoverLetter ?? null,
+            activeCompanyId: user.activeCompanyId,
+            companies: user.companyMemberships.map((m) => ({
+                role: m.role,
+                joinedAt: m.joinedAt,
+                company: m.company,
+            })),
         });
     } catch (err) {
         handleApiError(err, api);

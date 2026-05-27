@@ -23,6 +23,11 @@ export type ConversationPeer = {
      * never been seen. Always null while `isOnline` is true.
      */
     lastSeenAt: string | null;
+    /**
+     * ISO-8601 of when the peer deleted their account, or null. When set,
+     * the thread should render anonymized and the input should be disabled.
+     */
+    deletedAt: string | null;
 };
 
 export type ConversationListItem = {

@@ -6,6 +6,7 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { canManageApplicants } from "../../../utils/company-roles.ts";
 
 export default async function listApplicationsForListing(
     req: Request,
@@ -32,6 +33,11 @@ export default async function listApplicationsForListing(
             },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (!canManageApplicants(member.role)) {
+            throw new Forbidden(
+                "Your role can't view applicants for this listing.",
+            );
+        }
 
         // stamp unseen applicants as seen before returning rows
         await prisma.application.updateMany({
@@ -49,6 +55,7 @@ export default async function listApplicationsForListing(
                         name: true,
                         email: true,
                         image: true,
+                        deletedAt: true,
                         studentProfile: {
                             select: {
                                 firstName: true,

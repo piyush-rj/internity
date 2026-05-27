@@ -7,13 +7,15 @@ import { MembersCard } from "@/src/components/company/MembersCard";
 import { useCompanyMembers } from "@/src/hooks/useCompanyMembers";
 import { useMe } from "@/src/hooks/useMe";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
+import { canManageCompany } from "@/src/lib/catalog/companyRoles";
 
 export default function CompanyPage() {
     const { me } = useMe();
     const { memberships, loading, refetch } = useMyEmployer();
     const membership = memberships[0] ?? null;
     const companyId = membership?.company.id ?? null;
-    const isOwner = membership?.role === "OWNER";
+    // Founder + co-founder + legacy OWNER all have full admin rights here.
+    const canAdmin = membership ? canManageCompany(membership.role) : false;
 
     const {
         members,
@@ -36,7 +38,7 @@ export default function CompanyPage() {
                 <>
                     <CompanyInfoCard
                         company={membership.company}
-                        canEdit={isOwner}
+                        canEdit={canAdmin}
                         onSaved={refetch}
                     />
                     <MembersCard
@@ -44,7 +46,7 @@ export default function CompanyPage() {
                         members={members}
                         loading={membersLoading}
                         error={membersError}
-                        canManage={isOwner}
+                        canManage={canAdmin}
                         currentUserId={me?.id ?? null}
                         onUpdateRole={updateRole}
                         onRemove={remove}

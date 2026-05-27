@@ -7,53 +7,53 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import {
-    ListingDomain,
-    ListingType,
+    JobTitle,
     Prisma,
     WorkMode,
     prisma,
 } from "../../../db.ts";
 import { isAdminUser } from "../../../config/config.ts";
+import { canManageListings } from "../../../utils/company-roles.ts";
+import { ScreeningQuestionsSchema } from "../../../utils/screening.ts";
+
+const JOB_TITLE_VALUES = [
+    "AI",
+    "BACKEND",
+    "WEB",
+    "MOBILE",
+    "QA",
+    "DESIGN",
+    "PRODUCT",
+    "MARKETING",
+    "CONTENT",
+    "SALES",
+    "DATA",
+    "HR",
+    "CUSTOM",
+] as const;
 
 const Body = z.object({
-    type: z.enum(["INTERNSHIP", "JOB"]).optional(),
-    title: z.string().min(1).optional(),
+    title: z.string().min(1).max(120).optional(),
+    jobTitle: z.enum(JOB_TITLE_VALUES).nullable().optional(),
+    customJobTitle: z.string().max(120).nullable().optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
-    domain: z
-        .enum([
-            "AI",
-            "BACKEND",
-            "WEB",
-            "MOBILE",
-            "QA",
-            "DESIGN",
-            "PRODUCT",
-            "MARKETING",
-            "CONTENT",
-            "SALES",
-            "DATA",
-            "HR",
-            "OTHER",
-        ])
-        .nullable()
-        .optional(),
     city: z.string().nullable().optional(),
     description: z.string().min(1).optional(),
     responsibilities: z.array(z.string()).optional(),
     perks: z.array(z.string()).optional(),
     preferences: z.array(z.string()).optional(),
     skillTagsRaw: z.array(z.string()).optional(),
-    screeningQuestions: z
-        .array(z.string().min(1).max(200))
-        .max(5, "Up to 5 screening questions")
-        .optional(),
+    screeningQuestions: ScreeningQuestionsSchema.optional(),
     stipendMin: z.number().int().nullable().optional(),
     stipendMax: z.number().int().nullable().optional(),
     durationMonths: z.number().int().nullable().optional(),
+    durationWeeks: z.number().int().min(0).nullable().optional(),
     startDate: z.coerce.date().nullable().optional(),
+    startDateLatest: z.coerce.date().nullable().optional(),
     applyBy: z.coerce.date().nullable().optional(),
     openings: z.number().int().nullable().optional(),
     partTime: z.boolean().nullable().optional(),
+    ppo: z.boolean().nullable().optional(),
 });
 
 function normalize(tags: readonly string[]): string[] {
@@ -83,16 +83,25 @@ export default async function updateListing(
                 },
             });
             if (!member) throw new Forbidden("Not a member of this company");
+            if (!canManageListings(member.role)) {
+                throw new Forbidden(
+                    "Your role can't edit listings — ask a founder or co-founder.",
+                );
+            }
         }
 
         const body = Body.parse(req.body);
+
         const data: Prisma.ListingUpdateInput = {
-            ...(body.type !== undefined && { type: body.type as ListingType }),
             ...(body.title !== undefined && { title: body.title }),
-            ...(body.mode !== undefined && { mode: body.mode as WorkMode }),
-            ...(body.domain !== undefined && {
-                domain: (body.domain ?? null) as ListingDomain | null,
+            ...(body.jobTitle !== undefined && {
+                jobTitle: (body.jobTitle ?? null) as JobTitle | null,
             }),
+            ...(body.customJobTitle !== undefined && {
+                customJobTitle:
+                    body.customJobTitle?.trim() || null,
+            }),
+            ...(body.mode !== undefined && { mode: body.mode as WorkMode }),
             ...(body.city !== undefined && { city: body.city }),
             ...(body.description !== undefined && {
                 description: body.description,
@@ -108,9 +117,8 @@ export default async function updateListing(
                 skillTagsRaw: normalize(body.skillTagsRaw ?? []),
             }),
             ...(body.screeningQuestions !== undefined && {
-                screeningQuestions: body.screeningQuestions
-                    .map((q) => q.trim())
-                    .filter(Boolean),
+                screeningQuestions:
+                    body.screeningQuestions as Prisma.InputJsonValue,
             }),
             ...(body.stipendMin !== undefined && {
                 stipendMin: body.stipendMin,
@@ -121,7 +129,13 @@ export default async function updateListing(
             ...(body.durationMonths !== undefined && {
                 durationMonths: body.durationMonths,
             }),
+            ...(body.durationWeeks !== undefined && {
+                durationWeeks: body.durationWeeks,
+            }),
             ...(body.startDate !== undefined && { startDate: body.startDate }),
+            ...(body.startDateLatest !== undefined && {
+                startDateLatest: body.startDateLatest,
+            }),
             ...(body.applyBy !== undefined && { applyBy: body.applyBy }),
             ...(body.openings !== undefined && { openings: body.openings }),
             ...(body.partTime !== undefined &&

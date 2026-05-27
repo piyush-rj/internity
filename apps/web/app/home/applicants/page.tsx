@@ -6,26 +6,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ApplicantCard } from "@/src/components/applicants/ApplicantCard";
+import {
+    ApplicantsFilterPanel,
+    applyApplicantsFilters,
+    countActiveApplicantFilters,
+    emptyApplicantsFilters,
+    type ApplicantsFilters,
+} from "@/src/components/applicants/ApplicantsFilterPanel";
 import { useListingApplicants } from "@/src/hooks/useListingApplicants";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { useMyListings } from "@/src/hooks/useMyListings";
-import type { ApplicantWithStudent } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
-
-type SortKey =
-    | "applied_desc"
-    | "applied_asc"
-    | "name_asc"
-    | "college_asc"
-    | "match_desc";
-
-const SORT_OPTIONS: { value: SortKey; label: string }[] = [
-    { value: "applied_desc", label: "Most recent" },
-    { value: "applied_asc", label: "Oldest" },
-    { value: "match_desc", label: "Best skill match" },
-    { value: "name_asc", label: "Name (A–Z)" },
-    { value: "college_asc", label: "College (A–Z)" },
-];
 
 export default function ApplicantsPage() {
     return (
@@ -70,22 +61,30 @@ function ApplicantsView() {
         updateStatus,
     } = useListingApplicants(activeListingId);
 
-    // default to skill-match sort when the listing has tags
-    const [sort, setSort] = useState<SortKey>("applied_desc");
+    // Filters live in state and start fresh when the active listing changes
+    // (different screening questions, different default sort).
+    const [filters, setFilters] = useState<ApplicantsFilters>(() =>
+        emptyApplicantsFilters(),
+    );
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setSort(skillTagsRaw.length > 0 ? "match_desc" : "applied_desc");
+        setFilters({
+            ...emptyApplicantsFilters(),
+            sort: skillTagsRaw.length > 0 ? "match_desc" : "applied_desc",
+        });
     }, [activeListingId, skillTagsRaw.length]);
 
-    const sortedItems = useMemo(
-        () => sortApplicants(items, sort, skillTagsRaw),
-        [items, sort, skillTagsRaw],
+    const visibleItems = useMemo(
+        () => applyApplicantsFilters(items, filters, skillTagsRaw),
+        [items, filters, skillTagsRaw],
     );
 
     const activeListingTitle = useMemo(
         () => listings.find((l) => l.id === activeListingId)?.title ?? "",
         [listings, activeListingId],
     );
+
+    const activeFilterCount = countActiveApplicantFilters(filters);
 
     return (
         <EmptySection
@@ -105,147 +104,71 @@ function ApplicantsView() {
                             router.replace(`/home/applicants?listingId=${id}`)
                         }
                     />
-                    <section className="rounded-lg border border-border bg-card overflow-hidden">
-                        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border">
-                            <div className="flex items-center gap-3">
-                                <div className="text-[13px] font-medium">
-                                    Applicants
+                    <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+                        <section className="rounded-lg border border-border bg-card overflow-hidden min-w-0">
+                            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border">
+                                <div className="flex items-center gap-3 flex-wrap">
+                                    <div className="text-[13px] font-medium">
+                                        Applicants
+                                    </div>
+                                    {!loading && !error && (
+                                        <span className="text-[11.5px] text-muted-foreground tabular-nums">
+                                            {visibleItems.length} of{" "}
+                                            {items.length}
+                                        </span>
+                                    )}
+                                    {activeFilterCount > 0 && (
+                                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-2 py-0.5 text-[11px] text-orange-700">
+                                            {activeFilterCount}{" "}
+                                            {activeFilterCount === 1
+                                                ? "filter"
+                                                : "filters"}{" "}
+                                            active
+                                        </span>
+                                    )}
                                 </div>
-                                {!loading && !error && (
-                                    <span className="text-[11.5px] text-muted-foreground tabular-nums">
-                                        {items.length} total
-                                    </span>
-                                )}
-                            </div>
-                            <SortPicker value={sort} onChange={setSort} />
-                        </header>
+                            </header>
 
-                        {error ? (
-                            <ErrorRow message={error.message} />
-                        ) : loading ? (
-                            <Skeleton />
-                        ) : sortedItems.length === 0 ? (
-                            <Empty />
-                        ) : (
-                            <ul className="divide-y divide-border">
-                                {sortedItems.map((applicant) => (
-                                    <li key={applicant.id}>
-                                        <ApplicantCard
-                                            applicant={applicant}
-                                            screeningQuestions={
-                                                screeningQuestions
-                                            }
-                                            listingSkillTags={skillTagsRaw}
-                                            listingTitle={activeListingTitle}
-                                            companyName={companyName}
-                                            onUpdateStatus={updateStatus}
-                                        />
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                    </section>
+                            {error ? (
+                                <ErrorRow message={error.message} />
+                            ) : loading ? (
+                                <Skeleton />
+                            ) : visibleItems.length === 0 ? (
+                                <Empty hasFilters={activeFilterCount > 0} />
+                            ) : (
+                                <ul className="divide-y divide-border">
+                                    {visibleItems.map((applicant) => (
+                                        <li key={applicant.id}>
+                                            <ApplicantCard
+                                                applicant={applicant}
+                                                screeningQuestions={
+                                                    screeningQuestions
+                                                }
+                                                listingSkillTags={skillTagsRaw}
+                                                listingTitle={
+                                                    activeListingTitle
+                                                }
+                                                companyName={companyName}
+                                                onUpdateStatus={updateStatus}
+                                            />
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </section>
+
+                        <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
+                            <ApplicantsFilterPanel
+                                filters={filters}
+                                onChange={setFilters}
+                                screeningQuestions={screeningQuestions}
+                            />
+                        </aside>
+                    </div>
                 </>
             )}
         </EmptySection>
     );
-}
-
-function SortPicker({
-    value,
-    onChange,
-}: {
-    value: SortKey;
-    onChange: (v: SortKey) => void;
-}) {
-    return (
-        <select
-            value={value}
-            onChange={(e) => onChange(e.target.value as SortKey)}
-            aria-label="Sort applicants"
-            className={cn(
-                "h-8 rounded-md border border-border bg-background pl-2 pr-7",
-                "text-[12px] appearance-none cursor-pointer",
-                "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
-            )}
-        >
-            {SORT_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                    Sort: {o.label}
-                </option>
-            ))}
-        </select>
-    );
-}
-
-// returns a sorted copy of items based on sort, scoring by tag overlap
-function sortApplicants(
-    items: ApplicantWithStudent[],
-    sort: SortKey,
-    tags: string[],
-): ApplicantWithStudent[] {
-    const arr = [...items];
-    switch (sort) {
-        case "applied_desc":
-            arr.sort(
-                (a, b) =>
-                    new Date(b.appliedAt).getTime() -
-                    new Date(a.appliedAt).getTime(),
-            );
-            break;
-        case "applied_asc":
-            arr.sort(
-                (a, b) =>
-                    new Date(a.appliedAt).getTime() -
-                    new Date(b.appliedAt).getTime(),
-            );
-            break;
-        case "name_asc":
-            arr.sort((a, b) =>
-                applicantName(a).localeCompare(applicantName(b), undefined, {
-                    sensitivity: "base",
-                }),
-            );
-            break;
-        case "college_asc":
-            arr.sort((a, b) => {
-                const ac = applicantCollege(a);
-                const bc = applicantCollege(b);
-                if (!ac && !bc) return 0;
-                if (!ac) return 1;
-                if (!bc) return -1;
-                return ac.localeCompare(bc, undefined, { sensitivity: "base" });
-            });
-            break;
-        case "match_desc": {
-            const tagSet = new Set(tags.map((t) => t.trim().toLowerCase()));
-            arr.sort((a, b) => matchCount(b, tagSet) - matchCount(a, tagSet));
-            break;
-        }
-    }
-    return arr;
-}
-
-function applicantName(a: ApplicantWithStudent): string {
-    const p = a.student.studentProfile;
-    return (
-        `${p?.firstName ?? ""} ${p?.lastName ?? ""}`.trim() ||
-        a.student.name ||
-        ""
-    );
-}
-
-function applicantCollege(a: ApplicantWithStudent): string {
-    return a.student.studentProfile?.educations?.[0]?.institute ?? "";
-}
-
-function matchCount(a: ApplicantWithStudent, tagSet: Set<string>): number {
-    const skills = a.student.studentProfile?.skills ?? [];
-    let n = 0;
-    for (const s of skills) {
-        if (tagSet.has(s.skill.name.trim().toLowerCase())) n += 1;
-    }
-    return n;
 }
 
 function ListingPicker({
@@ -313,10 +236,12 @@ function SectionSkeleton() {
     );
 }
 
-function Empty() {
+function Empty({ hasFilters }: { hasFilters: boolean }) {
     return (
         <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">
-            No applicants yet for this listing.
+            {hasFilters
+                ? "No applicants match these filters."
+                : "No applicants yet for this listing."}
         </div>
     );
 }

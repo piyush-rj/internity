@@ -6,6 +6,7 @@ import {
     ResponseWriter,
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { canManageListings } from "../../../utils/company-roles.ts";
 
 // pauses a listing from public browse and keeps it visible to the founder
 export default async function pauseListing(
@@ -29,6 +30,11 @@ export default async function pauseListing(
             },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (!canManageListings(member.role)) {
+            throw new Forbidden(
+                "Your role can't pause listings — ask a founder or co-founder.",
+            );
+        }
 
         const updated = found.pausedAt
             ? await prisma.listing.findUniqueOrThrow({

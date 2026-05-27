@@ -4,77 +4,50 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ChevronDown, ChevronUp, Search, X } from "lucide-react";
 import { CityCombobox } from "@/src/components/ui/CityCombobox";
-import type { CompanySize, ListingDomain, WorkMode } from "@/src/lib/api";
+import type { JobTitle, WorkMode } from "@/src/lib/api";
+import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
 import { cn } from "@/src/lib/utils";
 
 type Filters = {
     q: string;
     city: string;
     mode: WorkMode | "";
-    domain: ListingDomain | "";
+    jobTitle: JobTitle | "";
     skills: string;
     stipendMin: string;
     durationMax: string;
     partTime: boolean;
-    companySize: CompanySize | "";
 };
 
 const EMPTY: Filters = {
     q: "",
     city: "",
     mode: "",
-    domain: "",
+    jobTitle: "",
     skills: "",
     stipendMin: "",
     durationMax: "",
     partTime: false,
-    companySize: "",
 };
 
-const COMPANY_SIZE_OPTIONS: { value: CompanySize; label: string }[] = [
-    { value: "1-10", label: "1–10 (Startup)" },
-    { value: "11-50", label: "11–50 (Small)" },
-    { value: "51-200", label: "51–200 (Mid)" },
-    { value: "201-500", label: "201–500 (Large)" },
-    { value: "500+", label: "500+ (Enterprise)" },
-];
-
-const DOMAIN_OPTIONS: { value: ListingDomain; label: string }[] = [
-    { value: "AI", label: "AI / ML" },
-    { value: "BACKEND", label: "Backend" },
-    { value: "WEB", label: "Web" },
-    { value: "MOBILE", label: "Mobile" },
-    { value: "QA", label: "QA / Testing" },
-    { value: "DESIGN", label: "Design (UI/UX)" },
-    { value: "PRODUCT", label: "Product" },
-    { value: "MARKETING", label: "Marketing" },
-    { value: "CONTENT", label: "Content / Video" },
-    { value: "SALES", label: "Sales / BD" },
-    { value: "DATA", label: "Data" },
-    { value: "HR", label: "HR" },
-    { value: "OTHER", label: "Other" },
-];
+const JOB_TITLE_FILTER_VALUES = new Set<JobTitle>([
+    ...JOB_TITLES.map((j) => j.value),
+    "CUSTOM",
+]);
 
 function fromParams(sp: URLSearchParams | null): Filters {
     if (!sp) return EMPTY;
-    const size = sp.get("companySize");
-    const validSize = COMPANY_SIZE_OPTIONS.some((o) => o.value === size)
-        ? (size as CompanySize)
-        : "";
-    const dom = sp.get("domain");
-    const validDom = DOMAIN_OPTIONS.some((o) => o.value === dom)
-        ? (dom as ListingDomain)
-        : "";
+    const jt = sp.get("jobTitle") as JobTitle | null;
+    const validJt = jt && JOB_TITLE_FILTER_VALUES.has(jt) ? jt : "";
     return {
         q: sp.get("q") ?? "",
         city: sp.get("city") ?? "",
         mode: (sp.get("mode") as WorkMode | null) ?? "",
-        domain: validDom,
+        jobTitle: validJt,
         skills: sp.get("skills") ?? "",
         stipendMin: sp.get("stipendMin") ?? "",
         durationMax: sp.get("durationMax") ?? "",
         partTime: sp.get("partTime") === "true",
-        companySize: validSize,
     };
 }
 
@@ -83,12 +56,11 @@ function toQueryString(f: Filters): string {
     if (f.q.trim()) params.set("q", f.q.trim());
     if (f.city.trim()) params.set("city", f.city.trim());
     if (f.mode) params.set("mode", f.mode);
-    if (f.domain) params.set("domain", f.domain);
+    if (f.jobTitle) params.set("jobTitle", f.jobTitle);
     if (f.skills.trim()) params.set("skills", f.skills.trim());
     if (f.stipendMin.trim()) params.set("stipendMin", f.stipendMin.trim());
     if (f.durationMax.trim()) params.set("durationMax", f.durationMax.trim());
     if (f.partTime) params.set("partTime", "true");
-    if (f.companySize) params.set("companySize", f.companySize);
     return params.toString();
 }
 
@@ -97,12 +69,11 @@ function countActive(f: Filters): number {
     if (f.q.trim()) n++;
     if (f.city.trim()) n++;
     if (f.mode) n++;
-    if (f.domain) n++;
+    if (f.jobTitle) n++;
     if (f.skills.trim()) n++;
     if (f.stipendMin.trim()) n++;
     if (f.durationMax.trim()) n++;
     if (f.partTime) n++;
-    if (f.companySize) n++;
     return n;
 }
 
@@ -141,7 +112,7 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                         type="text"
                         value={filters.q}
                         onChange={(e) => set("q", e.target.value)}
-                        placeholder="Search role, company, or skill"
+                        placeholder="Search title, company, or skill"
                         className={cn(
                             "w-full h-10 rounded-lg border border-border bg-background pl-9 pr-3",
                             "text-[13px] placeholder:text-muted-foreground/70",
@@ -195,6 +166,30 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
 
             {expanded && (
                 <div className="border-t border-border bg-secondary/30 p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <FilterField label="Job title">
+                        <select
+                            value={filters.jobTitle}
+                            onChange={(e) =>
+                                set(
+                                    "jobTitle",
+                                    e.target.value as JobTitle | "",
+                                )
+                            }
+                            className={cn(
+                                fieldInputCls,
+                                "appearance-none pr-8 cursor-pointer",
+                            )}
+                        >
+                            <option value="">Any title</option>
+                            {JOB_TITLES.map((o) => (
+                                <option key={o.value} value={o.value}>
+                                    {o.label}
+                                </option>
+                            ))}
+                            <option value="CUSTOM">Other / Custom</option>
+                        </select>
+                    </FilterField>
+
                     <FilterField label="Skills" hint="Comma-separated">
                         <input
                             type="text"
@@ -225,52 +220,6 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                             placeholder="3"
                             className={fieldInputCls}
                         />
-                    </FilterField>
-
-                    <FilterField label="Domain">
-                        <select
-                            value={filters.domain}
-                            onChange={(e) =>
-                                set(
-                                    "domain",
-                                    e.target.value as ListingDomain | "",
-                                )
-                            }
-                            className={cn(
-                                fieldInputCls,
-                                "appearance-none pr-8 cursor-pointer",
-                            )}
-                        >
-                            <option value="">Any domain</option>
-                            {DOMAIN_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value}>
-                                    {o.label}
-                                </option>
-                            ))}
-                        </select>
-                    </FilterField>
-
-                    <FilterField label="Company size">
-                        <select
-                            value={filters.companySize}
-                            onChange={(e) =>
-                                set(
-                                    "companySize",
-                                    e.target.value as CompanySize | "",
-                                )
-                            }
-                            className={cn(
-                                fieldInputCls,
-                                "appearance-none pr-8 cursor-pointer",
-                            )}
-                        >
-                            <option value="">Any size</option>
-                            {COMPANY_SIZE_OPTIONS.map((o) => (
-                                <option key={o.value} value={o.value}>
-                                    {o.label}
-                                </option>
-                            ))}
-                        </select>
                     </FilterField>
 
                     <FilterField label="Part-time">

@@ -6,54 +6,53 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import {
-    CompanyVerificationStatus,
-    ListingDomain,
-    ListingType,
+    JobTitle,
     Prisma,
     WorkMode,
     prisma,
 } from "../../../db.ts";
+import { canManageListings } from "../../../utils/company-roles.ts";
+import { ScreeningQuestionsSchema } from "../../../utils/screening.ts";
+
+const JOB_TITLE_VALUES = [
+    "AI",
+    "BACKEND",
+    "WEB",
+    "MOBILE",
+    "QA",
+    "DESIGN",
+    "PRODUCT",
+    "MARKETING",
+    "CONTENT",
+    "SALES",
+    "DATA",
+    "HR",
+    "CUSTOM",
+] as const;
 
 const Body = z.object({
     companyId: z.string().min(1),
-    type: z.enum(["INTERNSHIP", "JOB"]),
-    title: z.string().min(1),
+    title: z.string().min(1).max(120),
+    jobTitle: z.enum(JOB_TITLE_VALUES).nullable().optional(),
+    customJobTitle: z.string().max(120).nullable().optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]),
-    domain: z
-        .enum([
-            "AI",
-            "BACKEND",
-            "WEB",
-            "MOBILE",
-            "QA",
-            "DESIGN",
-            "PRODUCT",
-            "MARKETING",
-            "CONTENT",
-            "SALES",
-            "DATA",
-            "HR",
-            "OTHER",
-        ])
-        .nullable()
-        .optional(),
     city: z.string().nullable().optional(),
     description: z.string().min(1),
     responsibilities: z.array(z.string()).default([]),
     perks: z.array(z.string()).default([]),
     preferences: z.array(z.string()).default([]),
     skillTagsRaw: z.array(z.string()).default([]),
-    screeningQuestions: z
-        .array(z.string().min(1).max(200))
-        .max(5, "Up to 5 screening questions")
-        .default([]),
+    screeningQuestions: ScreeningQuestionsSchema.default([]),
     stipendMin: z.number().int().nullable().optional(),
     stipendMax: z.number().int().nullable().optional(),
     durationMonths: z.number().int().nullable().optional(),
+    durationWeeks: z.number().int().min(0).nullable().optional(),
     startDate: z.coerce.date().nullable().optional(),
+    startDateLatest: z.coerce.date().nullable().optional(),
     applyBy: z.coerce.date().nullable().optional(),
     openings: z.number().int().nullable().optional(),
     partTime: z.boolean().nullable().optional(),
+    ppo: z.boolean().nullable().optional(),
 });
 
 function normalize(tags: readonly string[]): string[] {
@@ -77,49 +76,54 @@ export default async function createListing(
                     userId: req.user!.id,
                 },
             },
-            include: {
-                company: {
-                    select: { verificationStatus: true },
-                },
-            },
         });
         if (!member) throw new Forbidden("Not a member of this company");
-        if (
-            member.company.verificationStatus !==
-            CompanyVerificationStatus.APPROVED
-        ) {
+        if (!canManageListings(member.role)) {
             throw new Forbidden(
-                "Your company isn't approved by admin yet. You'll be able to post once it is.",
+                "Your role can't post listings — ask a founder or co-founder.",
             );
         }
 
+        // Verification is no longer a posting gate. Listings go live
+        // immediately; the "Verified" badge is shown on the card / detail
+        // page only when the company.verificationStatus is APPROVED.
+
         const expiresAt = new Date(Date.now() + LISTING_TTL_MS);
+
+        const jobTitle = (body.jobTitle ?? null) as JobTitle | null;
+        const customJobTitle =
+            jobTitle === JobTitle.CUSTOM
+                ? body.customJobTitle?.trim() || null
+                : null;
 
         const data: Prisma.ListingUncheckedCreateInput = {
             companyId: body.companyId,
             postedById: req.user!.id,
-            type: body.type as ListingType,
             title: body.title,
             mode: body.mode as WorkMode,
-            domain: (body.domain ?? null) as ListingDomain | null,
+            jobTitle,
+            customJobTitle,
             description: body.description,
             city: body.city ?? null,
             responsibilities: body.responsibilities,
             perks: body.perks,
             preferences: body.preferences,
             skillTagsRaw: normalize(body.skillTagsRaw),
-            screeningQuestions: body.screeningQuestions
-                .map((q) => q.trim())
-                .filter(Boolean),
+            screeningQuestions: body.screeningQuestions as Prisma.InputJsonValue,
             stipendMin: body.stipendMin ?? null,
             stipendMax: body.stipendMax ?? null,
             durationMonths: body.durationMonths ?? null,
+            durationWeeks: body.durationWeeks ?? null,
             startDate: body.startDate ?? null,
+            startDateLatest: body.startDateLatest ?? null,
             applyBy: body.applyBy ?? null,
             openings: body.openings ?? null,
             expiresAt,
             ...(body.partTime !== null && body.partTime !== undefined
                 ? { partTime: body.partTime }
+                : {}),
+            ...(body.ppo !== null && body.ppo !== undefined
+                ? { ppo: body.ppo }
                 : {}),
         };
         const created = await prisma.listing.create({

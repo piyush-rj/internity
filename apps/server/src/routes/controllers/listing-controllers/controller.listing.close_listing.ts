@@ -6,6 +6,7 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { canManageListings } from "../../../utils/company-roles.ts";
 
 export default async function closeListing(
     req: Request,
@@ -28,6 +29,11 @@ export default async function closeListing(
             },
         });
         if (!member) throw new Forbidden("Not a member of this company");
+        if (!canManageListings(member.role)) {
+            throw new Forbidden(
+                "Your role can't close listings — ask a founder or co-founder.",
+            );
+        }
         const updated = await prisma.listing.update({
             where: { id },
             data: { closedAt: new Date() },

@@ -1,10 +1,10 @@
-import type { ListingType, WorkMode } from "@/src/lib/api";
+import type { JobTitle, WorkMode } from "@/src/lib/api";
 
 export type ListingTemplate = {
     key: string;
     label: string;
     category: string;
-    type: ListingType;
+    jobTitle: JobTitle | null;
     mode: WorkMode;
     title: string;
     description: string;
@@ -31,7 +31,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "ai-developer",
         label: "AI Developer",
         category: "Technical",
-        type: "INTERNSHIP",
+        jobTitle: "AI",
         mode: "REMOTE",
         title: "AI Developer Intern",
         description:
@@ -55,7 +55,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "backend-developer",
         label: "Backend Developer",
         category: "Technical",
-        type: "INTERNSHIP",
+        jobTitle: "BACKEND",
         mode: "REMOTE",
         title: "Backend Developer Intern",
         description:
@@ -79,7 +79,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "web-app-developer",
         label: "Web App Developer",
         category: "Technical",
-        type: "INTERNSHIP",
+        jobTitle: "WEB",
         mode: "REMOTE",
         title: "Web App Developer Intern",
         description:
@@ -102,7 +102,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "mobile-app-developer",
         label: "Mobile App Developer",
         category: "Technical",
-        type: "INTERNSHIP",
+        jobTitle: "MOBILE",
         mode: "REMOTE",
         title: "Mobile App Developer Intern",
         description:
@@ -124,7 +124,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "qa-engineer",
         label: "QA Engineer",
         category: "Technical",
-        type: "INTERNSHIP",
+        jobTitle: "QA",
         mode: "REMOTE",
         title: "QA Engineer Intern",
         description:
@@ -147,7 +147,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "ui-ux-designer",
         label: "UI/UX Designer",
         category: "Design & Product",
-        type: "INTERNSHIP",
+        jobTitle: "DESIGN",
         mode: "REMOTE",
         title: "UI/UX Designer Intern",
         description:
@@ -172,7 +172,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "product-manager",
         label: "Product Manager",
         category: "Design & Product",
-        type: "INTERNSHIP",
+        jobTitle: "PRODUCT",
         mode: "REMOTE",
         title: "Product Manager Intern",
         description:
@@ -198,7 +198,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "product-researcher",
         label: "Product Researcher",
         category: "Design & Product",
-        type: "INTERNSHIP",
+        jobTitle: "PRODUCT",
         mode: "REMOTE",
         title: "Product Researcher Intern",
         description:
@@ -220,7 +220,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "marketing-specialist",
         label: "Marketing Specialist",
         category: "Marketing & Content",
-        type: "INTERNSHIP",
+        jobTitle: "MARKETING",
         mode: "REMOTE",
         title: "Marketing Specialist Intern",
         description:
@@ -242,7 +242,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "content-writer",
         label: "Content Writer",
         category: "Marketing & Content",
-        type: "INTERNSHIP",
+        jobTitle: "CONTENT",
         mode: "REMOTE",
         title: "Content Writer Intern",
         description:
@@ -267,7 +267,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "video-editor",
         label: "Video Editor",
         category: "Marketing & Content",
-        type: "INTERNSHIP",
+        jobTitle: "CONTENT",
         mode: "REMOTE",
         title: "Video Editor Intern",
         description:
@@ -289,7 +289,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "social-media-manager",
         label: "Social Media Manager",
         category: "Marketing & Content",
-        type: "INTERNSHIP",
+        jobTitle: "MARKETING",
         mode: "REMOTE",
         title: "Social Media Manager Intern",
         description:
@@ -311,7 +311,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "sales-bd",
         label: "Sales / BD",
         category: "Business & Analytics",
-        type: "INTERNSHIP",
+        jobTitle: "SALES",
         mode: "REMOTE",
         title: "Sales / Business Development Intern",
         description:
@@ -333,7 +333,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "data-analyst",
         label: "Data Analyst",
         category: "Business & Analytics",
-        type: "INTERNSHIP",
+        jobTitle: "DATA",
         mode: "REMOTE",
         title: "Data Analyst Intern",
         description:
@@ -356,7 +356,7 @@ export const LISTING_TEMPLATES: ListingTemplate[] = [
         key: "human-resources",
         label: "Human Resources",
         category: "Business & Analytics",
-        type: "INTERNSHIP",
+        jobTitle: "HR",
         mode: "REMOTE",
         title: "Human Resources Intern",
         description:

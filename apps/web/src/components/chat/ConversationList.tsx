@@ -72,6 +72,7 @@ function ConversationRow({
         (s) => s.unreadByConv[item.id] ?? item.unreadCount,
     );
     const hasUnread = !active && unread > 0;
+    const isDeleted = !!item.peer.deletedAt;
     return (
         <li>
             <button
@@ -84,18 +85,25 @@ function ConversationRow({
                 )}
             >
                 <div className="flex items-center gap-3">
-                    <PeerAvatar name={item.peer.name} image={item.peer.image} />
+                    <PeerAvatar
+                        name={isDeleted ? null : item.peer.name}
+                        image={isDeleted ? null : item.peer.image}
+                    />
                     <div className="min-w-0 flex-1">
                         <div className="flex items-baseline justify-between gap-2">
                             <span
                                 className={cn(
-                                    "text-[14px] truncate",
-                                    hasUnread
-                                        ? "font-semibold text-foreground"
-                                        : "font-semibold",
+                                    "text-[14px] truncate font-semibold",
+                                    isDeleted &&
+                                        "text-muted-foreground italic",
+                                    !isDeleted &&
+                                        hasUnread &&
+                                        "text-foreground",
                                 )}
                             >
-                                {item.peer.name ?? "Unknown"}
+                                {isDeleted
+                                    ? "Deleted account"
+                                    : (item.peer.name ?? "Unknown")}
                             </span>
                             <span className="text-[10.5px] text-muted-foreground shrink-0">
                                 {formatRelative(item.lastMessageAt)}

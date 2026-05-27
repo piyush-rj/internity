@@ -8,6 +8,7 @@ import type {
     Certification,
     Language,
     Gender,
+    JobTitle,
     User,
 } from "./types";
 
@@ -28,6 +29,9 @@ export type StudentProfileInput = {
     portfolioUrl?: string;
     college?: string;
     branch?: string;
+    // Roles the student is looking for. Server dedupes and stores as a
+    // JobTitle[] on StudentProfile.
+    interestedJobTitles?: JobTitle[];
 };
 
 export type EducationInput = {

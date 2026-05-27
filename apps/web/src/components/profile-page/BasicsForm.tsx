@@ -5,16 +5,24 @@ import { toast } from "sonner";
 import {
     BookOpen,
     Calendar,
+    Check,
     GraduationCap,
     Globe,
     Info,
     MapPin,
     Phone,
+    Target,
     User,
     Users,
 } from "lucide-react";
 import { PiLinkedinLogoFill } from "react-icons/pi";
-import { studentApi, type Gender, type StudentProfile } from "@/src/lib/api";
+import {
+    studentApi,
+    type Gender,
+    type JobTitle,
+    type StudentProfile,
+} from "@/src/lib/api";
+import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import { Button } from "@/src/components/ui/button";
@@ -32,6 +40,7 @@ type FormState = {
     portfolioUrl: string;
     college: string;
     branch: string;
+    interestedJobTitles: JobTitle[];
 };
 
 const empty: FormState = {
@@ -46,6 +55,7 @@ const empty: FormState = {
     portfolioUrl: "",
     college: "",
     branch: "",
+    interestedJobTitles: [],
 };
 
 function fromProfile(p: StudentProfile | null): FormState {
@@ -62,6 +72,7 @@ function fromProfile(p: StudentProfile | null): FormState {
         portfolioUrl: p.portfolioUrl ?? "",
         college: p.college ?? "",
         branch: p.branch ?? "",
+        interestedJobTitles: p.interestedJobTitles ?? [],
     };
 }
 
@@ -132,6 +143,10 @@ export function BasicsForm({
             portfolioUrl: portfolio || undefined,
             college: form.college.trim() || undefined,
             branch: form.branch.trim() || undefined,
+            interestedJobTitles:
+                form.interestedJobTitles.length > 0
+                    ? form.interestedJobTitles
+                    : [],
         };
         try {
             if (profile) await studentApi.update(payload);
@@ -292,6 +307,50 @@ export function BasicsForm({
                     />
                 </Field>
             </div>
+
+            <Field
+                label="Interested roles"
+                icon={<Target className="h-3.5 w-3.5" />}
+                hint="Pick the roles you want — listings in these areas show up first on your feed and the Apply form pre-fills."
+            >
+                <div className="flex flex-wrap gap-1.5">
+                    {JOB_TITLES.map((o) => {
+                        const selected = form.interestedJobTitles.includes(
+                            o.value,
+                        );
+                        return (
+                            <button
+                                key={o.value}
+                                type="button"
+                                onClick={() => {
+                                    setForm((f) => {
+                                        const set = new Set(
+                                            f.interestedJobTitles,
+                                        );
+                                        if (set.has(o.value))
+                                            set.delete(o.value);
+                                        else set.add(o.value);
+                                        return {
+                                            ...f,
+                                            interestedJobTitles:
+                                                Array.from(set),
+                                        };
+                                    });
+                                }}
+                                className={cn(
+                                    "inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-[12px] cursor-pointer transition-colors",
+                                    selected
+                                        ? "border-orange-500 bg-orange-50 text-orange-700"
+                                        : "border-border bg-background text-foreground hover:bg-secondary",
+                                )}
+                            >
+                                {selected && <Check className="h-3 w-3" />}
+                                {o.label}
+                            </button>
+                        );
+                    })}
+                </div>
+            </Field>
 
             <Field
                 label="Short bio"

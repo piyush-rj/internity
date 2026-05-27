@@ -6,6 +6,7 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
+import { canManageApplicants } from "../../../utils/company-roles.ts";
 
 export default async function getApplication(
     req: Request,
@@ -24,7 +25,7 @@ export default async function getApplication(
         if (!a) throw new NotFound();
 
         const isApplicant = a.studentId === req.user!.id;
-        let isMember = false;
+        let canViewAsTeam = false;
         if (!isApplicant) {
             const m = await prisma.companyMember.findUnique({
                 where: {
@@ -34,9 +35,9 @@ export default async function getApplication(
                     },
                 },
             });
-            isMember = m !== null;
+            canViewAsTeam = m !== null && canManageApplicants(m.role);
         }
-        if (!isApplicant && !isMember) throw new Forbidden("Not allowed");
+        if (!isApplicant && !canViewAsTeam) throw new Forbidden("Not allowed");
 
         api.ok({ application: a });
     } catch (err) {

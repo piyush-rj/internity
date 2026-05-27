@@ -16,6 +16,7 @@ import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { ApiClientError } from "@/src/lib/apiClient";
 import type { MyListing } from "@/src/hooks/useMyListings";
 import { useConfirm } from "@/src/hooks/useConfirm";
+import { formatDuration } from "@/src/lib/format/duration";
 import { cn } from "@/src/lib/utils";
 
 type BusyKind =
@@ -97,7 +98,6 @@ export function MyListingCard({
                                 {listing.title}
                             </Link>
                         )}
-                        <TypeBadge type={listing.type} />
                         <ModeBadge mode={listing.mode} />
                         <StatusBadge
                             closed={closed}
@@ -150,12 +150,17 @@ export function MyListingCard({
                                 </span>
                             </li>
                         )}
-                        {listing.durationMonths && (
+                        {formatDuration(
+                            listing.durationMonths,
+                            listing.durationWeeks,
+                        ) && (
                             <li className="inline-flex items-center gap-1.5 tabular-nums">
                                 <PiClock className="h-3.5 w-3.5 text-muted-foreground" />
                                 <span>
-                                    {listing.durationMonths} month
-                                    {listing.durationMonths === 1 ? "" : "s"}
+                                    {formatDuration(
+                                        listing.durationMonths,
+                                        listing.durationWeeks,
+                                    )}
                                 </span>
                             </li>
                         )}
@@ -403,14 +408,6 @@ function formatExpiresAt(iso: string | null): string {
     if (days >= 1) return `in ${days}d`;
     const hours = Math.max(1, Math.floor(diffMs / (60 * 60 * 1000)));
     return `in ${hours}h`;
-}
-
-function TypeBadge({ type }: { type: MyListing["type"] }) {
-    return (
-        <span className="rounded-md border border-border bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {type === "INTERNSHIP" ? "Internship" : "Job"}
-        </span>
-    );
 }
 
 function ModeBadge({ mode }: { mode: MyListing["mode"] }) {

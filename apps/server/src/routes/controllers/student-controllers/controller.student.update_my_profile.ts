@@ -5,7 +5,23 @@ import {
     ResponseWriter,
     handleApiError,
 } from "../../../utils/api-response.ts";
-import { prisma, type Gender } from "../../../db.ts";
+import { prisma, type Gender, type JobTitle } from "../../../db.ts";
+
+const JOB_TITLE_VALUES = [
+    "AI",
+    "BACKEND",
+    "WEB",
+    "MOBILE",
+    "QA",
+    "DESIGN",
+    "PRODUCT",
+    "MARKETING",
+    "CONTENT",
+    "SALES",
+    "DATA",
+    "HR",
+    "CUSTOM",
+] as const;
 
 const Body = z.object({
     firstName: z.string().min(1).optional(),
@@ -30,6 +46,9 @@ const Body = z.object({
         .optional(),
     college: z.string().nullable().optional(),
     branch: z.string().nullable().optional(),
+    // Roles the student wants to be matched against. Dedup at write time so
+    // the column doesn't drift into a multiset.
+    interestedJobTitles: z.array(z.enum(JOB_TITLE_VALUES)).optional(),
 });
 
 export default async function updateMyProfile(
@@ -68,6 +87,11 @@ export default async function updateMyProfile(
                 }),
                 ...(body.college !== undefined && { college: body.college }),
                 ...(body.branch !== undefined && { branch: body.branch }),
+                ...(body.interestedJobTitles !== undefined && {
+                    interestedJobTitles: Array.from(
+                        new Set(body.interestedJobTitles),
+                    ) as JobTitle[],
+                }),
             },
         });
         api.ok({ profile });
