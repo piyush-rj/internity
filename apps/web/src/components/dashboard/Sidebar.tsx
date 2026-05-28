@@ -26,6 +26,7 @@ import { useMeStore } from "@/src/store/useMeStore";
 import { selectTotalUnread, useChatStore } from "@/src/store/useChatStore";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { canManageCompany } from "@/src/lib/catalog/companyRoles";
+import Image from "next/image";
 
 type IconComp = ComponentType<{ className?: string }>;
 
@@ -224,13 +225,14 @@ export function SidebarBody({
                 onClick={() => onNavigate?.()}
                 className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer shrink-0"
             >
-                <div
-                    className={cn(
-                        "h-7.5 w-7.5 flex justify-center items-center bg-linear-to-b from-neutral-700 to-neutral-900 rounded-sm ",
-                        "inset-shadow-xs inset-shadow-white/50 shadow-sm shadow-black/10",
-                    )}
-                >
-                    <GiTie className="size-5 text-white" />
+                <div className="relative h-7.5 w-7.5 ring-1 ring-black/15 rounded-sm bg-linear-to-b from-neutral-50 to-neutral-100 shadow-sm shadow-black/10 overflow-hidden flex justify-center items-center inset-shadow-xs inset-shadow-black/10">
+                    <Image
+                        src={"/app-logos/logo.png"}
+                        alt="app-logo"
+                        className="object-cover pt-0.75 scale-120"
+                        fill
+                        unoptimized
+                    />
                 </div>
                 <div className="h-7.5 flex flex-col justify-between pt-px">
                     <span className="text-[15px] font-semibold tracking-normal leading-none">

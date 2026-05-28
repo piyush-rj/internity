@@ -8,7 +8,7 @@ import { AlertTriangle, ArrowRight, Check, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { invitationApi, type InvitationLookup } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
-import { COMPANY_ROLE_LABEL } from "@/src/lib/catalog/companyRoles";
+import { displayCompanyRole } from "@/src/lib/catalog/companyRoles";
 import { useMeStore } from "@/src/store/useMeStore";
 import { cn } from "@/src/lib/utils";
 
@@ -115,7 +115,7 @@ function Content({
                     <p className="mt-1 text-[13px] text-muted-foreground">
                         as a{" "}
                         <span className="font-medium text-foreground/90">
-                            {COMPANY_ROLE_LABEL[inv.role]}
+                            {displayCompanyRole(inv.role, inv.customRole)}
                         </span>
                     </p>
                 </div>

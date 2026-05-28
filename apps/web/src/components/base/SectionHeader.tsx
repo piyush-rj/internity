@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 import { cn } from "@/src/lib/utils";
 import { Button } from "../ui/button";
 
@@ -7,12 +8,17 @@ type CTA = {
     href?: string;
 };
 
+export type SectionAccent = { src: string; alt: string };
+
 type SectionHeaderProps = {
     title: ReactNode;
     description?: ReactNode;
     cta?: CTA;
     align?: "left" | "center";
     className?: string;
+    // Small decorative photo rendered beside the header on lg+. Hidden on
+    // smaller screens so the layout stays clean.
+    accent?: SectionAccent;
 };
 
 export function SectionHeader({
@@ -21,16 +27,11 @@ export function SectionHeader({
     cta,
     align = "left",
     className,
+    accent,
 }: SectionHeaderProps) {
     const isCenter = align === "center";
-    return (
-        <div
-            className={cn(
-                "max-w-2xl mb-12",
-                isCenter && "mx-auto text-center",
-                className,
-            )}
-        >
+    const textColumn = (
+        <div className={cn("max-w-2xl", isCenter && "mx-auto text-center")}>
             <h2
                 className={cn(
                     "text-[32px] sm:text-[44px] font-semibold",
@@ -64,6 +65,39 @@ export function SectionHeader({
                     </Button>
                 </div>
             )}
+        </div>
+    );
+
+    // No accent or center-aligned headers fall back to the original layout.
+    if (!accent || isCenter) {
+        return <div className={cn("mb-12", className)}>{textColumn}</div>;
+    }
+
+    return (
+        <div
+            className={cn(
+                "mb-12 flex items-start gap-8",
+                "lg:items-center",
+                className,
+            )}
+        >
+            <div className="flex-1 min-w-0">{textColumn}</div>
+            <div
+                aria-hidden
+                className={cn(
+                    "hidden lg:block shrink-0",
+                    "relative w-50 h-60 rounded-2xl overflow-hidden",
+                    "ring-1 ring-black/5 shadow-[0_18px_40px_-20px_rgba(15,23,42,0.25)]",
+                )}
+            >
+                <Image
+                    src={accent.src}
+                    alt={accent.alt}
+                    fill
+                    sizes="200px"
+                    className="object-cover"
+                />
+            </div>
         </div>
     );
 }

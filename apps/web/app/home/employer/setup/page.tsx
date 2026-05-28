@@ -164,7 +164,10 @@ export default function EmployerSetupPage() {
         if (!/^[a-z0-9-]+$/.test(company.slug.trim())) {
             return "URL slug can only have lowercase letters, numbers, and hyphens.";
         }
-        if (company.linkedinUrl.trim() && !isHttpUrl(company.linkedinUrl.trim())) {
+        if (
+            company.linkedinUrl.trim() &&
+            !isHttpUrl(company.linkedinUrl.trim())
+        ) {
             return "Company LinkedIn URL doesn't look right. Include https:// at the start.";
         }
         if (company.website.trim() && !isHttpUrl(company.website.trim())) {
@@ -178,7 +181,8 @@ export default function EmployerSetupPage() {
             return `Founding year must be between 1800 and ${currentYear}.`;
         }
         if (!company.size.trim()) return "Please pick your team size.";
-        if (!company.country.trim()) return "Please pick the company's country.";
+        if (!company.country.trim())
+            return "Please pick the company's country.";
         if (!company.organizationType)
             return "Pick what best describes your organization.";
         if (!company.about.trim())
@@ -228,7 +232,8 @@ export default function EmployerSetupPage() {
                     size: company.size.trim(),
                     city: company.city.trim() || undefined,
                     country: company.country.trim(),
-                    organizationType: company.organizationType as OrganizationType,
+                    organizationType:
+                        company.organizationType as OrganizationType,
                 };
                 await companyApi.create(companyInput);
                 await Promise.all([refetch(), refetchMe()]);
@@ -414,17 +419,15 @@ export default function EmployerSetupPage() {
                                 Connect a company
                             </h2>
                             <p className="mt-0.5 text-[12.5px] text-muted-foreground">
-                                Create a new company or join an existing one
-                                via invite. You can do this later if you&rsquo;d
+                                Create a new company or join an existing one via
+                                invite. You can do this later if you&rsquo;d
                                 rather skip for now.
                             </p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             <ChoiceCard
-                                icon={
-                                    <Building2 className="h-5 w-5" />
-                                }
+                                icon={<Building2 className="h-5 w-5" />}
                                 iconWrap="bg-brand/10 text-brand"
                                 title="Create a new company"
                                 body="Add your company details so you can post listings and invite teammates."
@@ -627,7 +630,10 @@ export default function EmployerSetupPage() {
                                     >
                                         <option value="">Pick one</option>
                                         {ORG_TYPES.map((o) => (
-                                            <option key={o.value} value={o.value}>
+                                            <option
+                                                key={o.value}
+                                                value={o.value}
+                                            >
                                                 {o.label}
                                             </option>
                                         ))}

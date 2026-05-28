@@ -13,8 +13,16 @@ export type CompanyMembersState = {
     loading: boolean;
     error: ApiClientError | Error | null;
     refetch: () => Promise<void>;
-    add: (email: string, role?: CompanyRole) => Promise<void>;
-    updateRole: (userId: string, role: CompanyRole) => Promise<void>;
+    add: (
+        email: string,
+        role?: CompanyRole,
+        customRole?: string | null,
+    ) => Promise<void>;
+    updateRole: (
+        userId: string,
+        role: CompanyRole,
+        customRole?: string | null,
+    ) => Promise<void>;
     remove: (userId: string) => Promise<void>;
 };
 
@@ -44,20 +52,38 @@ export function useCompanyMembers(
     }, [companyId]);
 
     const add = useCallback(
-        async (email: string, role?: CompanyRole) => {
+        async (
+            email: string,
+            role?: CompanyRole,
+            customRole?: string | null,
+        ) => {
             if (!companyId) return;
-            await companyApi.add_member(companyId, { email, role });
+            await companyApi.add_member(companyId, { email, role, customRole });
             await fetchMembers();
         },
         [companyId, fetchMembers],
     );
 
     const updateRole = useCallback(
-        async (userId: string, role: CompanyRole) => {
+        async (
+            userId: string,
+            role: CompanyRole,
+            customRole?: string | null,
+        ) => {
             if (!companyId) return;
-            await companyApi.update_member_role(companyId, userId, role);
+            await companyApi.update_member_role(
+                companyId,
+                userId,
+                role,
+                customRole,
+            );
+            const nextCustom = role === "OTHER" ? (customRole ?? null) : null;
             setMembers((prev) =>
-                prev.map((m) => (m.userId === userId ? { ...m, role } : m)),
+                prev.map((m) =>
+                    m.userId === userId
+                        ? { ...m, role, customRole: nextCustom }
+                        : m,
+                ),
             );
         },
         [companyId],

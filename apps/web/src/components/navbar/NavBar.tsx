@@ -9,6 +9,7 @@ import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { cn } from "@/src/lib/utils";
+import Image from "next/image";
 
 export function NavBar({
     floatOnScroll = false,
@@ -43,7 +44,6 @@ export function NavBar({
 
     const items = [
         "Internships",
-        "Jobs",
         "Courses",
         "Placement Guarantee",
         "For employers",
@@ -73,6 +73,15 @@ export function NavBar({
                         href="/"
                         className="flex items-center gap-2 text-foreground"
                     >
+                        <div className="relative h-7.5 w-7.5 ring-1 ring-black/15 rounded-sm bg-linear-to-b from-neutral-50 to-neutral-100 shadow-sm shadow-black/10 overflow-hidden flex justify-center items-center inset-shadow-xs inset-shadow-black/10">
+                            <Image
+                                src={"/app-logos/logo.png"}
+                                alt="app-logo"
+                                className="object-cover pt-0.75 scale-120"
+                                fill
+                                unoptimized
+                            />
+                        </div>
                         <span className="text-[16px] font-semibold tracking-tight">
                             SpiderSkill
                         </span>

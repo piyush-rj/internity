@@ -1,25 +1,34 @@
 import { cn } from "@/src/lib/utils";
 
+type FooterLink = { label: string; href: string };
+
 export function Footer() {
-    const cols: Record<string, string[]> = {
+    const cols: Record<string, FooterLink[]> = {
         "For students": [
-            "Internships",
-            "Jobs for freshers",
-            "Online trainings",
-            "Placement Guarantee",
-            "Resume builder",
-            "Career advice blog",
+            { label: "Internships", href: "#" },
+            { label: "Online trainings", href: "#" },
+            { label: "Placement Guarantee", href: "#" },
+            { label: "Resume builder", href: "#" },
+            { label: "Career advice blog", href: "#" },
         ],
         "For employers": [
-            "Post an internship",
-            "Post a job",
-            "Search candidates",
-            "Pricing",
-            "Branding solutions",
-            "Hiring guide",
+            { label: "Post an internship", href: "#" },
+            { label: "Search candidates", href: "#" },
+            { label: "Pricing", href: "/pricing" },
+            { label: "Branding solutions", href: "#" },
+            { label: "Hiring guide", href: "#" },
         ],
-        Company: ["About us", "Team", "Careers", "Press", "Contact"],
-        Help: ["FAQs", "Trust & safety", "Report a problem", "Sitemap"],
+        Company: [
+            { label: "About us", href: "#" },
+            { label: "Team", href: "#" },
+            { label: "Contact", href: "#" },
+        ],
+        Help: [
+            { label: "FAQs", href: "/faq" },
+            { label: "Trust & safety", href: "#" },
+            { label: "Report a problem", href: "#" },
+            { label: "Sitemap", href: "#" },
+        ],
     };
     return (
         <footer className="border-t border-black/6 pt-14 pb-6">
@@ -43,12 +52,12 @@ export function Footer() {
                             </div>
                             <ul className="space-y-2">
                                 {links.map((l) => (
-                                    <li key={l}>
+                                    <li key={l.label}>
                                         <a
-                                            href="#"
+                                            href={l.href}
                                             className="text-[13px] text-muted-foreground hover:text-foreground transition-colors"
                                         >
-                                            {l}
+                                            {l.label}
                                         </a>
                                     </li>
                                 ))}
@@ -65,14 +74,11 @@ export function Footer() {
                 >
                     <div>© {new Date().getFullYear()} SpiderSkill</div>
                     <div className="flex items-center gap-4">
-                        <a href="#" className="hover:text-foreground">
+                        <a href="/privacy" className="hover:text-foreground">
                             Privacy
                         </a>
-                        <a href="#" className="hover:text-foreground">
+                        <a href="/terms" className="hover:text-foreground">
                             Terms
-                        </a>
-                        <a href="#" className="hover:text-foreground">
-                            Cookies
                         </a>
                     </div>
                 </div>

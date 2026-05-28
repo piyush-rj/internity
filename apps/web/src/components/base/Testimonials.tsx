@@ -5,7 +5,7 @@ import { cn } from "@/src/lib/utils";
 export function Testimonials() {
     const quotes = [
         {
-            q: "I landed my first internship at a fintech startup within two weeks of applying through Internity. The filters made it really easy to find work-from-home roles that matched my class schedule.",
+            q: "I landed my first internship at a fintech startup within two weeks of applying through SpiderSkill. The filters made it really easy to find work-from-home roles that matched my class schedule.",
             a: "Aanya Sharma",
             r: "B.Tech CSE, Delhi · Now at Razorpay",
             grad: "from-pink-500 to-violet-500",

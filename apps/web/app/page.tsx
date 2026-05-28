@@ -1,8 +1,10 @@
 import { FeaturePillars } from "@/src/components/base/FeaturePillars";
+import { FinalCTA } from "@/src/components/base/FinalCTA";
 import { Footer } from "@/src/components/base/Footer";
 import { Hero } from "@/src/components/base/Hero";
 import { InternshipsSection } from "@/src/components/base/InternshipsSection";
 import { JobsSection } from "@/src/components/base/JobsSection";
+import { SocialProofGallery } from "@/src/components/base/SocialProofGallery";
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { cn } from "@/src/lib/utils";
 
@@ -16,16 +18,24 @@ export default function Home() {
                     <Hero />
                 </SectionWrap>
                 <SectionWrap>
-                    <FeaturePillars />
+                    <SocialProofGallery />
                 </SectionWrap>
                 <SectionWrap>
-                    <JobsSection />
+                    <FeaturePillars />
                 </SectionWrap>
+                {/* <SectionWrap>
+                    <JobsSection />
+                </SectionWrap> */}
                 <SectionWrap>
                     <InternshipsSection />
                 </SectionWrap>
+                <SectionWrap>
+                    <FinalCTA />
+                </SectionWrap>
+                <SectionWrap>
+                    <Footer />
+                </SectionWrap>
             </main>
-            <Footer />
         </div>
     );
 }

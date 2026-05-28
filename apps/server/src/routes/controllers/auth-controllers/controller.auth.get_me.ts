@@ -108,6 +108,7 @@ export default async function getMe(
             activeCompanyId: user.activeCompanyId,
             companies: user.companyMemberships.map((m) => ({
                 role: m.role,
+                customRole: m.customRole,
                 joinedAt: m.joinedAt,
                 company: m.company,
             })),

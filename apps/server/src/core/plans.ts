@@ -10,7 +10,7 @@ export type Plan = {
 export const PLANS: Record<string, Plan> = {
     PRO: {
         code: "PRO",
-        name: "Internity Pro",
+        name: "SpiderSkill Pro",
         description:
             "Unlimited applications, priority support, mentor sessions",
         amount: 49900,

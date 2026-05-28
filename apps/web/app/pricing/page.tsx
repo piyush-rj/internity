@@ -60,7 +60,7 @@ const PLANS: Plan[] = [
         features: [
             "Unlimited active listings",
             "All Monthly features",
-            "Save 67% vs Monthly (₹20k → ₹10k)",
+            "Save 67% vs Monthly (₹20k to ₹10k)",
             "Founder support (24h response)",
             "Coupons & referral credits",
         ],

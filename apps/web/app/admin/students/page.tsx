@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { adminApi, type AdminStudentListItem } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { Button } from "@/src/components/ui/button";
+import { PromptDialog } from "@/src/components/ui/PromptDialog";
+import { usePrompt } from "@/src/hooks/usePrompt";
 import { cn } from "@/src/lib/utils";
 
 export default function AdminStudentsPage() {
@@ -20,6 +22,7 @@ export default function AdminStudentsPage() {
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const { prompt, dialogProps: promptDialogProps } = usePrompt();
 
     const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
     useEffect(() => {
@@ -64,9 +67,7 @@ export default function AdminStudentsPage() {
         const next = !s.isVerified;
         // optimistic update so the badge flips immediately
         setItems((prev) =>
-            prev.map((x) =>
-                x.id === s.id ? { ...x, isVerified: next } : x,
-            ),
+            prev.map((x) => (x.id === s.id ? { ...x, isVerified: next } : x)),
         );
         try {
             await adminApi.set_student_verification(s.user.id, {
@@ -94,14 +95,21 @@ export default function AdminStudentsPage() {
         const banning = !s.user.isBanned;
         let reason = "";
         if (banning) {
-            reason =
-                window.prompt(
-                    `Reason for banning ${s.firstName}? (shown to the student)`,
-                ) ?? "";
-            if (!reason.trim()) {
-                toast.error("Ban requires a reason.");
-                return;
-            }
+            const value = await prompt({
+                title: `Ban ${s.firstName}?`,
+                description:
+                    "Add a short reason. This is shown to the student and recorded for audit.",
+                placeholder: "Why are you banning this account?",
+                confirmLabel: "Ban student",
+                cancelLabel: "Cancel",
+                multiline: true,
+                required: true,
+                requiredError: "Ban requires a reason.",
+                maxLength: 500,
+                variant: "destructive",
+            });
+            if (value === null) return;
+            reason = value;
         }
         try {
             await adminApi.set_user_ban(s.user.id, {
@@ -288,6 +296,7 @@ export default function AdminStudentsPage() {
                     </ul>
                 )}
             </section>
+            <PromptDialog {...promptDialogProps} />
         </section>
     );
 }

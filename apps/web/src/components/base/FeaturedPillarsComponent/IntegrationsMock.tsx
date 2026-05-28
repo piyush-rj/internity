@@ -25,27 +25,20 @@ type BrandKey =
     | "zapier"
     | "mintlify";
 
-type Cell =
-    | { kind: "logo"; col: number; row: number; brand: BrandKey }
-    | { kind: "empty"; col: number; row: number };
+type Cell = { kind: "logo"; col: number; row: number; brand: BrandKey };
 
 const GRID_COLS = 5;
 const GRID_ROWS = 6;
 
 const cells: Cell[] = [
     { kind: "logo", col: 3, row: 0, brand: "shopify" },
-    { kind: "empty", col: 1, row: 1 },
     { kind: "logo", col: 2, row: 1, brand: "slack" },
     { kind: "logo", col: 5, row: 1, brand: "wordpress" },
     { kind: "logo", col: 3, row: 2, brand: "gtm" },
     { kind: "logo", col: 1, row: 3, brand: "sequence" },
     { kind: "logo", col: 4, row: 3, brand: "strapi" },
-    { kind: "empty", col: 2, row: 4 },
     { kind: "logo", col: 3, row: 4, brand: "mailtrap" },
-    { kind: "empty", col: 5, row: 4 },
-    { kind: "empty", col: 1, row: 5 },
     { kind: "logo", col: 2, row: 5, brand: "zapier" },
-    { kind: "empty", col: 4, row: 5 },
     { kind: "logo", col: 5, row: 5, brand: "mintlify" },
 ];
 
@@ -82,31 +75,6 @@ export function IntegrationsMock() {
                         const dy = cell.row - (GRID_ROWS - 1) / 2;
                         const distance = Math.sqrt(dx * dx + dy * dy);
                         const popDelay = 0.18 + distance * 0.06;
-
-                        if (cell.kind === "empty") {
-                            return (
-                                <div
-                                    key={`e-${i}`}
-                                    style={{
-                                        gridColumn: cell.col,
-                                        gridRow: cell.row + 1,
-                                    }}
-                                    className="flex items-center justify-center"
-                                >
-                                    <motion.div
-                                        initial={{ opacity: 0, scale: 0.85 }}
-                                        whileInView={{ opacity: 1, scale: 1 }}
-                                        viewport={{ once: true }}
-                                        transition={{
-                                            duration: 0.45,
-                                            delay: popDelay,
-                                            ease: [0.22, 1, 0.36, 1],
-                                        }}
-                                        className="h-[72%] w-[72%] rounded-lg border border-border/60 bg-background/40"
-                                    />
-                                </div>
-                            );
-                        }
 
                         return (
                             <div

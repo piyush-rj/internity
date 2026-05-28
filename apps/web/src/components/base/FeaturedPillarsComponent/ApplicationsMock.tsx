@@ -104,7 +104,7 @@ export function ApplicationsMock() {
     };
 
     return (
-        <div className="absolute inset-x-0 top-0 mask-[linear-gradient(to_right,#000_72%,transparent_100%)]">
+        <div className="absolute inset-x-0 top-0">
             <motion.div
                 initial={{ opacity: 0, y: 18 }}
                 whileInView={{ opacity: 1, y: 0 }}

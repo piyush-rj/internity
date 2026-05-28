@@ -18,10 +18,12 @@ export function PillarCard({
     primary,
     secondary,
     children,
+    className,
 }: {
     primary: string;
     secondary: string;
     children: ReactNode;
+    className?: string;
 }) {
     return (
         <motion.article
@@ -30,7 +32,8 @@ export function PillarCard({
                 "group relative flex h-110 flex-col overflow-hidden",
                 "rounded-[28px] border border-border/70",
                 "bg-secondary/40 p-7 sm:p-8",
-                "transition-colors duration-300 hover:bg-secondary/55",
+                "transition-colors duration-300",
+                className,
             )}
         >
             <header className="relative z-10 flex items-start justify-between gap-3">
@@ -38,11 +41,11 @@ export function PillarCard({
                     className={cn(
                         "text-[22px] sm:text-[22px]",
                         "leading-[1.02] tracking-[-0.018em]",
-                        "max-w-[16ch]",
+                        "max-w-[16ch] text-current",
                     )}
                 >
-                    <span className="font-semibold text-">{primary}</span>{" "}
-                    <span className="font-normal text-[15px] tracking-normal text-muted-foreground">
+                    <span className="font-semibold">{primary}</span>{" "}
+                    <span className="font-normal text-[15px] tracking-normal text-current/70">
                         {secondary}
                     </span>
                 </h3>

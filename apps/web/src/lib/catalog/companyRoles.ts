@@ -9,6 +9,7 @@ export const COMPANY_ROLE_LABEL: Record<CompanyRole, string> = {
     CO_FOUNDER: "Co-founder",
     HR: "HR",
     MEMBER: "Member",
+    OTHER: "Other",
     OWNER: "Founder",
 };
 
@@ -19,6 +20,7 @@ export const COMPANY_ROLE_HINT: Record<CompanyRole, string> = {
     CO_FOUNDER: "Full admin: team, listings, applicants",
     HR: "Manages applicants & interviews",
     MEMBER: "Posts listings only",
+    OTHER: "Custom label; same access as Member",
     OWNER: "Full admin: team, listings, applicants",
 };
 
@@ -27,6 +29,7 @@ export const COMPANY_ROLE_BADGE_STYLE: Record<CompanyRole, string> = {
     CO_FOUNDER: "bg-violet-50 text-violet-700 border-violet-200",
     HR: "bg-sky-50 text-sky-700 border-sky-200",
     MEMBER: "bg-secondary text-foreground border-border",
+    OTHER: "bg-emerald-50 text-emerald-700 border-emerald-200",
     OWNER: "bg-brand/10 text-brand border-brand/20",
 };
 
@@ -34,7 +37,22 @@ export const COMPANY_ROLE_BADGE_STYLE: Record<CompanyRole, string> = {
 // is intentionally omitted; promoting someone always picks FOUNDER_OWNER.
 export const SELECTABLE_COMPANY_ROLES: ReadonlyArray<
     Exclude<CompanyRole, "OWNER">
-> = ["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER"];
+> = ["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER", "OTHER"];
+
+// Free-text label cap; mirrors CUSTOM_ROLE_MAX_LENGTH on the server.
+export const CUSTOM_ROLE_MAX_LENGTH = 60;
+
+// Display label for a member or invite. Prefers the free-text customRole
+// when role = OTHER, otherwise falls back to the predefined label.
+export function displayCompanyRole(
+    role: CompanyRole,
+    customRole?: string | null,
+): string {
+    if (role === "OTHER" && customRole && customRole.trim().length > 0) {
+        return customRole.trim();
+    }
+    return COMPANY_ROLE_LABEL[role];
+}
 
 // Helper: capability checks mirroring the server-side helpers in
 // apps/server/src/utils/company-roles.ts. Keep these two files in sync.
@@ -46,9 +64,14 @@ export function canManageCompany(role: CompanyRole): boolean {
 }
 
 export function canManageListings(role: CompanyRole): boolean {
-    return canManageCompany(role) || role === "MEMBER";
+    return canManageCompany(role) || role === "MEMBER" || role === "OTHER";
 }
 
 export function canManageApplicants(role: CompanyRole): boolean {
-    return canManageCompany(role) || role === "HR" || role === "MEMBER";
+    return (
+        canManageCompany(role) ||
+        role === "HR" ||
+        role === "MEMBER" ||
+        role === "OTHER"
+    );
 }

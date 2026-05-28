@@ -42,6 +42,7 @@ export type CompanyRole =
     | "CO_FOUNDER"
     | "HR"
     | "MEMBER"
+    | "OTHER"
     | "OWNER";
 export type CompanyVerificationStatus = "PENDING" | "APPROVED" | "REJECTED";
 export type AssetKind = "RESUME" | "COMPANY_LOGO" | "PROFILE_IMAGE";
@@ -207,6 +208,8 @@ export type CompanyMember = {
     companyId: string;
     userId: string;
     role: CompanyRole;
+    // Free-text label populated only when role = OTHER; null otherwise.
+    customRole: string | null;
     joinedAt: string;
 };
 

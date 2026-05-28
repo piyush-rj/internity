@@ -96,9 +96,9 @@ function Card({
 }) {
     const toneStyle =
         tone === "amber"
-            ? "border-amber-200 bg-amber-50/40"
-            : "border-emerald-200 bg-emerald-50/30";
-    const iconStyle = tone === "amber" ? "text-amber-600" : "text-emerald-600";
+            ? "bg-neutral-300"
+            : "bg-brand";
+    const iconStyle = tone === "amber" ? "text-neutral-800" : "text-neutral-800";
     return (
         <section
             className={cn(
@@ -110,7 +110,7 @@ function Card({
                 <Icon className={cn("h-3.5 w-3.5", iconStyle)} />
                 <h3 className="text-[13px] font-semibold">{title}</h3>
             </header>
-            <div className="px-4 py-3 bg-card">
+            <div className="px-4 py-3 bg-white">
                 {items ? (
                     <ul className="space-y-2">
                         {items.map((t, i) => (

@@ -7,13 +7,17 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { CompanyRole, prisma } from "../../../db.ts";
+import { normaliseCustomRole } from "../../../utils/company-roles.ts";
 import { notify } from "../../../services/notifications.ts";
 
 const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
 const Body = z.object({
     email: z.string().trim().toLowerCase().email("Enter a valid email"),
-    role: z.enum(["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER"]).optional(),
+    role: z
+        .enum(["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER", "OTHER"])
+        .optional(),
+    customRole: z.string().max(120).optional().nullable(),
 });
 
 /**
@@ -66,11 +70,20 @@ export default async function createCompanyInvitation(
             );
         }
 
+        const role: CompanyRole =
+            (body.role as CompanyRole) ?? CompanyRole.MEMBER;
+        const customRole = normaliseCustomRole(
+            role,
+            body.customRole ?? null,
+            (msg) => new InvalidRequest(msg),
+        );
+
         const invite = await prisma.companyInvitation.create({
             data: {
                 companyId,
                 email: body.email,
-                role: (body.role as CompanyRole) ?? CompanyRole.MEMBER,
+                role,
+                customRole,
                 token: crypto.randomBytes(24).toString("hex"),
                 invitedById: req.user!.id,
                 expiresAt: new Date(Date.now() + INVITE_TTL_MS),

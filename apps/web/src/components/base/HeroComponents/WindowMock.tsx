@@ -23,9 +23,9 @@ export function WindowMock() {
                 <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-[#febc2e]" />
                 <span className="h-2 w-2 sm:h-2.5 sm:w-2.5 rounded-full bg-[#28c840]" />
                 <div className="ml-2 sm:ml-4 text-[10px] sm:text-[11px] text-muted-foreground truncate">
-                    <span className="sm:hidden">internity.app</span>
+                    <span className="sm:hidden">SpiderSkill.app</span>
                     <span className="hidden sm:inline">
-                        internity.app · Internships · Web Development
+                        spiderskill.com · Internships · Web Development
                     </span>
                 </div>
                 <div className="ml-auto hidden sm:flex items-center gap-1.5">
@@ -109,7 +109,7 @@ export function WindowMock() {
                         mode="Work from home"
                         stipend="₹18,000/month"
                         duration="4 months"
-                        tag="Internity verified"
+                        tag="SpiderSkill verified"
                         tagColor="bg-violet-500/10 text-violet-600"
                         logo="/brand-logos/swiggy.jpeg"
                     />

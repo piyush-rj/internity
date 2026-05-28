@@ -4,14 +4,20 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight } from "lucide-react";
+import { PiCalendarCheckFill } from "react-icons/pi";
 import {
-    PiBriefcaseFill,
-    PiCalendarCheckFill,
-    PiPauseFill,
-    PiProhibitFill,
-    PiClockCountdownFill,
-} from "react-icons/pi";
+    Bar,
+    BarChart,
+    Cell,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from "recharts";
 import type { ApplicationStatus, CompanyDashboard } from "@/src/lib/api";
+import { CountLegend } from "@/src/components/dashboard/StatsChartRow";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ChatAvatar } from "@/src/components/chat/ChatAvatar";
 import {
@@ -20,8 +26,8 @@ import {
 } from "@/src/components/company/CompanyEmptyStates";
 import {
     COMPANY_ROLE_BADGE_STYLE,
-    COMPANY_ROLE_LABEL,
     canManageCompany,
+    displayCompanyRole,
 } from "@/src/lib/catalog/companyRoles";
 import { useCompanyDashboard } from "@/src/hooks/useCompanyDashboard";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
@@ -65,8 +71,10 @@ export default function CompanyDashboardPage() {
                 <ErrorRow message={error.message} />
             ) : !data ? null : (
                 <div className="space-y-6">
-                    <ListingsOverview listings={data.listings} />
-                    <HiringFunnel funnel={data.funnel} />
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <ListingsOverview listings={data.listings} />
+                        <HiringFunnel funnel={data.funnel} />
+                    </div>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                         <div className="lg:col-span-2">
                             <RecentApplicants items={data.recentApplicants} />
@@ -84,16 +92,15 @@ export default function CompanyDashboardPage() {
 
 // ---------------------------------------------------------------------------
 
-const LISTING_TILES: ReadonlyArray<{
+const LISTING_SLICES: ReadonlyArray<{
     key: keyof CompanyDashboard["listings"];
     label: string;
-    icon: typeof PiBriefcaseFill;
-    tint: string;
+    color: string;
 }> = [
-    { key: "active", label: "Active", icon: PiBriefcaseFill, tint: "text-emerald-600" },
-    { key: "paused", label: "Paused", icon: PiPauseFill, tint: "text-amber-600" },
-    { key: "expired", label: "Expired", icon: PiClockCountdownFill, tint: "text-zinc-500" },
-    { key: "closed", label: "Closed", icon: PiProhibitFill, tint: "text-rose-600" },
+    { key: "active", label: "Active", color: "#10b981" },
+    { key: "paused", label: "Paused", color: "#f59e0b" },
+    { key: "expired", label: "Expired", color: "#a1a1aa" },
+    { key: "closed", label: "Closed", color: "#f43f5e" },
 ];
 
 function ListingsOverview({
@@ -101,6 +108,11 @@ function ListingsOverview({
 }: {
     listings: CompanyDashboard["listings"];
 }) {
+    const data = LISTING_SLICES.map((s) => ({
+        name: s.label,
+        value: listings[s.key] as number,
+        color: s.color,
+    })).filter((d) => d.value > 0);
     return (
         <section>
             <SectionHeader
@@ -109,29 +121,56 @@ function ListingsOverview({
                 href="/home/company/listings"
                 cta="Manage listings"
             />
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                {LISTING_TILES.map((t) => {
-                    const Icon = t.icon;
-                    return (
-                        <div
-                            key={t.key}
-                            className="rounded-lg border border-border bg-card p-4"
-                        >
-                            <Icon className={cn("h-4 w-4", t.tint)} />
-                            <div className="mt-2 text-[22px] font-semibold tabular-nums leading-none">
-                                {listings[t.key]}
-                            </div>
-                            <div className="mt-1 text-[12px] text-muted-foreground">
-                                {t.label}
+            <div className="rounded-lg border border-border bg-card p-4">
+                {data.length === 0 ? (
+                    <div className="h-60 flex items-center justify-center text-[12px] text-muted-foreground">
+                        No listings yet
+                    </div>
+                ) : (
+                    <>
+                        <div className="relative h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={data}
+                                        dataKey="value"
+                                        nameKey="name"
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={56}
+                                        outerRadius={92}
+                                        paddingAngle={2}
+                                        stroke="none"
+                                    >
+                                        {data.map((d) => (
+                                            <Cell key={d.name} fill={d.color} />
+                                        ))}
+                                    </Pie>
+                                    <Tooltip
+                                        cursor={{ fill: "transparent" }}
+                                        contentStyle={chartTooltip}
+                                        itemStyle={{ fontSize: 12 }}
+                                    />
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                                <div className="text-[26px] font-semibold tabular-nums leading-none">
+                                    {listings.total}
+                                </div>
+                                <div className="mt-1 text-[11px] text-muted-foreground">
+                                    listings
+                                </div>
                             </div>
                         </div>
-                    );
-                })}
+                        <CountLegend items={data} />
+                    </>
+                )}
             </div>
             {listings.takenDown > 0 && (
                 <p className="mt-2 px-1 text-[11.5px] text-muted-foreground">
                     {listings.takenDown} listing
-                    {listings.takenDown === 1 ? "" : "s"} taken down by an admin.
+                    {listings.takenDown === 1 ? "" : "s"} taken down by an
+                    admin.
                 </p>
             )}
         </section>
@@ -143,21 +182,21 @@ function ListingsOverview({
 const FUNNEL_STAGES: ReadonlyArray<{
     key: Exclude<ApplicationStatus, "WITHDRAWN">;
     label: string;
-    wrap: string;
-    bar: string;
+    color: string;
 }> = [
-    { key: "APPLIED", label: "Applied", wrap: "text-sky-700", bar: "bg-sky-500" },
-    { key: "SHORTLISTED", label: "Shortlisted", wrap: "text-amber-700", bar: "bg-amber-500" },
-    { key: "INTERVIEW", label: "Interview", wrap: "text-violet-700", bar: "bg-violet-500" },
-    { key: "HIRED", label: "Hired", wrap: "text-emerald-700", bar: "bg-emerald-500" },
-    { key: "REJECTED", label: "Rejected", wrap: "text-rose-700", bar: "bg-rose-500" },
+    { key: "APPLIED", label: "Applied", color: "#0ea5e9" },
+    { key: "SHORTLISTED", label: "Shortlisted", color: "#f59e0b" },
+    { key: "INTERVIEW", label: "Interview", color: "#8b5cf6" },
+    { key: "HIRED", label: "Hired", color: "#10b981" },
+    { key: "REJECTED", label: "Rejected", color: "#f43f5e" },
 ];
 
 function HiringFunnel({ funnel }: { funnel: CompanyDashboard["funnel"] }) {
-    const max = Math.max(
-        1,
-        ...FUNNEL_STAGES.map((s) => funnel[s.key]),
-    );
+    const data = FUNNEL_STAGES.map((s) => ({
+        name: `${s.label} · ${funnel[s.key]}`,
+        value: funnel[s.key],
+        color: s.color,
+    }));
     return (
         <section>
             <SectionHeader
@@ -166,35 +205,53 @@ function HiringFunnel({ funnel }: { funnel: CompanyDashboard["funnel"] }) {
                 href="/home/applicants"
                 cta="Review applicants"
             />
-            <div className="rounded-lg border border-border bg-card p-4 space-y-3">
-                {FUNNEL_STAGES.map((s) => {
-                    const value = funnel[s.key];
-                    return (
-                        <div key={s.key} className="flex items-center gap-3">
-                            <div
-                                className={cn(
-                                    "w-24 shrink-0 text-[12.5px] font-medium",
-                                    s.wrap,
-                                )}
+            <div className="rounded-lg border border-border bg-card p-4">
+                <div className="h-60">
+                    <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                            data={data}
+                            layout="vertical"
+                            margin={{ top: 6, right: 24, left: 0, bottom: 0 }}
+                        >
+                            <XAxis
+                                type="number"
+                                tick={{ fontSize: 11, fill: "#71717a" }}
+                                axisLine={false}
+                                tickLine={false}
+                                allowDecimals={false}
+                            />
+                            <YAxis
+                                type="category"
+                                dataKey="name"
+                                tick={{ fontSize: 12, fill: "#3f3f46" }}
+                                axisLine={false}
+                                tickLine={false}
+                                width={120}
+                                interval={0}
+                            />
+                            <Tooltip
+                                cursor={{
+                                    fill: "rgba(0,0,0,0.04)",
+                                    radius: 4,
+                                }}
+                                contentStyle={chartTooltip}
+                                itemStyle={{ fontSize: 12 }}
+                            />
+                            <Bar
+                                dataKey="value"
+                                name="Applications"
+                                radius={[0, 6, 6, 0]}
+                                maxBarSize={22}
                             >
-                                {s.label}
-                            </div>
-                            <div className="flex-1 h-2 rounded-full bg-secondary overflow-hidden">
-                                <div
-                                    className={cn("h-full rounded-full", s.bar)}
-                                    style={{
-                                        width: `${(value / max) * 100}%`,
-                                    }}
-                                />
-                            </div>
-                            <div className="w-10 shrink-0 text-right text-[13px] font-semibold tabular-nums">
-                                {value}
-                            </div>
-                        </div>
-                    );
-                })}
+                                {data.map((d) => (
+                                    <Cell key={d.name} fill={d.color} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    </ResponsiveContainer>
+                </div>
                 {funnel.WITHDRAWN > 0 && (
-                    <p className="text-[11.5px] text-muted-foreground pt-1">
+                    <p className="text-[11.5px] text-muted-foreground pt-2">
                         {funnel.WITHDRAWN} withdrawn by candidates.
                     </p>
                 )}
@@ -202,6 +259,15 @@ function HiringFunnel({ funnel }: { funnel: CompanyDashboard["funnel"] }) {
         </section>
     );
 }
+
+const chartTooltip: React.CSSProperties = {
+    borderRadius: 8,
+    border: "1px solid var(--border)",
+    background: "var(--card)",
+    fontSize: 12,
+    padding: "6px 10px",
+    boxShadow: "0 4px 12px rgba(0,0,0,0.06)",
+};
 
 // ---------------------------------------------------------------------------
 
@@ -321,7 +387,10 @@ function InterviewsAndTeam({
                 </div>
                 <ul className="mt-3 space-y-2.5">
                     {team.members.slice(0, 6).map((m) => (
-                        <li key={m.userId} className="flex items-center gap-2.5">
+                        <li
+                            key={m.userId}
+                            className="flex items-center gap-2.5"
+                        >
                             <ChatAvatar
                                 name={m.name}
                                 image={m.image}
@@ -336,7 +405,7 @@ function InterviewsAndTeam({
                                     COMPANY_ROLE_BADGE_STYLE[m.role],
                                 )}
                             >
-                                {COMPANY_ROLE_LABEL[m.role]}
+                                {displayCompanyRole(m.role, m.customRole)}
                             </span>
                         </li>
                     ))}

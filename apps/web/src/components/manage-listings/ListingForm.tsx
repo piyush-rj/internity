@@ -829,7 +829,7 @@ function OpeningsCombo({
                             });
                         }}
                         className={cn(
-                            "block w-full text-left px-2 py-1.5 rounded-sm text-[12.5px] font-medium cursor-pointer",
+                            "block w-full text-left px-2 py-1.5 text-[12.5px] font-medium cursor-pointer",
                             "border-t border-border mt-1 pt-2 text-orange-600 hover:text-orange-700 hover:bg-orange-50",
                         )}
                     >

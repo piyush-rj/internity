@@ -18,7 +18,9 @@ import {
     COMPANY_ROLE_BADGE_STYLE,
     COMPANY_ROLE_HINT,
     COMPANY_ROLE_LABEL,
+    CUSTOM_ROLE_MAX_LENGTH,
     SELECTABLE_COMPANY_ROLES,
+    displayCompanyRole,
 } from "@/src/lib/catalog/companyRoles";
 import { useConfirm } from "@/src/hooks/useConfirm";
 import { RoleChangeConfirmDialog } from "@/src/components/company/RoleChangeConfirmDialog";
@@ -40,7 +42,11 @@ export function MembersCard({
     error: ApiClientError | Error | null;
     canManage: boolean;
     currentUserId: string | null;
-    onUpdateRole: (userId: string, role: CompanyRole) => Promise<void>;
+    onUpdateRole: (
+        userId: string,
+        role: CompanyRole,
+        customRole?: string | null,
+    ) => Promise<void>;
     onRemove: (userId: string) => Promise<void>;
 }) {
     const [open, setOpen] = useState<boolean>(false);
@@ -153,7 +159,11 @@ function Row({
     member: CompanyMemberWithUser;
     canManage: boolean;
     isSelf: boolean;
-    onUpdateRole: (userId: string, role: CompanyRole) => Promise<void>;
+    onUpdateRole: (
+        userId: string,
+        role: CompanyRole,
+        customRole?: string | null,
+    ) => Promise<void>;
     onRemove: (userId: string) => Promise<void>;
 }) {
     const [busy, setBusy] = useState(false);
@@ -162,17 +172,29 @@ function Row({
     // intended next role here while the dialog is open; on cancel we drop
     // it and the <select> re-reads from member.role (which snaps back).
     const [pendingRole, setPendingRole] = useState<CompanyRole | null>(null);
+    const [pendingCustom, setPendingCustom] = useState<string>(
+        member.role === "OTHER" ? (member.customRole ?? "") : "",
+    );
 
     function proposeRoleChange(role: CompanyRole) {
-        if (busy || role === member.role) return;
+        if (busy) return;
+        if (role === member.role && role !== "OTHER") return;
+        if (role === "OTHER") {
+            setPendingCustom(member.customRole ?? "");
+        }
         setPendingRole(role);
     }
 
     async function confirmRoleChange() {
         if (!pendingRole) return;
+        if (pendingRole === "OTHER" && !pendingCustom.trim()) return;
         setBusy(true);
         try {
-            await onUpdateRole(member.userId, pendingRole);
+            await onUpdateRole(
+                member.userId,
+                pendingRole,
+                pendingRole === "OTHER" ? pendingCustom.trim() : null,
+            );
             setPendingRole(null);
         } finally {
             setBusy(false);
@@ -234,28 +256,43 @@ function Row({
                 </div>
             </div>
             {canManage && !isSelf && !isDeleted ? (
-                <select
-                    value={
-                        member.role === "OWNER" ? "FOUNDER_OWNER" : member.role
-                    }
-                    onChange={(e) =>
-                        proposeRoleChange(e.target.value as CompanyRole)
-                    }
-                    disabled={busy}
-                    className={cn(
-                        "h-8 rounded-md border border-border bg-background px-2 pr-7",
-                        "text-[12px] font-medium appearance-none",
-                        "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+                <div className="flex items-center gap-2">
+                    {member.role === "OTHER" && member.customRole && (
+                        <span
+                            className="max-w-35 truncate text-[11px] text-muted-foreground"
+                            title={member.customRole}
+                        >
+                            {member.customRole}
+                        </span>
                     )}
-                >
-                    {SELECTABLE_COMPANY_ROLES.map((r) => (
-                        <option key={r} value={r}>
-                            {COMPANY_ROLE_LABEL[r]}
-                        </option>
-                    ))}
-                </select>
+                    <select
+                        value={
+                            member.role === "OWNER"
+                                ? "FOUNDER_OWNER"
+                                : member.role
+                        }
+                        onChange={(e) =>
+                            proposeRoleChange(e.target.value as CompanyRole)
+                        }
+                        disabled={busy}
+                        className={cn(
+                            "h-8 rounded-md border border-border bg-background px-2 pr-7",
+                            "text-[12px] font-medium appearance-none cursor-pointer",
+                            "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+                        )}
+                    >
+                        {SELECTABLE_COMPANY_ROLES.map((r) => (
+                            <option key={r} value={r}>
+                                {COMPANY_ROLE_LABEL[r]}
+                            </option>
+                        ))}
+                    </select>
+                </div>
             ) : (
-                <RoleBadge role={member.role} />
+                <RoleBadge
+                    role={member.role}
+                    customRole={member.customRole}
+                />
             )}
             {canManage && !isSelf && (
                 <button
@@ -278,7 +315,12 @@ function Row({
                 memberName={member.user.name ?? "this teammate"}
                 memberEmail={member.user.email}
                 currentRole={member.role}
+                currentCustomRole={member.customRole}
                 nextRole={pendingRole ?? member.role}
+                nextCustomRole={
+                    pendingRole === "OTHER" ? pendingCustom : null
+                }
+                onNextCustomRoleChange={setPendingCustom}
                 busy={busy}
                 onCancel={() => setPendingRole(null)}
                 onConfirm={confirmRoleChange}
@@ -309,6 +351,7 @@ function InviteForm({
 }) {
     const [email, setEmail] = useState("");
     const [role, setRole] = useState<CompanyRole>("MEMBER");
+    const [customRole, setCustomRole] = useState("");
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [createdCode, setCreatedCode] = useState<string | null>(null);
@@ -319,12 +362,21 @@ function InviteForm({
             setError("Email is required.");
             return;
         }
+        const trimmedCustom = customRole.trim();
+        if (role === "OTHER" && !trimmedCustom) {
+            setError("Enter a label for the custom role.");
+            return;
+        }
         setSaving(true);
         setError(null);
         try {
             const { invitation } = await companyApi.create_invitation(
                 companyId,
-                { email: trimmed, role },
+                {
+                    email: trimmed,
+                    role,
+                    customRole: role === "OTHER" ? trimmedCustom : null,
+                },
             );
             setCreatedCode(invitation.token);
             setEmail("");
@@ -395,7 +447,10 @@ function InviteForm({
                     <select
                         value={role}
                         onChange={(e) => setRole(e.target.value as CompanyRole)}
-                        className={cn(inputCls(), "pr-8 appearance-none")}
+                        className={cn(
+                            inputCls(),
+                            "pr-8 appearance-none cursor-pointer",
+                        )}
                     >
                         {SELECTABLE_COMPANY_ROLES.map((r) => (
                             <option key={r} value={r}>
@@ -405,6 +460,19 @@ function InviteForm({
                     </select>
                 </Field>
             </div>
+            {role === "OTHER" && (
+                <Field label="Custom role label">
+                    <input
+                        type="text"
+                        value={customRole}
+                        onChange={(e) => setCustomRole(e.target.value)}
+                        maxLength={CUSTOM_ROLE_MAX_LENGTH}
+                        placeholder="e.g. Operations Lead, Growth Intern"
+                        className={inputCls()}
+                        autoFocus
+                    />
+                </Field>
+            )}
             <p className="text-[11px] text-muted-foreground">
                 {COMPANY_ROLE_HINT[role]}
             </p>
@@ -429,7 +497,10 @@ function InviteForm({
                     type="button"
                     variant="exec-dark"
                     onClick={submit}
-                    disabled={saving}
+                    disabled={
+                        saving ||
+                        (role === "OTHER" && !customRole.trim())
+                    }
                     className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                 >
                     {saving ? "Creating…" : "Create company code"}
@@ -523,8 +594,8 @@ function InviteRow({
                     {invitation.email}
                 </div>
                 <div className="text-[11px] text-muted-foreground">
-                    {COMPANY_ROLE_LABEL[invitation.role]} · expires{" "}
-                    {timeUntil(invitation.expiresAt)}
+                    {displayCompanyRole(invitation.role, invitation.customRole)}{" "}
+                    · expires {timeUntil(invitation.expiresAt)}
                 </div>
             </div>
             <button
@@ -618,7 +689,13 @@ function UserAvatar({ name, image }: { name: string; image: string | null }) {
     );
 }
 
-function RoleBadge({ role }: { role: CompanyRole }) {
+function RoleBadge({
+    role,
+    customRole,
+}: {
+    role: CompanyRole;
+    customRole?: string | null;
+}) {
     return (
         <span
             className={cn(
@@ -626,7 +703,7 @@ function RoleBadge({ role }: { role: CompanyRole }) {
                 COMPANY_ROLE_BADGE_STYLE[role],
             )}
         >
-            {COMPANY_ROLE_LABEL[role]}
+            {displayCompanyRole(role, customRole)}
         </span>
     );
 }

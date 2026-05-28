@@ -7,10 +7,14 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { CompanyRole, prisma } from "../../../db.ts";
-import { isFounderRole } from "../../../utils/company-roles.ts";
+import {
+    isFounderRole,
+    normaliseCustomRole,
+} from "../../../utils/company-roles.ts";
 
 const Body = z.object({
-    role: z.enum(["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER"]),
+    role: z.enum(["FOUNDER_OWNER", "CO_FOUNDER", "HR", "MEMBER", "OTHER"]),
+    customRole: z.string().max(120).optional().nullable(),
 });
 
 const FOUNDER_ROLES: CompanyRole[] = [
@@ -48,9 +52,14 @@ export default async function updateCompanyMemberRole(
             }
         }
 
+        const customRole = normaliseCustomRole(
+            nextRole,
+            body.customRole ?? null,
+            (msg) => new InvalidRequest(msg),
+        );
         const updated = await prisma.companyMember.update({
             where: { companyId_userId: { companyId, userId } },
-            data: { role: nextRole },
+            data: { role: nextRole, customRole },
         });
         api.ok({ member: updated });
     } catch (err) {

@@ -101,6 +101,7 @@ export default async function getCompanyDashboard(
                 orderBy: { joinedAt: "asc" },
                 select: {
                     role: true,
+                    customRole: true,
                     user: {
                         select: { id: true, name: true, image: true },
                     },
@@ -143,6 +144,7 @@ export default async function getCompanyDashboard(
                         name: m.user.name,
                         image: m.user.image,
                         role: normalizeRole(m.role),
+                        customRole: m.customRole,
                     })),
                 },
             },

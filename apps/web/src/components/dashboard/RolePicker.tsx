@@ -53,7 +53,7 @@ export function RolePicker({
             >
                 <header className="text-center">
                     <h1 className="text-[20px] font-semibold tracking-tight">
-                        Welcome to internity
+                        Welcome to SpiderSkill
                     </h1>
                     <p className="mt-1.5 text-[13px] text-muted-foreground">
                         Pick how you’ll use the app. You can change this later

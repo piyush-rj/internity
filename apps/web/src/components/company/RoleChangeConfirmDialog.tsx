@@ -7,6 +7,8 @@ import { Button } from "@/src/components/ui/button";
 import {
     COMPANY_ROLE_HINT,
     COMPANY_ROLE_LABEL,
+    CUSTOM_ROLE_MAX_LENGTH,
+    displayCompanyRole,
 } from "@/src/lib/catalog/companyRoles";
 import type { CompanyRole } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
@@ -20,7 +22,10 @@ export function RoleChangeConfirmDialog({
     memberName,
     memberEmail,
     currentRole,
+    currentCustomRole,
     nextRole,
+    nextCustomRole,
+    onNextCustomRoleChange,
     busy = false,
     onCancel,
     onConfirm,
@@ -29,11 +34,16 @@ export function RoleChangeConfirmDialog({
     memberName: string;
     memberEmail: string | null;
     currentRole: CompanyRole;
+    currentCustomRole?: string | null;
     nextRole: CompanyRole;
+    nextCustomRole?: string | null;
+    onNextCustomRoleChange?: (value: string) => void;
     busy?: boolean;
     onCancel: () => void;
     onConfirm: () => void | Promise<void>;
 }) {
+    const customMissing =
+        nextRole === "OTHER" && (nextCustomRole ?? "").trim().length === 0;
     const [mounted, setMounted] = useState(false);
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -44,11 +54,11 @@ export function RoleChangeConfirmDialog({
         if (!open) return;
         function onKey(e: KeyboardEvent) {
             if (e.key === "Escape" && !busy) onCancel();
-            if (e.key === "Enter" && !busy) onConfirm();
+            if (e.key === "Enter" && !busy && !customMissing) onConfirm();
         }
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-    }, [open, busy, onCancel, onConfirm]);
+    }, [open, busy, onCancel, onConfirm, customMissing]);
 
     if (!open || !mounted) return null;
 
@@ -105,13 +115,48 @@ export function RoleChangeConfirmDialog({
 
                     <div className="rounded-lg border border-border bg-secondary/30 p-3">
                         <div className="flex items-center gap-3 text-[13px]">
-                            <RolePill role={currentRole} />
+                            <RolePill
+                                label={displayCompanyRole(
+                                    currentRole,
+                                    currentCustomRole,
+                                )}
+                            />
                             <ArrowRight className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                            <RolePill role={nextRole} highlight />
+                            <RolePill
+                                label={
+                                    nextRole === "OTHER"
+                                        ? (nextCustomRole ?? "").trim() ||
+                                          "Other"
+                                        : COMPANY_ROLE_LABEL[nextRole]
+                                }
+                                highlight
+                            />
                         </div>
                         <p className="mt-2.5 text-[11.5px] text-muted-foreground leading-relaxed">
                             {COMPANY_ROLE_HINT[nextRole]}
                         </p>
+                        {nextRole === "OTHER" && onNextCustomRoleChange && (
+                            <div className="mt-3">
+                                <label className="block text-[11px] font-medium text-muted-foreground mb-1">
+                                    Custom role label
+                                </label>
+                                <input
+                                    type="text"
+                                    value={nextCustomRole ?? ""}
+                                    onChange={(e) =>
+                                        onNextCustomRoleChange(e.target.value)
+                                    }
+                                    maxLength={CUSTOM_ROLE_MAX_LENGTH}
+                                    placeholder="e.g. Operations Lead"
+                                    autoFocus
+                                    className={cn(
+                                        "w-full h-9 rounded-md border border-border bg-background px-2.5",
+                                        "text-[13px] outline-none",
+                                        "focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
+                                    )}
+                                />
+                            </div>
+                        )}
                     </div>
 
                     <p className="text-[12px] text-muted-foreground leading-relaxed">
@@ -133,7 +178,7 @@ export function RoleChangeConfirmDialog({
                     <Button
                         type="button"
                         onClick={onConfirm}
-                        disabled={busy}
+                        disabled={busy || customMissing}
                         className={cn(
                             "h-9 px-3.5 text-[12.5px] cursor-pointer",
                             "bg-orange-500 text-white hover:bg-orange-600",
@@ -150,22 +195,23 @@ export function RoleChangeConfirmDialog({
 }
 
 function RolePill({
-    role,
+    label,
     highlight,
 }: {
-    role: CompanyRole;
+    label: string;
     highlight?: boolean;
 }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center rounded-md border px-2 py-0.5 text-[12px] font-medium",
+                "inline-flex items-center rounded-md border px-2 py-0.5 text-[12px] font-medium max-w-40 truncate",
                 highlight
                     ? "border-orange-300 bg-orange-50 text-orange-700"
                     : "border-border bg-background text-foreground/80",
             )}
+            title={label}
         >
-            {COMPANY_ROLE_LABEL[role]}
+            {label}
         </span>
     );
 }

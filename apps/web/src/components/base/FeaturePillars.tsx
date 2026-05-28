@@ -5,8 +5,8 @@ import { SectionFrame } from "@/src/components/base/SectionFrame";
 import { SectionHeader } from "@/src/components/base/SectionHeader";
 import { ApplicationsMock } from "@/src/components/base/FeaturedPillarsComponent/ApplicationsMock";
 import { IntegrationsMock } from "@/src/components/base/FeaturedPillarsComponent/IntegrationsMock";
+import { InterestsCard } from "@/src/components/base/FeaturedPillarsComponent/InterestsCard";
 import { PillarCard } from "@/src/components/base/FeaturedPillarsComponent/PillarCard";
-import { ResumeMock } from "@/src/components/base/FeaturedPillarsComponent/ResumeMock";
 
 const containerVariants: Variants = {
     hidden: {},
@@ -16,7 +16,7 @@ const containerVariants: Variants = {
 export function FeaturePillars() {
     return (
         <section className="relative bg-neutral-50">
-            <SectionFrame className="px-10 py-20 sm:py-24">
+            <SectionFrame className="px-10 py-20 sm:py-20">
                 <SectionHeader
                     title="Everything you need to land your next role"
                     description="Smart applications, AI resume coaching, and 200+ partner companies — all in one place."
@@ -29,19 +29,16 @@ export function FeaturePillars() {
                     variants={containerVariants}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5"
                 >
+                    <InterestsCard />
                     <PillarCard
+                        className="bg-[#fcc03d] text-neutral-900"
                         primary="Smart applications"
                         secondary="that recruiters actually open."
                     >
                         <ApplicationsMock />
                     </PillarCard>
                     <PillarCard
-                        primary="AI resume builder"
-                        secondary="that lands you the interview."
-                    >
-                        <ResumeMock />
-                    </PillarCard>
-                    <PillarCard
+                        className="bg-[#628FFA] text-white"
                         primary="200+ companies"
                         secondary="actively hiring on Internity."
                     >

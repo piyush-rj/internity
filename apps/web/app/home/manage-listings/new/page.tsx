@@ -3,7 +3,12 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
+import {
+    AlertTriangle,
+    ArrowLeft,
+    ArrowRight,
+    ShieldCheck,
+} from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import {
     ListingForm,

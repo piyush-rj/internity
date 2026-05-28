@@ -316,6 +316,11 @@ model CompanyInvitation {
 
   email String
   role  CompanyRole @default(MEMBER)
+  // Free-text label set when role = OTHER (e.g. "Operations Lead",
+  // "Marketing Intern"). Null for every other role. Capped at 60 chars
+  // in the controller — long enough for compound titles, short enough to
+  // render in the same badge slot as the predefined labels.
+  customRole String?
   token String      @unique
 
   invitedById String
@@ -336,6 +341,10 @@ model CompanyMember {
   companyId String
   userId    String
   role      CompanyRole @default(MEMBER)
+  // Free-text label persisted when role = OTHER. See CompanyInvitation
+  // for the rationale and length cap. Display layers fall back to the
+  // enum label when this is null.
+  customRole String?
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -775,6 +784,10 @@ enum CompanyRole {
   CO_FOUNDER
   HR
   MEMBER
+  // Free-text role; the actual label lives in CompanyMember.customRole /
+  // CompanyInvitation.customRole. Capability-wise OTHER mirrors MEMBER
+  // (listings only) — see apps/server/src/utils/company-roles.ts.
+  OTHER
   OWNER
 }
 

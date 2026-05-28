@@ -1,5 +1,6 @@
 import { Announcement } from "@/src/components/base/HeroComponents/Announcement";
 import { HeroCTAs } from "@/src/components/base/HeroComponents/HeroCTAs";
+import { HeroSearch } from "@/src/components/base/HeroComponents/HeroSearch";
 import { TabCard } from "@/src/components/base/HeroComponents/TabCard";
 
 export function Hero() {
@@ -15,7 +16,8 @@ export function Hero() {
                     students internships, full&#8209;time jobs and skill
                     trainings.
                 </p>
-                <HeroCTAs />
+                <HeroSearch />
+                {/* <HeroCTAs /> */}
             </div>
 
             <TabCard />

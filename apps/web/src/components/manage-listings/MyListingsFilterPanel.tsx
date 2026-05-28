@@ -360,13 +360,30 @@ function RadioRow({
     onChange: () => void;
 }) {
     return (
-        <label className="flex items-center gap-2 text-[12.5px] cursor-pointer select-none">
+        <label className="group flex items-center gap-2 text-[12.5px] cursor-pointer select-none">
             <input
                 type="radio"
                 checked={checked}
                 onChange={onChange}
-                className="h-3.5 w-3.5 accent-brand"
+                className="peer sr-only"
             />
+            <span
+                aria-hidden
+                className={
+                    "relative inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-colors " +
+                    (checked
+                        ? "border-brand"
+                        : "border-border group-hover:border-foreground/40") +
+                    " peer-focus-visible:ring-2 peer-focus-visible:ring-brand/40 peer-focus-visible:ring-offset-1"
+                }
+            >
+                <span
+                    className={
+                        "h-2 w-2 rounded-full bg-brand transition-transform " +
+                        (checked ? "scale-100" : "scale-0")
+                    }
+                />
+            </span>
             {label}
         </label>
     );

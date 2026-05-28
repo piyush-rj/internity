@@ -27,6 +27,7 @@ export default async function acceptCompanyInvitation(
                 companyId: true,
                 email: true,
                 role: true,
+                customRole: true,
                 acceptedAt: true,
                 expiresAt: true,
             },
@@ -58,6 +59,7 @@ export default async function acceptCompanyInvitation(
                     companyId: invite.companyId,
                     userId: req.user!.id,
                     role: invite.role,
+                    customRole: invite.customRole,
                 },
                 update: {}, // already a member — leave existing role alone
             });

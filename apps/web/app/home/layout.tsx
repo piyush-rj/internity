@@ -1,6 +1,7 @@
 import { AppliedBootstrap } from "@/src/components/dashboard/AppliedBootstrap";
 import { BreadcrumbProvider } from "@/src/components/dashboard/BreadcrumbContext";
 import { MeBootstrap } from "@/src/components/dashboard/MeBootstrap";
+import { ProfileCompletionBanner } from "@/src/components/dashboard/ProfileCompletionBanner";
 import { RoleGate } from "@/src/components/dashboard/RoleGate";
 import { SavedBootstrap } from "@/src/components/dashboard/SavedBootstrap";
 import { Sidebar } from "@/src/components/dashboard/Sidebar";
@@ -32,6 +33,7 @@ export default function DashboardLayout({
                             </div>
                             {children}
                         </main>
+                        <ProfileCompletionBanner />
                     </BreadcrumbProvider>
                 </WebSocketProvider>
             </div>

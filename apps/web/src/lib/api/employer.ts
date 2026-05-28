@@ -159,6 +159,7 @@ export type CompanyInvitation = {
     companyId: string;
     email: string;
     role: CompanyRole;
+    customRole: string | null;
     token: string;
     invitedById: string;
     createdAt: string;
@@ -217,6 +218,7 @@ export type CompanyDashboard = {
             name: string | null;
             image: string | null;
             role: CompanyRole;
+            customRole: string | null;
         }>;
     };
 };
@@ -261,14 +263,19 @@ export const companyApi = {
 
     list_members: (id: string) =>
         api.get<{ members: CompanyMemberWithUser[] }>(`/company/${id}/members`),
-    add_member: (id: string, input: { email: string; role?: CompanyRole }) =>
-        api.post<{ member: CompanyMember }>(`/company/${id}/members`, input),
-    update_member_role: (id: string, userId: string, role: CompanyRole) =>
+    add_member: (
+        id: string,
+        input: { email: string; role?: CompanyRole; customRole?: string | null },
+    ) => api.post<{ member: CompanyMember }>(`/company/${id}/members`, input),
+    update_member_role: (
+        id: string,
+        userId: string,
+        role: CompanyRole,
+        customRole?: string | null,
+    ) =>
         api.patch<{ member: CompanyMember }>(
             `/company/${id}/members/${userId}`,
-            {
-                role,
-            },
+            { role, customRole },
         ),
     remove_member: (id: string, userId: string) =>
         api.delete<{ ok: true }>(`/company/${id}/members/${userId}`),
@@ -277,7 +284,7 @@ export const companyApi = {
         api.get<{ invitations: CompanyInvitation[] }>(`/company/${id}/invites`),
     create_invitation: (
         id: string,
-        input: { email: string; role?: CompanyRole },
+        input: { email: string; role?: CompanyRole; customRole?: string | null },
     ) =>
         api.post<{ invitation: CompanyInvitation }>(
             `/company/${id}/invites`,

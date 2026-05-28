@@ -20,9 +20,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Internity – Internships, jobs and trainings for students",
+    title: "SpiderSkill – Internships for students",
     description:
-        "India's largest career platform for students. Find internships, entry-level jobs and online trainings from 200,000+ companies.",
+        "India's largest career platform for students. Find internships from 200,000+ companies.",
 };
 
 export default function RootLayout({
