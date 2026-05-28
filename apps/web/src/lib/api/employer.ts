@@ -265,7 +265,11 @@ export const companyApi = {
         api.get<{ members: CompanyMemberWithUser[] }>(`/company/${id}/members`),
     add_member: (
         id: string,
-        input: { email: string; role?: CompanyRole; customRole?: string | null },
+        input: {
+            email: string;
+            role?: CompanyRole;
+            customRole?: string | null;
+        },
     ) => api.post<{ member: CompanyMember }>(`/company/${id}/members`, input),
     update_member_role: (
         id: string,
@@ -284,7 +288,11 @@ export const companyApi = {
         api.get<{ invitations: CompanyInvitation[] }>(`/company/${id}/invites`),
     create_invitation: (
         id: string,
-        input: { email: string; role?: CompanyRole; customRole?: string | null },
+        input: {
+            email: string;
+            role?: CompanyRole;
+            customRole?: string | null;
+        },
     ) =>
         api.post<{ invitation: CompanyInvitation }>(
             `/company/${id}/invites`,

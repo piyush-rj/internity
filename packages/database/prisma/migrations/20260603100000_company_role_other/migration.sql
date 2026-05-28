@@ -5,17 +5,14 @@
 --
 -- Capability-wise OTHER mirrors MEMBER (post listings only); see
 -- apps/server/src/utils/company-roles.ts.
+--
+-- Idempotent: `ADD VALUE IF NOT EXISTS` and `ADD COLUMN IF NOT EXISTS`
+-- so re-running after a partial failure is safe.
 
 ALTER TYPE "CompanyRole" ADD VALUE IF NOT EXISTS 'OTHER';
 
--- Postgres requires the new enum value to be committed before it can be
--- referenced. No row updates are needed here, but the pattern follows
--- earlier migrations in this directory.
-COMMIT;
-BEGIN;
-
 ALTER TABLE "CompanyMember"
-    ADD COLUMN "customRole" TEXT;
+    ADD COLUMN IF NOT EXISTS "customRole" TEXT;
 
 ALTER TABLE "CompanyInvitation"
-    ADD COLUMN "customRole" TEXT;
+    ADD COLUMN IF NOT EXISTS "customRole" TEXT;

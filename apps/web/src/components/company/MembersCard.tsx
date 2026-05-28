@@ -289,10 +289,7 @@ function Row({
                     </select>
                 </div>
             ) : (
-                <RoleBadge
-                    role={member.role}
-                    customRole={member.customRole}
-                />
+                <RoleBadge role={member.role} customRole={member.customRole} />
             )}
             {canManage && !isSelf && (
                 <button
@@ -317,9 +314,7 @@ function Row({
                 currentRole={member.role}
                 currentCustomRole={member.customRole}
                 nextRole={pendingRole ?? member.role}
-                nextCustomRole={
-                    pendingRole === "OTHER" ? pendingCustom : null
-                }
+                nextCustomRole={pendingRole === "OTHER" ? pendingCustom : null}
                 onNextCustomRoleChange={setPendingCustom}
                 busy={busy}
                 onCancel={() => setPendingRole(null)}
@@ -498,8 +493,7 @@ function InviteForm({
                     variant="exec-dark"
                     onClick={submit}
                     disabled={
-                        saving ||
-                        (role === "OTHER" && !customRole.trim())
+                        saving || (role === "OTHER" && !customRole.trim())
                     }
                     className="h-9 px-3 text-[12.5px] rounded-md cursor-pointer"
                 >

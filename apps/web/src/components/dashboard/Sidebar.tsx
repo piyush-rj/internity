@@ -9,6 +9,7 @@ import {
 } from "@/src/components/dashboard/icons";
 import {
     PiBookmarkSimpleFill,
+    PiBookOpenFill,
     PiBriefcaseFill,
     PiBuildingsFill,
     PiCalendarCheckFill,
@@ -94,6 +95,12 @@ const studentNav: NavSet = {
             href: "/home/profile",
         },
         {
+            key: "instructions",
+            label: "Instructions",
+            icon: PiBookOpenFill,
+            href: "/home/instructions",
+        },
+        {
             key: "settings",
             label: "Settings",
             icon: PiGearFill,
@@ -141,6 +148,12 @@ const employerNav: NavSet = {
             label: "Profile",
             icon: PiUserFill,
             href: "/home/profile",
+        },
+        {
+            key: "instructions",
+            label: "Instructions",
+            icon: PiBookOpenFill,
+            href: "/home/instructions",
         },
         {
             key: "settings",

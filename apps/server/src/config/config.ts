@@ -12,14 +12,6 @@ const schema = z.object({
 
     SUPABASE_URL: z.string().url(),
     SUPABASE_JWT_SECRET: z.string().min(1),
-
-    MINIO_ENDPOINT: z.string().url(),
-    MINIO_PUBLIC_ENDPOINT: z.string().url().optional(),
-    MINIO_ACCESS_KEY: z.string().min(1),
-    MINIO_SECRET_KEY: z.string().min(1),
-    MINIO_BUCKET: z.string().min(1),
-    MINIO_REGION: z.string().default("us-east-1"),
-
     SERVER_RAZORPAY_ID: z.string().optional(),
     SERVER_RAZORPAY_SECRET: z.string().optional(),
 

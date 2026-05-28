@@ -1,132 +1,135 @@
 "use client";
 
-import {
-    AlertTriangle,
-    BadgeCheck,
-    Lightbulb,
-    Ban,
-    type LucideIcon,
-} from "lucide-react";
+import Link from "next/link";
+import { ArrowUpRight, BadgeCheck, Lightbulb, ShieldAlert } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 
-// Right-rail instructions panel for the post-listing form. Two grouped
-// blocks (best-practice tips, then dos / don'ts) so the founder knows what
-// the platform expects before they hit Post. Pure presentation — the form
-// itself does the validation; this is a discoverability nudge.
+// Right-rail nudges on the post-listing form. Each row is a 1-2 line
+// summary linking to the matching section on /home/instructions. The
+// hover state surfaces an ArrowUpRight to signal "this opens a longer
+// read elsewhere" so founders aren't surprised by the navigation.
 
-const TIPS = [
-    "Pick a job title from the list so applicants find your role under the right filter.",
-    "Use the Autofill button next to the job title to pre-fill description, perks, and skills — then tweak.",
-    "Add 3–5 must-have skills (no jargon). They drive the match score on each applicant card.",
-    "Be honest about stipend. Listings with a stipend get ~3× more qualified applications than blank ones.",
-    "Screening questions are optional but powerful — 1–3 short questions filter noise without scaring applicants away.",
+type Tip = {
+    text: string;
+    sectionId: string;
+};
+
+const TIPS: ReadonlyArray<Tip> = [
+    {
+        text: "Pick a job title from the list so applicants find your role under the right filter.",
+        sectionId: "clear-listings",
+    },
+    {
+        text: "Use Autofill to seed the description, perks, and skills, then tweak.",
+        sectionId: "clear-listings",
+    },
+    {
+        text: "Add 3 to 5 must-have skills (no jargon). They drive the match score.",
+        sectionId: "clear-listings",
+    },
+    {
+        text: "Be honest about stipend. Listings with one get roughly 3x more qualified applications.",
+        sectionId: "competitive-stipends",
+    },
+    {
+        text: "Screening questions are optional but powerful. Keep them to 1 to 3 short questions.",
+        sectionId: "clear-listings",
+    },
 ];
 
-const POLICY: { tone: "ok" | "no"; text: string }[] = [
+const RULES: ReadonlyArray<Tip> = [
     {
-        tone: "ok",
-        text: "Internships, freelance gigs, full-time entry-level roles, and contract work are welcome.",
+        text: "Internships, freelance gigs, entry-level full-time, and contract work are welcome.",
+        sectionId: "clear-listings",
     },
     {
-        tone: "ok",
-        text: "Specify what the intern will actually build — vague descriptions get hidden from search.",
+        text: "Spell out what the intern will actually build. Vague listings get hidden from search.",
+        sectionId: "clear-listings",
     },
     {
-        tone: "no",
         text: "No MLM, pyramid schemes, or commission-only roles disguised as internships.",
+        sectionId: "transparent-hiring",
     },
     {
-        tone: "no",
-        text: "Never ask applicants to pay any fee — registration, training, certification, anything.",
+        text: "Never ask applicants for a fee. Not for registration, training, or certification.",
+        sectionId: "transparent-hiring",
     },
     {
-        tone: "no",
-        text: "Don't reuse one listing across multiple roles — each role gets its own post.",
+        text: "One listing per role. Don't reuse a single post across multiple positions.",
+        sectionId: "keep-listings-updated",
     },
 ];
 
 export function PostListingInstructions() {
     return (
         <aside className="space-y-4">
-            <Card
-                icon={Lightbulb}
-                tone="amber"
-                title="Tips for a great listing"
-                items={TIPS}
-            />
-            <Card icon={BadgeCheck} tone="emerald" title="Platform rules">
-                <ul className="space-y-2.5">
-                    {POLICY.map((p, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                            {p.tone === "ok" ? (
-                                <BadgeCheck className="h-3.5 w-3.5 mt-0.5 shrink-0 text-emerald-600" />
-                            ) : (
-                                <Ban className="h-3.5 w-3.5 mt-0.5 shrink-0 text-rose-600" />
-                            )}
-                            <span className="text-[12.5px] leading-relaxed text-foreground/85">
-                                {p.text}
-                            </span>
-                        </li>
-                    ))}
-                </ul>
-            </Card>
+            <Card icon={Lightbulb} title="Tips for a great listing" tips={TIPS} />
+            <Card icon={BadgeCheck} title="Platform rules" tips={RULES} />
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2.5 flex items-start gap-2">
-                <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600" />
+                <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600" />
                 <p className="text-[12px] text-amber-900 leading-relaxed">
                     Listings that break the rules get taken down by an admin
                     with a note explaining why. You can edit and resubmit.
                 </p>
             </div>
+            <Link
+                href="/home/instructions"
+                className={cn(
+                    "block rounded-lg border border-border bg-card px-3 py-2.5",
+                    "text-[12.5px] font-medium text-foreground/80 hover:text-foreground hover:bg-secondary/60",
+                    "transition-colors",
+                )}
+            >
+                <span className="inline-flex items-center gap-1.5">
+                    Read the full founder instructions
+                    <ArrowUpRight className="h-3.5 w-3.5" />
+                </span>
+            </Link>
         </aside>
     );
 }
 
 function Card({
     icon: Icon,
-    tone,
     title,
-    items,
-    children,
+    tips,
 }: {
-    icon: LucideIcon;
-    tone: "amber" | "emerald";
+    icon: typeof Lightbulb;
     title: string;
-    items?: string[];
-    children?: React.ReactNode;
+    tips: ReadonlyArray<Tip>;
 }) {
-    const toneStyle =
-        tone === "amber"
-            ? "bg-neutral-300"
-            : "bg-brand";
-    const iconStyle = tone === "amber" ? "text-neutral-800" : "text-neutral-800";
     return (
-        <section
-            className={cn(
-                "rounded-lg border bg-card overflow-hidden",
-                toneStyle,
-            )}
-        >
-            <header className="flex items-center gap-2 px-4 py-3 border-b border-border bg-card/60">
-                <Icon className={cn("h-3.5 w-3.5", iconStyle)} />
+        <section className="rounded-lg border border-border bg-card overflow-hidden">
+            <header className="flex items-center gap-2 px-4 py-3 border-b border-border">
+                <Icon className="h-3.5 w-3.5 text-foreground/70" />
                 <h3 className="text-[13px] font-semibold">{title}</h3>
             </header>
-            <div className="px-4 py-3 bg-white">
-                {items ? (
-                    <ul className="space-y-2">
-                        {items.map((t, i) => (
-                            <li
-                                key={i}
-                                className="flex items-start gap-2 text-[12.5px] text-foreground/85 leading-relaxed"
-                            >
-                                <span className="mt-1.5 h-1 w-1 rounded-full bg-foreground/40 shrink-0" />
-                                <span>{t}</span>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    children
-                )}
-            </div>
+            <ul className="p-1.5">
+                {tips.map((t, i) => (
+                    <li key={i}>
+                        <Link
+                            href={`/home/instructions#${t.sectionId}`}
+                            className={cn(
+                                "group flex items-start gap-2.5 rounded-md px-2.5 py-2",
+                                "text-[12.5px] leading-relaxed text-foreground/85",
+                                "transition-colors hover:bg-secondary/70 hover:text-foreground",
+                            )}
+                        >
+                            <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-foreground/40 group-hover:bg-brand" />
+                            <span className="min-w-0 flex-1">{t.text}</span>
+                            <ArrowUpRight
+                                className={cn(
+                                    "h-3.5 w-3.5 shrink-0 mt-0.5 text-muted-foreground",
+                                    "opacity-0 -translate-x-0.5 translate-y-0.5",
+                                    "transition-all duration-150",
+                                    "group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0",
+                                )}
+                                aria-hidden
+                            />
+                        </Link>
+                    </li>
+                ))}
+            </ul>
         </section>
     );
 }

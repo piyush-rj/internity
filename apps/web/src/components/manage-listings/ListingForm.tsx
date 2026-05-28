@@ -280,10 +280,7 @@ export const ListingForm = forwardRef(function ListingForm(
             toast.error("Stipend can't be negative.");
             return;
         }
-        if (
-            form.stipendMax !== null &&
-            form.stipendMax < form.stipendMin
-        ) {
+        if (form.stipendMax !== null && form.stipendMax < form.stipendMin) {
             toast.error("Max stipend must be at least the min stipend.");
             return;
         }

@@ -1,7 +1,3 @@
-// Internshala clone — Prisma schema (MVP for 2-day build)
-// Auth: NextAuth v4 (Google OAuth, JWT strategy — no DB sessions)
-// Storage: MinIO (S3-compatible) for resumes and logos
-
 generator client {
   provider = "prisma-client"
   output   = "../generated/prisma"
@@ -34,20 +30,11 @@ model User {
   isOnline   Boolean   @default(false)
   lastSeenAt DateTime?
 
-  // Soft-delete. Set when the user hits "delete my account"; everything else
-  // stays for audit but the row is excluded from all surfaces.
   deletedAt DateTime?
 
-  // For employers who belong to multiple companies — points to the company
-  // currently in focus across the dashboard. Always one of their
-  // companyMemberships, or null pre-creation/pre-join.
   activeCompanyId String?
   activeCompany   Company? @relation("UserActiveCompany", fields: [activeCompanyId], references: [id], onDelete: SetNull)
 
-  // Google OAuth (Calendar API) — set when the user connects their Google
-  // account to auto-generate Meet links. Tokens stored plaintext for MVP;
-  // when going to production, move to app-layer encryption with a separate
-  // KMS key. The provider DB (Supabase) already encrypts at rest.
   googleRefreshToken   String?
   googleAccessToken    String?
   googleTokenExpiresAt DateTime?
@@ -98,29 +85,17 @@ model StudentProfile {
   gender    Gender?
   bio       String?   @db.Text
 
-  // Roles the student is looking for. Drives ranking on the listings feed
-  // and prefills the post-application "roles you matched" UI. Stored as a
-  // typed array so we can join cheaply against Listing.jobTitle.
   interestedJobTitles JobTitle[] @default([])
 
-  // Carbon-copy of the last cover letter the student submitted on Apply.
-  // Used to one-click prefill subsequent applications. Cleared if they ever
-  // delete their account (the account-delete path nulls profile PII).
   lastCoverLetter String? @db.Text
 
-  // Default/primary resume URL — mirrors the Resume row flagged isDefault.
-  // Kept denormalised because most reads (search cards, public profile)
-  // just need one URL without joining a child table.
   resumeUrl    String?
   linkedinUrl  String?
   portfolioUrl String?
 
-  // Top-level shortcuts surfaced on cards + filters. Education[] still
-  // holds the full history; these are the founder-facing summary fields.
   college String?
   branch  String?
 
-  // Admin-toggled verification badge. Display-only — no functional gating.
   isVerified Boolean @default(false)
 
   educations     Education[]
@@ -137,10 +112,6 @@ model StudentProfile {
   @@index([city])
 }
 
-// Student-managed resume file. A student can keep up to 4 (enforced in the
-// controller) and exactly one is flagged isDefault — that's the one auto-
-// selected on apply. Application.resumeUrl snapshots whichever was chosen
-// at apply time so deletes here don't break past applications.
 model Resume {
   id        String         @id @default(cuid())
   studentId String
@@ -284,10 +255,6 @@ model Company {
 
   organizationType OrganizationType?
 
-  // Admin verification gate. Listings can still be posted while PENDING —
-  // they just don't display the "Verified" badge until APPROVED. REJECTED
-  // carries a rejectionNote and can be edited+resubmitted (which flips
-  // status back to PENDING).
   verificationStatus CompanyVerificationStatus @default(PENDING)
   rejectionNote      String?                   @db.Text
   submittedAt        DateTime?
@@ -304,10 +271,6 @@ model Company {
   @@index([verificationStatus, submittedAt])
 }
 
-// Pending invite for a non-member to join a company by email. Created by an
-// existing OWNER; the invitee clicks the share link (which contains the
-// token) and confirms while signed in. Single open invite per (company,
-// email) is enforced in the controller.
 model CompanyInvitation {
   id String @id @default(cuid())
 
@@ -316,10 +279,6 @@ model CompanyInvitation {
 
   email String
   role  CompanyRole @default(MEMBER)
-  // Free-text label set when role = OTHER (e.g. "Operations Lead",
-  // "Marketing Intern"). Null for every other role. Capped at 60 chars
-  // in the controller — long enough for compound titles, short enough to
-  // render in the same badge slot as the predefined labels.
   customRole String?
   token String      @unique
 
@@ -341,9 +300,6 @@ model CompanyMember {
   companyId String
   userId    String
   role      CompanyRole @default(MEMBER)
-  // Free-text label persisted when role = OTHER. See CompanyInvitation
-  // for the rationale and length cap. Display layers fall back to the
-  // enum label when this is null.
   customRole String?
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -368,10 +324,6 @@ model Listing {
   city        String?
   description String   @db.Text
 
-  // The picked job-title bucket from the predefined list, or CUSTOM when the
-  // employer typed their own. customJobTitle holds the free-text only when
-  // jobTitle = CUSTOM; for predefined picks it's null and the display title
-  // is the friendly label for the enum value.
   jobTitle       JobTitle?
   customJobTitle String?
 
@@ -380,48 +332,27 @@ model Listing {
   preferences      String[]
   skillTagsRaw     String[] // free-text snapshot; normalised m2m below
 
-  // Optional founder-defined screening questions. Stored as JSON because
-  // each entry is now a structured object: { q, type, options?, ideal? }
-  // where type is one of SHORT, YES_NO, MULTIPLE_CHOICE, NUMBERS, SCALE_1_5.
-  // Capped at 3 per the "no long forms" product principle. When non-empty,
-  // students must submit answers (same count, same order) at apply time.
   screeningQuestions Json @default("[]")
 
   stipendMin      Int?
   stipendMax      Int?
   currency        String?   @default("INR")
-  // Duration is split into a months component and a weeks component so the
-  // UI can render short engagements honestly (e.g. "2 months 3 weeks").
-  // Either or both may be set; ranking treats `durationMonths * 4 +
-  // durationWeeks` as the equivalent total weeks.
   durationMonths  Int?
   durationWeeks   Int?
-  // Start date is either a single target ("Immediately" = both null; the
-  // listing implies a within-30-days start) or a range. When startDateLatest
-  // is set, students see "Start between X and Y" — otherwise just startDate.
   startDate       DateTime?
   startDateLatest DateTime?
   applyBy         DateTime?
   openings        Int?      @default(1)
   partTime        Boolean   @default(false)
-  // Pre-placement offer flag. Asked as a separate yes/no on the form so it
-  // surfaces prominently on the listing card; not stored as a perk.
   ppo             Boolean   @default(false)
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   closedAt  DateTime? // null = live, non-null = closed
 
-  // Lifecycle. expiresAt is set on creation to createdAt + 30 days; once it
-  // passes the listing is hidden from public surfaces until the founder
-  // renews. pausedAt = "Not Hiring" — also hides from browse but keeps
-  // existing applicants visible to the founder.
   expiresAt DateTime?
   pausedAt  DateTime?
 
-  // Admin moderation (soft-removal). When takenDownAt is set the listing
-  // becomes hidden from public browse + the founder's own listings show it
-  // as "Removed by admin" with the reason. An admin can restore it.
   takenDownAt    DateTime?
   takedownReason String?   @db.Text
   takenDownById  String?
@@ -467,19 +398,10 @@ model Application {
   coverLetter String?           @db.Text
   resumeUrl   String? // snapshot of resume at time of apply
 
-  // Parallel to Listing.screeningQuestions at apply time. Same length and
-  // order. Each entry is { value: string | number } so we can round-trip
-  // the per-type response shape (text for SHORT, "yes"/"no" for YES_NO,
-  // an option label for MULTIPLE_CHOICE, a number for NUMBERS/SCALE_1_5).
-  // Empty array when the listing had no questions.
   screeningAnswers Json @default("[]")
 
   appliedAt       DateTime  @default(now())
   statusUpdatedAt DateTime  @default(now())
-  // Set the first time a founder opens the applicants page for this listing.
-  // Orthogonal to `status` — a founder may see an applicant and then move
-  // them through SHORTLISTED / HIRED / etc., and the student still benefits
-  // from knowing the first "seen" moment.
   seenAt          DateTime?
 
   conversationId String?
@@ -493,10 +415,6 @@ model Application {
   @@index([conversationId])
 }
 
-// One scheduled meeting (video call or phone call) between a founder and
-// an applicant, attached to a specific Application. Multiple interviews per
-// application are allowed (rescheduling, multiple rounds) — the app-layer
-// rule is "at most one SCHEDULED at a time", not a DB constraint.
 model Interview {
   id String @id @default(cuid())
 
@@ -515,19 +433,12 @@ model Interview {
   scheduledAt DateTime
   endsAt      DateTime
 
-  // IANA timezone of the host at schedule time (e.g. "Asia/Kolkata"). UI
-  // displays scheduledAt in this TZ alongside the viewer's local TZ.
   timezone String?
 
-  // VIDEO: founder pastes Meet/Zoom/Teams URL here. PHONE: null.
   meetingLink String?
 
-  // Founder's contact number shared with the candidate. Optional for video,
-  // required at the app layer for phone.
   hostPhone String?
 
-  // Snapshot of the student's phone at schedule time — survives later
-  // profile edits so the founder doesn't lose the number they expected.
   candidatePhone String?
 
   description String? @db.Text
@@ -667,9 +578,6 @@ model Notification {
   @@index([userId, readAt])
 }
 
-// Abuse report filed against either a Listing (by a student) or a Student
-// (by an employer). Surfaces in the admin queue; admin reviews and decides.
-// No automatic takedown — admin must act.
 model Report {
   id String @id @default(cuid())
 
@@ -719,10 +627,6 @@ enum WorkMode {
   ONSITE
 }
 
-// Predefined job-title buckets shown in the post-listing dropdown. Each
-// value maps 1:1 to a friendly display label (resolved in the web app's
-// job-title catalog). CUSTOM means the employer typed their own title;
-// in that case Listing.customJobTitle holds the text.
 enum JobTitle {
   AI
   BACKEND
@@ -739,8 +643,6 @@ enum JobTitle {
   CUSTOM
 }
 
-// Company self-description, asked once at company-creation time. Used on
-// the public company page and surfaces in admin verification review.
 enum OrganizationType {
   SOLO_FOUNDER
   STARTUP_TEAM
@@ -773,20 +675,11 @@ enum InterviewStatus {
   COMPLETED
 }
 
-// Role within a company.
-//   FOUNDER_OWNER, CO_FOUNDER → full admin (post listings, edit company, manage team).
-//   HR                        → manage applicants + interviews; cannot edit listings or team.
-//   MEMBER                    → post listings only; no team / company admin.
-// Legacy `OWNER` is mapped to FOUNDER_OWNER by a data migration; kept here so
-// existing rows in any not-yet-migrated environment still parse.
 enum CompanyRole {
   FOUNDER_OWNER
   CO_FOUNDER
   HR
   MEMBER
-  // Free-text role; the actual label lives in CompanyMember.customRole /
-  // CompanyInvitation.customRole. Capability-wise OTHER mirrors MEMBER
-  // (listings only) — see apps/server/src/utils/company-roles.ts.
   OTHER
   OWNER
 }
