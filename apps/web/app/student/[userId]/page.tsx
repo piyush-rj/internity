@@ -12,6 +12,7 @@ import {
     PiLinkedinLogoFill,
     PiMapPin,
     PiPhone,
+    PiSealCheckFill,
     PiUserCircle,
 } from "react-icons/pi";
 import { NavBar } from "@/src/components/navbar/NavBar";
@@ -273,9 +274,21 @@ function Hero({
             <div className="flex items-start gap-5">
                 <Avatar name={name} image={profile.user.image ?? null} />
                 <div className="flex-1 min-w-0">
-                    <h1 className="text-[26px] font-semibold tracking-tight truncate">
-                        {name}
-                    </h1>
+                    <div className="flex items-center gap-2 flex-wrap">
+                        <h1 className="text-[26px] font-semibold tracking-tight truncate">
+                            {name}
+                        </h1>
+                        {profile.isVerified && (
+                            <span
+                                className="inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-2 py-0.5 text-[11.5px] font-medium text-orange-700"
+                                title="Verified by SpiderSkill admins"
+                                aria-label="Verified student"
+                            >
+                                <PiSealCheckFill className="h-3.5 w-3.5" />
+                                Verified
+                            </span>
+                        )}
+                    </div>
                     <p className="mt-1 text-[12.5px] text-muted-foreground">
                         {profile.user.email}
                     </p>

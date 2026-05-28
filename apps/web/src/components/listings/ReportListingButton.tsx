@@ -138,11 +138,7 @@ function ReportDialog({
                                     ? "Add more detail to help us review."
                                     : ""}
                             </span>
-                            <span
-                                className={cn(
-                                    tooLong && "text-destructive",
-                                )}
-                            >
+                            <span className={cn(tooLong && "text-destructive")}>
                                 {reason.length}/{REASON_MAX}
                             </span>
                         </div>

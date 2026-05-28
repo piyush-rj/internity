@@ -5,12 +5,7 @@ import {
     ResponseWriter,
     handleApiError,
 } from "../../../utils/api-response.ts";
-import {
-    JobTitle,
-    Prisma,
-    WorkMode,
-    prisma,
-} from "../../../db.ts";
+import { JobTitle, Prisma, WorkMode, prisma } from "../../../db.ts";
 import { canManageListings } from "../../../utils/company-roles.ts";
 import { ScreeningQuestionsSchema } from "../../../utils/screening.ts";
 
@@ -109,7 +104,8 @@ export default async function createListing(
             perks: body.perks,
             preferences: body.preferences,
             skillTagsRaw: normalize(body.skillTagsRaw),
-            screeningQuestions: body.screeningQuestions as Prisma.InputJsonValue,
+            screeningQuestions:
+                body.screeningQuestions as Prisma.InputJsonValue,
             stipendMin: body.stipendMin ?? null,
             stipendMax: body.stipendMax ?? null,
             durationMonths: body.durationMonths ?? null,

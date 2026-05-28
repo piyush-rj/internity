@@ -216,12 +216,16 @@ function ScreeningFilterRow({
 
     if (question.type === "YES_NO") {
         const sel =
-            filter?.kind === "YES_NO" ? filter.selected : new Set<"yes" | "no">();
+            filter?.kind === "YES_NO"
+                ? filter.selected
+                : new Set<"yes" | "no">();
         function toggle(v: "yes" | "no") {
             const next = new Set(sel);
             if (next.has(v)) next.delete(v);
             else next.add(v);
-            onChange(next.size === 0 ? null : { kind: "YES_NO", selected: next });
+            onChange(
+                next.size === 0 ? null : { kind: "YES_NO", selected: next },
+            );
         }
         return (
             <div className="space-y-1">
@@ -393,22 +397,18 @@ export function applyApplicantsFilters<
         student: {
             name: string | null;
             email: string | null;
-            studentProfile:
-                | {
-                      firstName: string;
-                      lastName: string | null;
-                      educations?: Array<{ institute: string }>;
-                      skills: Array<{ skill: { name: string } }>;
-                  }
-                | null;
+            studentProfile: {
+                firstName: string;
+                lastName: string | null;
+                educations?: Array<{ institute: string }>;
+                skills: Array<{ skill: { name: string } }>;
+            } | null;
         };
         screeningAnswers: ScreeningAnswer[];
     },
 >(items: T[], filters: ApplicantsFilters, listingSkills: string[]): T[] {
     const q = filters.q.trim().toLowerCase();
-    const tagSet = new Set(
-        listingSkills.map((t) => t.trim().toLowerCase()),
-    );
+    const tagSet = new Set(listingSkills.map((t) => t.trim().toLowerCase()));
 
     let arr = items.filter((a) => {
         if (filters.statuses.size > 0 && !filters.statuses.has(a.status))
@@ -443,8 +443,7 @@ export function applyApplicantsFilters<
                     return false;
             } else if (sf.kind === "MULTIPLE_CHOICE") {
                 if (sf.selected.size === 0) continue;
-                if (typeof v !== "string" || !sf.selected.has(v))
-                    return false;
+                if (typeof v !== "string" || !sf.selected.has(v)) return false;
             } else if (sf.kind === "NUMBERS" || sf.kind === "SCALE_1_5") {
                 if (sf.min === null) continue;
                 const n = typeof v === "number" ? v : Number(v);

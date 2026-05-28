@@ -2,7 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { CheckCircle2, FileText, Info, Trash2, Upload } from "lucide-react";
+import {
+    ArrowRight,
+    CheckCircle2,
+    FileText,
+    Info,
+    Trash2,
+    Upload,
+} from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { Button } from "@/src/components/ui/button";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
@@ -323,7 +330,8 @@ function NoProfile() {
                 href="/home/profile"
                 className="mt-3 inline-flex items-center gap-1 text-[12.5px] font-medium text-brand hover:underline"
             >
-                Go to profile →
+                Go to profile
+                <ArrowRight className="h-3.5 w-3.5" />
             </a>
         </div>
     );

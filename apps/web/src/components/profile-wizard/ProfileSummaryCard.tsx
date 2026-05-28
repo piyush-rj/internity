@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowUp } from "lucide-react";
 import {
     PiCake,
     PiEnvelope,
@@ -244,8 +245,9 @@ function MissingDetailsCard({
                         Add {label.toLowerCase()}
                     </div>
                 </div>
-                <span className="text-[11px] text-emerald-600 font-medium tabular-nums">
-                    ↑ {Math.round(100 / 7)}%
+                <span className="inline-flex items-center gap-0.5 text-[11px] text-emerald-600 font-medium tabular-nums">
+                    <ArrowUp className="h-3 w-3" />
+                    {Math.round(100 / 7)}%
                 </span>
             </div>
             <button

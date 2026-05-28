@@ -21,6 +21,7 @@ import {
     PiEnvelope,
     PiMapPin,
     PiPhone,
+    PiSealCheckFill,
 } from "react-icons/pi";
 import {
     chatApi,
@@ -159,6 +160,9 @@ export function ApplicantCard({
                                     >
                                         {displayName}
                                     </Link>
+                                )}
+                                {!isDeleted && profile?.isVerified && (
+                                    <VerifiedStudentBadge />
                                 )}
                                 {isDeleted && <DeletedBadge />}
                                 {!isDeleted && match && (
@@ -341,8 +345,7 @@ export function ApplicantCard({
                                                     <span className="tabular-nums">
                                                         Q{i + 1}.
                                                     </span>{" "}
-                                                    {screeningQuestions[i]
-                                                        ?.q ??
+                                                    {screeningQuestions[i]?.q ??
                                                         "(question not available)"}
                                                 </div>
                                                 <div className="mt-1 text-[12.5px] text-foreground/90 whitespace-pre-wrap leading-relaxed">
@@ -473,6 +476,19 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
             )}
         >
             {labels[status]}
+        </span>
+    );
+}
+
+function VerifiedStudentBadge() {
+    return (
+        <span
+            className="inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[10px] font-medium text-orange-700"
+            title="Verified by SpiderSkill admins"
+            aria-label="Verified student"
+        >
+            <PiSealCheckFill className="h-3 w-3" />
+            Verified
         </span>
     );
 }

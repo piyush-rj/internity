@@ -200,7 +200,5 @@ export function skillSuggestions(
 }
 
 export function allSkillSuggestions(): string[] {
-    return Array.from(
-        new Set([...Object.values(BY_TITLE).flat(), ...COMMON]),
-    );
+    return Array.from(new Set([...Object.values(BY_TITLE).flat(), ...COMMON]));
 }

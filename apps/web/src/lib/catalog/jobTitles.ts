@@ -33,11 +33,7 @@ export function jobTitleLabel(
 ): string {
     if (!jobTitle) return fallbackTitle ?? "Untitled role";
     if (jobTitle === "CUSTOM") {
-        return (
-            customJobTitle?.trim() ||
-            fallbackTitle?.trim() ||
-            "Other"
-        );
+        return customJobTitle?.trim() || fallbackTitle?.trim() || "Other";
     }
     return LABEL_BY_VALUE[jobTitle];
 }

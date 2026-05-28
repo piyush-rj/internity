@@ -294,10 +294,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 toast.error("'To' date can't be in the past.");
                 return;
             }
-            if (
-                form.startDateLatest &&
-                form.startDateLatest < form.startDate
-            ) {
+            if (form.startDateLatest && form.startDateLatest < form.startDate) {
                 toast.error("'To' date can't be before 'From'.");
                 return;
             }
@@ -322,7 +319,9 @@ export const ListingForm = forwardRef(function ListingForm(
             return;
         }
         if (cleanedQuestions.length > MAX_SCREENING_QUESTIONS) {
-            toast.error(`Up to ${MAX_SCREENING_QUESTIONS} screening questions.`);
+            toast.error(
+                `Up to ${MAX_SCREENING_QUESTIONS} screening questions.`,
+            );
             return;
         }
         const badMcq = cleanedQuestions.find(
@@ -342,16 +341,15 @@ export const ListingForm = forwardRef(function ListingForm(
             title: titleTrimmed,
             jobTitle: form.jobTitle as JobTitle,
             customJobTitle:
-                form.jobTitle === "CUSTOM"
-                    ? form.customJobTitle.trim()
-                    : null,
+                form.jobTitle === "CUSTOM" ? form.customJobTitle.trim() : null,
             mode: form.mode,
             city: form.city.trim() || undefined,
             description: form.description.trim(),
             responsibilities: cleanBullets(form.responsibilities),
             perks: form.perks.length > 0 ? form.perks : undefined,
             preferences: cleanBullets(form.preferences),
-            skillTagsRaw: form.skillTags.length > 0 ? form.skillTags : undefined,
+            skillTagsRaw:
+                form.skillTags.length > 0 ? form.skillTags : undefined,
             screeningQuestions:
                 cleanedQuestions.length > 0 ? cleanedQuestions : undefined,
             stipendMin: form.stipendMin ?? undefined,
@@ -408,10 +406,7 @@ export const ListingForm = forwardRef(function ListingForm(
                         <select
                             value={form.jobTitle}
                             onChange={(e) =>
-                                set(
-                                    "jobTitle",
-                                    e.target.value as JobTitle | "",
-                                )
+                                set("jobTitle", e.target.value as JobTitle | "")
                             }
                             className={cn(
                                 inputCls(),
@@ -569,7 +564,9 @@ export const ListingForm = forwardRef(function ListingForm(
                 </Field>
             </Section>
 
-            <Section title={`Screening questions (up to ${MAX_SCREENING_QUESTIONS})`}>
+            <Section
+                title={`Screening questions (up to ${MAX_SCREENING_QUESTIONS})`}
+            >
                 <ScreeningQuestionsEditor
                     questions={form.screeningQuestions}
                     onChange={(next) => set("screeningQuestions", next)}
@@ -760,7 +757,10 @@ function OpeningsCombo({
     useEffect(() => {
         if (!open) return;
         function onDoc(e: MouseEvent) {
-            if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) {
+            if (
+                wrapRef.current &&
+                !wrapRef.current.contains(e.target as Node)
+            ) {
                 setOpen(false);
             }
         }
@@ -865,9 +865,7 @@ function PartTimeRadio({
                     checked ? "border-brand" : "border-border",
                 )}
             >
-                {checked && (
-                    <span className="h-2 w-2 rounded-full bg-brand" />
-                )}
+                {checked && <span className="h-2 w-2 rounded-full bg-brand" />}
             </span>
             {label}
         </label>
@@ -898,9 +896,7 @@ function StartModeRadio({
                     checked ? "border-brand" : "border-border",
                 )}
             >
-                {checked && (
-                    <span className="h-2 w-2 rounded-full bg-brand" />
-                )}
+                {checked && <span className="h-2 w-2 rounded-full bg-brand" />}
             </span>
             {label}
         </label>

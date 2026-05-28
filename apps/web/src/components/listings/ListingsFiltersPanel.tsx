@@ -157,10 +157,7 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
                     <select
                         value={filters.applied}
                         onChange={(e) =>
-                            set(
-                                "applied",
-                                e.target.value as AppliedFilter,
-                            )
+                            set("applied", e.target.value as AppliedFilter)
                         }
                         className={cn(
                             inputCls,
@@ -177,10 +174,7 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
                     <select
                         value={filters.jobTitle}
                         onChange={(e) =>
-                            set(
-                                "jobTitle",
-                                e.target.value as JobTitle | "",
-                            )
+                            set("jobTitle", e.target.value as JobTitle | "")
                         }
                         className={cn(
                             inputCls,
@@ -208,9 +202,7 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
                     <TagsInput
                         value={filters.skills}
                         onChange={(v) => set("skills", v)}
-                        suggestions={skillSuggestions(
-                            filters.jobTitle || null,
-                        )}
+                        suggestions={skillSuggestions(filters.jobTitle || null)}
                         placeholder="React, Figma…"
                     />
                 </Field>

@@ -150,9 +150,7 @@ function ApplyDialog({
         // eslint-disable-next-line react-hooks/set-state-in-effect
         setAnswers((prev) => {
             if (prev.length === screeningQuestions.length) return prev;
-            return screeningQuestions.map(
-                (_, i) => prev[i] ?? { value: "" },
-            );
+            return screeningQuestions.map((_, i) => prev[i] ?? { value: "" });
         });
         // load resumes when the dialog opens
         let cancelled = false;
@@ -185,9 +183,7 @@ function ApplyDialog({
 
     const overCover = coverLetter.length > COVER_LIMIT;
     const missingAnswerIndex = hasQuestions
-        ? screeningQuestions.findIndex(
-              (q, i) => !isAnswered(q, answers[i]),
-          )
+        ? screeningQuestions.findIndex((q, i) => !isAnswered(q, answers[i]))
         : -1;
     const ready = !overCover && missingAnswerIndex === -1;
     const selectedResume = resumes.find((r) => r.id === resumeId) ?? null;
@@ -203,11 +199,7 @@ function ApplyDialog({
             toast.error(`Please answer question ${missingAnswerIndex + 1}.`);
             return;
         }
-        if (
-            resumes.length === 0 &&
-            profileInitialized &&
-            !profile?.resumeUrl
-        ) {
+        if (resumes.length === 0 && profileInitialized && !profile?.resumeUrl) {
             setShowResumeWarning(true);
             return;
         }
@@ -364,8 +356,8 @@ function ApplyDialog({
                         </div>
                         {resumes.length === 0 ? (
                             <p className="text-[12px] text-muted-foreground rounded-md border border-border bg-secondary/40 px-3 py-2">
-                                You haven&rsquo;t uploaded any resume yet. You can
-                                still apply with just a cover note — most
+                                You haven&rsquo;t uploaded any resume yet. You
+                                can still apply with just a cover note — most
                                 employers expect a resume though.
                             </p>
                         ) : (

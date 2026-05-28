@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowRight } from "lucide-react";
 import { useMyListings } from "@/src/hooks/useMyListings";
 import { useMeStore } from "@/src/store/useMeStore";
 import { cn } from "@/src/lib/utils";
@@ -51,9 +51,10 @@ function TakedownBannerInner() {
                 </ul>
                 <Link
                     href="/home/manage-listings"
-                    className="inline-block mt-1 text-[11.5px] font-medium text-red-800 underline-offset-2 hover:underline"
+                    className="mt-1 inline-flex items-center gap-1 text-[11.5px] font-medium text-red-800 underline-offset-2 hover:underline"
                 >
-                    Open My listings →
+                    Open My listings
+                    <ArrowRight className="h-3 w-3" />
                 </Link>
             </div>
         </div>

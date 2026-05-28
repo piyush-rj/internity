@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Ban, Search, ShieldCheck } from "lucide-react";
+import { PiSealCheckFill } from "react-icons/pi";
 import { toast } from "sonner";
 import { adminApi, type AdminStudentListItem } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -12,6 +13,9 @@ export default function AdminStudentsPage() {
     const [query, setQuery] = useState("");
     const [debounced, setDebounced] = useState("");
     const [bannedFilter, setBannedFilter] = useState<"" | "true" | "false">("");
+    const [verifiedFilter, setVerifiedFilter] = useState<"" | "true" | "false">(
+        "",
+    );
     const [items, setItems] = useState<AdminStudentListItem[]>([]);
     const [total, setTotal] = useState(0);
     const [loading, setLoading] = useState(false);
@@ -33,6 +37,7 @@ export default function AdminStudentsPage() {
             const res = await adminApi.list_students({
                 q: debounced || undefined,
                 banned: bannedFilter || undefined,
+                verified: verifiedFilter || undefined,
                 pageSize: 50,
             });
             setItems(res.items);
@@ -48,12 +53,42 @@ export default function AdminStudentsPage() {
         } finally {
             setLoading(false);
         }
-    }, [debounced, bannedFilter]);
+    }, [debounced, bannedFilter, verifiedFilter]);
 
     useEffect(() => {
         // eslint-disable-next-line react-hooks/set-state-in-effect
         load();
     }, [load]);
+
+    async function toggleVerified(s: AdminStudentListItem) {
+        const next = !s.isVerified;
+        // optimistic update so the badge flips immediately
+        setItems((prev) =>
+            prev.map((x) =>
+                x.id === s.id ? { ...x, isVerified: next } : x,
+            ),
+        );
+        try {
+            await adminApi.set_student_verification(s.user.id, {
+                verified: next,
+            });
+            toast.success(
+                next ? "Student marked verified." : "Verification removed.",
+            );
+        } catch (err) {
+            // revert on failure
+            setItems((prev) =>
+                prev.map((x) =>
+                    x.id === s.id ? { ...x, isVerified: !next } : x,
+                ),
+            );
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn't update verification.",
+            );
+        }
+    }
 
     async function toggleBan(s: AdminStudentListItem) {
         const banning = !s.user.isBanned;
@@ -98,6 +133,19 @@ export default function AdminStudentsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-2">
+                    <select
+                        value={verifiedFilter}
+                        onChange={(e) =>
+                            setVerifiedFilter(
+                                e.target.value as "" | "true" | "false",
+                            )
+                        }
+                        className="h-9 rounded-md border border-border bg-background px-2 text-[12.5px] cursor-pointer"
+                    >
+                        <option value="">Any verification</option>
+                        <option value="true">Verified</option>
+                        <option value="false">Unverified</option>
+                    </select>
                     <select
                         value={bannedFilter}
                         onChange={(e) =>
@@ -159,6 +207,15 @@ export default function AdminStudentsPage() {
                                             {s.user.name ??
                                                 `${s.firstName}${s.lastName ? " " + s.lastName : ""}`}
                                         </a>
+                                        {s.isVerified && (
+                                            <span
+                                                className="inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[10.5px] font-medium text-orange-700"
+                                                title="Verified by an admin"
+                                            >
+                                                <PiSealCheckFill className="h-3 w-3" />
+                                                Verified
+                                            </span>
+                                        )}
                                         {s.user.isBanned && (
                                             <span className="inline-flex items-center gap-1 rounded-full border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10.5px] text-red-700">
                                                 <Ban className="h-3 w-3" />
@@ -171,8 +228,7 @@ export default function AdminStudentsPage() {
                                         {s.city ? ` · ${s.city}` : ""}
                                         {s.college
                                             ? ` · ${s.college}`
-                                            : ""}{" "}
-                                        · {s.applicationsCount} apps
+                                            : ""} · {s.applicationsCount} apps
                                     </div>
                                     {s.user.isBanned && s.user.banReason && (
                                         <div className="mt-1 text-[11px] text-red-700">
@@ -180,6 +236,25 @@ export default function AdminStudentsPage() {
                                         </div>
                                     )}
                                 </div>
+                                <Button
+                                    type="button"
+                                    variant="exec-light"
+                                    onClick={() => toggleVerified(s)}
+                                    className={cn(
+                                        "h-8 px-3 text-[11.5px] cursor-pointer",
+                                        s.isVerified
+                                            ? "text-muted-foreground hover:bg-secondary"
+                                            : "text-orange-700 hover:bg-orange-50",
+                                    )}
+                                    title={
+                                        s.isVerified
+                                            ? "Remove the verified badge"
+                                            : "Mark this student as verified"
+                                    }
+                                >
+                                    <PiSealCheckFill className="h-3.5 w-3.5" />
+                                    {s.isVerified ? "Unverify" : "Verify"}
+                                </Button>
                                 <Button
                                     type="button"
                                     variant={

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { Loader2, Pencil } from "lucide-react";
+import { ArrowUpRight, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import {
     PiCake,
@@ -79,7 +79,8 @@ export function ProfileHeaderCard({
                                 rel="noopener noreferrer"
                                 className="ml-auto inline-flex items-center gap-1 text-[12px] font-medium text-brand hover:underline"
                             >
-                                View public page →
+                                View public page
+                                <ArrowUpRight className="h-3.5 w-3.5" />
                             </a>
                         )}
                     </div>

@@ -4,7 +4,7 @@ import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { AlertTriangle, Check, X } from "lucide-react";
+import { AlertTriangle, ArrowRight, Check, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { invitationApi, type InvitationLookup } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -278,9 +278,10 @@ function ErrorState({ message }: { message: string }) {
             <p className="text-[13px] text-muted-foreground">{message}</p>
             <Link
                 href="/home/dashboard"
-                className="inline-flex items-center text-[12.5px] font-medium text-orange-600 hover:underline"
+                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-orange-600 hover:underline"
             >
-                Back to dashboard →
+                Back to dashboard
+                <ArrowRight className="h-3.5 w-3.5" />
             </Link>
         </div>
     );

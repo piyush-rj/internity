@@ -6,12 +6,7 @@ import {
     ResponseWriter,
     handleApiError,
 } from "../../../utils/api-response.ts";
-import {
-    JobTitle,
-    Prisma,
-    WorkMode,
-    prisma,
-} from "../../../db.ts";
+import { JobTitle, Prisma, WorkMode, prisma } from "../../../db.ts";
 import { isAdminUser } from "../../../config/config.ts";
 import { canManageListings } from "../../../utils/company-roles.ts";
 import { ScreeningQuestionsSchema } from "../../../utils/screening.ts";
@@ -98,8 +93,7 @@ export default async function updateListing(
                 jobTitle: (body.jobTitle ?? null) as JobTitle | null,
             }),
             ...(body.customJobTitle !== undefined && {
-                customJobTitle:
-                    body.customJobTitle?.trim() || null,
+                customJobTitle: body.customJobTitle?.trim() || null,
             }),
             ...(body.mode !== undefined && { mode: body.mode as WorkMode }),
             ...(body.city !== undefined && { city: body.city }),

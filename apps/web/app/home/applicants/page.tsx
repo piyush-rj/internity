@@ -31,9 +31,15 @@ function ApplicantsView() {
     const searchParams = useSearchParams();
     const queriedId = searchParams?.get("listingId") ?? null;
 
-    const { items: listings, loading: listingsLoading } = useMyListings();
     const { memberships } = useMyEmployer();
     const companyName = memberships[0]?.company.name ?? "";
+    const companyId = memberships[0]?.company.id ?? undefined;
+    // Applicants can be handled by any company member (HR/Member too), so
+    // scope to the whole company rather than just listings I posted.
+    const { items: listings, loading: listingsLoading } = useMyListings({
+        scope: "company",
+        companyId,
+    });
 
     // resolve which listing's applicants to show, preferring the url param
     const activeListingId = useMemo(() => {

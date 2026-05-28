@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { ArrowRight, Plus } from "lucide-react";
 import {
     PiBriefcase,
     PiCalendar,
@@ -14,7 +14,7 @@ import { useMyListings, type MyListing } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
 
 export function MyListingsWidget() {
-    const { items, loading, error } = useMyListings();
+    const { items, loading, error } = useMyListings({ scope: "mine" });
     const top = items.slice(0, 4);
 
     return (
@@ -163,7 +163,7 @@ function ListingRow({ listing }: { listing: MyListing }) {
                         "transition-colors",
                     )}
                 >
-                    →
+                    <ArrowRight className="h-3.5 w-3.5" />
                 </Link>
             </Td>
         </tr>

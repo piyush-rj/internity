@@ -19,6 +19,7 @@ export {
     type CompanyInput,
     type CompanyUpdateInput,
     type CompanyMemberWithUser,
+    type CompanyDashboard,
     type CompanyInvitation,
     type InvitationLookup,
     type AdminCompanyListItem,

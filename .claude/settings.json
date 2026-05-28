@@ -40,7 +40,16 @@
       "Bash(ps -p 88877 -o pid,command)",
       "Bash(kill 88877)",
       "Bash(npx eslint *)",
-      "Bash(npx prisma *)"
+      "Bash(npx prisma *)",
+      "Bash(grep -q '\"__TRACKED_VAR__\"\\\\|'\\\\''__TRACKED_VAR__'\\\\''\\\\| __TRACKED_VAR__ ' node_modules/react-icons/pi/index.d.ts)",
+      "Bash(npm run *)",
+      "Bash(lsof -nP -iTCP -sTCP:LISTEN)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:8081/api/v1/employer/me)",
+      "Bash(node --import tsx -e \"import {prisma} from './src/db.ts'; const c = await prisma.employerProfile.count\\(\\); const recent = await prisma.employerProfile.findMany\\({take:5, orderBy:{updatedAt:'desc'}, select:{firstName:true,jobTitle:true,linkedinUrl:true,updatedAt:true}}\\); console.log\\('count=',c\\); console.log\\(JSON.stringify\\(recent,null,2\\)\\); process.exit\\(0\\);\")",
+      "Bash(node --import tsx -e ' *)",
+      "Bash(echo \"server-tsc:$?\")",
+      "Bash(echo \"eslint:$?\")",
+      "Bash(xargs ls -la)"
     ],
     "additionalDirectories": [
       "/Users/piyush/utility/internshala_clone/apps/web/app/home/invite",

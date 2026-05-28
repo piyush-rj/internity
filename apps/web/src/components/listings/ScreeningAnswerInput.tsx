@@ -27,8 +27,7 @@ export function ScreeningAnswerInput({
     );
 
     if (question.type === "SHORT") {
-        const value =
-            typeof answer?.value === "string" ? answer.value : "";
+        const value = typeof answer?.value === "string" ? answer.value : "";
         const over = value.length > SHORT_LIMIT;
         return (
             <label className="block space-y-1">
@@ -56,9 +55,10 @@ export function ScreeningAnswerInput({
     }
 
     if (question.type === "YES_NO") {
-        const value = answer?.value === "yes" || answer?.value === "no"
-            ? answer.value
-            : null;
+        const value =
+            answer?.value === "yes" || answer?.value === "no"
+                ? answer.value
+                : null;
         return (
             <fieldset className="space-y-1.5">
                 <legend className="block text-[12.5px] text-foreground/90">
@@ -81,8 +81,7 @@ export function ScreeningAnswerInput({
     }
 
     if (question.type === "MULTIPLE_CHOICE") {
-        const value =
-            typeof answer?.value === "string" ? answer.value : "";
+        const value = typeof answer?.value === "string" ? answer.value : "";
         return (
             <fieldset className="space-y-1.5">
                 <legend className="block text-[12.5px] text-foreground/90">
@@ -138,7 +137,9 @@ export function ScreeningAnswerInput({
 
     // SCALE_1_5
     const current =
-        typeof answer?.value === "number" && answer.value >= 1 && answer.value <= 5
+        typeof answer?.value === "number" &&
+        answer.value >= 1 &&
+        answer.value <= 5
             ? answer.value
             : null;
     return (
@@ -193,9 +194,7 @@ function RadioPill({
                     checked ? "border-brand" : "border-border",
                 )}
             >
-                {checked && (
-                    <span className="h-2 w-2 rounded-full bg-brand" />
-                )}
+                {checked && <span className="h-2 w-2 rounded-full bg-brand" />}
             </span>
             {label}
         </label>

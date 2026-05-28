@@ -7,6 +7,7 @@ import {
     handleApiError,
 } from "../../../utils/api-response.ts";
 import { CompanyRole, prisma } from "../../../db.ts";
+import { notify } from "../../../services/notifications.ts";
 
 const INVITE_TTL_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -29,6 +30,15 @@ export default async function createCompanyInvitation(
     try {
         const companyId = req.params.id as string;
         const body = Body.parse(req.body);
+
+        // Inviting yourself is the most common "already a member" confusion —
+        // give it a message that names the cause instead of the generic one.
+        const callerEmail = req.user!.email?.toLowerCase() ?? null;
+        if (callerEmail && callerEmail === body.email) {
+            throw new InvalidRequest(
+                "That's your own email — you're already on the team.",
+            );
+        }
 
         const existingMember = await prisma.user.findFirst({
             where: {
@@ -66,6 +76,29 @@ export default async function createCompanyInvitation(
                 expiresAt: new Date(Date.now() + INVITE_TTL_MS),
             },
         });
+
+        // If the invited email already belongs to an account, notify them now.
+        // Anyone who signs up later is caught by the reconciliation in getMe.
+        const invitedUser = await prisma.user.findFirst({
+            where: {
+                email: { equals: body.email, mode: "insensitive" },
+                deletedAt: null,
+            },
+            select: { id: true },
+        });
+        if (invitedUser) {
+            const company = await prisma.company.findUnique({
+                where: { id: companyId },
+                select: { name: true },
+            });
+            await notify({
+                userId: invitedUser.id,
+                type: "COMPANY_INVITE",
+                title: `You're invited to join ${company?.name ?? "a company"}`,
+                body: "Accept the invite to join the team.",
+                link: `/home/invite/${invite.token}`,
+            });
+        }
 
         api.created({ invitation: invite }, "Invite created");
     } catch (err) {

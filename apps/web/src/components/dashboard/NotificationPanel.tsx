@@ -211,6 +211,8 @@ function NotificationIcon({
         case "LISTING_TAKEN_DOWN":
         case "LISTING_RESTORED":
             return <PiBriefcaseFill className={className} />;
+        case "COMPANY_INVITE":
+            return <PiUsersFill className={className} />;
         case "COMPANY_MEMBER_ADDED":
         case "COMPANY_APPROVED":
         case "COMPANY_REJECTED":

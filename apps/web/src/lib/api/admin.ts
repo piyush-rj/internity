@@ -51,6 +51,7 @@ export type AdminStudentListItem = {
     city: string | null;
     college: string | null;
     branch: string | null;
+    isVerified: boolean;
     createdAt: string;
     applicationsCount: number;
     user: {
@@ -62,6 +63,10 @@ export type AdminStudentListItem = {
         banReason: string | null;
         createdAt: string;
     };
+};
+
+export type AdminStudentVerificationResult = {
+    student: { userId: string; isVerified: boolean };
 };
 
 export const adminApi = {
@@ -78,6 +83,7 @@ export const adminApi = {
     list_students: (params?: {
         q?: string;
         banned?: "true" | "false";
+        verified?: "true" | "false";
         page?: number;
         pageSize?: number;
     }) =>
@@ -87,4 +93,9 @@ export const adminApi = {
             pageSize: number;
             total: number;
         }>("/admin/students", params),
+    set_student_verification: (userId: string, input: { verified: boolean }) =>
+        api.post<AdminStudentVerificationResult>(
+            `/admin/student/${userId}/verify`,
+            input,
+        ),
 };

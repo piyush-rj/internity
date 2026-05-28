@@ -48,7 +48,12 @@ export type ApplicantWithStudent = Application & {
         studentProfile:
             | (Pick<
                   StudentProfile,
-                  "firstName" | "lastName" | "phone" | "city" | "bio"
+                  | "firstName"
+                  | "lastName"
+                  | "phone"
+                  | "city"
+                  | "bio"
+                  | "isVerified"
               > & {
                   skills: Array<{ skill: { name: string } }>;
                   educations: ApplicantStudentEducation[];
@@ -117,7 +122,7 @@ export const listingApi = {
             "/listing",
             filters as Record<string, unknown>,
         ),
-    list_mine: () =>
+    list_mine: (params?: { scope?: "mine" | "company"; companyId?: string }) =>
         api.get<{
             items: (Listing & {
                 _count: {
@@ -125,7 +130,7 @@ export const listingApi = {
                     applicationsSeen: number;
                 };
             })[];
-        }>("/listing/mine"),
+        }>("/listing/mine", params as Record<string, unknown>),
     get: (id: string) =>
         api.get<{
             listing: ListingWithCompany & {
@@ -275,8 +280,7 @@ export const uploadApi = {
 
 export const resumeApi = {
     list: () => api.get<{ items: Resume[] }>("/resume"),
-    setDefault: (id: string) =>
-        api.post<{ ok: true }>(`/resume/${id}/default`),
+    setDefault: (id: string) => api.post<{ ok: true }>(`/resume/${id}/default`),
     remove: (id: string) => api.delete<{ ok: true }>(`/resume/${id}`),
 };
 
@@ -306,10 +310,11 @@ export const reportApi = {
                             slug: string;
                         };
                     } | null;
-                    targetStudent: Pick<
-                        User,
-                        "id" | "name" | "email"
-                    > & { isBanned: boolean } | null;
+                    targetStudent:
+                        | (Pick<User, "id" | "name" | "email"> & {
+                              isBanned: boolean;
+                          })
+                        | null;
                     resolvedBy: Pick<User, "id" | "name" | "email"> | null;
                 }
             >;

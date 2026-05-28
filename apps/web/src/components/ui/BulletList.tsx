@@ -57,11 +57,7 @@ export function BulletList({
                     el?.focus();
                 });
             }
-        } else if (
-            e.key === "Backspace" &&
-            rows[i] === "" &&
-            rows.length > 1
-        ) {
+        } else if (e.key === "Backspace" && rows[i] === "" && rows.length > 1) {
             e.preventDefault();
             remove(i);
             requestAnimationFrame(() => {
@@ -75,11 +71,7 @@ export function BulletList({
     }
 
     return (
-        <div
-            className="space-y-1.5"
-            role="group"
-            aria-label={ariaLabel}
-        >
+        <div className="space-y-1.5" role="group" aria-label={ariaLabel}>
             {rows.map((v, i) => (
                 <div key={i} className="flex items-center gap-2">
                     <span className="text-muted-foreground text-[12px] w-4 text-right tabular-nums shrink-0">

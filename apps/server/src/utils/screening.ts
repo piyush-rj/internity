@@ -93,9 +93,7 @@ export function validateAnswers(
             case "YES_NO": {
                 const s = String(v).toLowerCase();
                 if (s !== "yes" && s !== "no") {
-                    throw new Error(
-                        `Question ${i + 1} expects yes or no.`,
-                    );
+                    throw new Error(`Question ${i + 1} expects yes or no.`);
                 }
                 out.push({ value: s });
                 break;
@@ -116,9 +114,7 @@ export function validateAnswers(
             case "NUMBERS": {
                 const n = typeof v === "number" ? v : Number(v);
                 if (!Number.isFinite(n)) {
-                    throw new Error(
-                        `Question ${i + 1} expects a number.`,
-                    );
+                    throw new Error(`Question ${i + 1} expects a number.`);
                 }
                 out.push({ value: Math.trunc(n) });
                 break;
@@ -126,9 +122,7 @@ export function validateAnswers(
             case "SCALE_1_5": {
                 const n = typeof v === "number" ? v : Number(v);
                 if (!Number.isInteger(n) || n < 1 || n > 5) {
-                    throw new Error(
-                        `Question ${i + 1} expects a 1–5 rating.`,
-                    );
+                    throw new Error(`Question ${i + 1} expects a 1–5 rating.`);
                 }
                 out.push({ value: n });
                 break;

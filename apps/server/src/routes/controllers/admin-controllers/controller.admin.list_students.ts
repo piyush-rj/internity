@@ -12,6 +12,7 @@ import { isAdminUser } from "../../../config/config.ts";
 const Query = z.object({
     q: z.string().optional(),
     banned: z.enum(["true", "false"]).optional(),
+    verified: z.enum(["true", "false"]).optional(),
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(50).default(20),
 });
@@ -32,6 +33,9 @@ export default async function adminListStudents(
             userFilter.isBanned = q.banned === "true";
         }
         const where: Prisma.StudentProfileWhereInput = { user: userFilter };
+        if (q.verified !== undefined) {
+            where.isVerified = q.verified === "true";
+        }
         if (q.q && q.q.trim()) {
             const needle = q.q.trim();
             where.OR = [

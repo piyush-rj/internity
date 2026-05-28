@@ -94,8 +94,7 @@ function ConversationRow({
                             <span
                                 className={cn(
                                     "text-[14px] truncate font-semibold",
-                                    isDeleted &&
-                                        "text-muted-foreground italic",
+                                    isDeleted && "text-muted-foreground italic",
                                     !isDeleted &&
                                         hasUnread &&
                                         "text-foreground",

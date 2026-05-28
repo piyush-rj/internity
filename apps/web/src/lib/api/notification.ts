@@ -7,6 +7,7 @@ export type NotificationType =
     | "LISTING_CLOSED"
     | "LISTING_TAKEN_DOWN"
     | "LISTING_RESTORED"
+    | "COMPANY_INVITE"
     | "COMPANY_MEMBER_ADDED"
     | "COMPANY_APPROVED"
     | "COMPANY_REJECTED"

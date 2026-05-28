@@ -99,7 +99,9 @@ export function SavedFilterPanel({
                 <Field label="Sort">
                     <select
                         value={filters.sort}
-                        onChange={(e) => setSort(e.target.value as SavedSortKey)}
+                        onChange={(e) =>
+                            setSort(e.target.value as SavedSortKey)
+                        }
                         className={cn(
                             inputCls,
                             "appearance-none pr-8 cursor-pointer",

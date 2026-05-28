@@ -16,6 +16,7 @@ import {
     PiFileTextFill,
     PiGearFill,
     PiHouseFill,
+    PiSquaresFourFill,
     PiUserFill,
     PiUsersFill,
 } from "react-icons/pi";
@@ -23,7 +24,8 @@ import { GiTie } from "react-icons/gi";
 import type { UserRole } from "@/src/lib/api";
 import { useMeStore } from "@/src/store/useMeStore";
 import { selectTotalUnread, useChatStore } from "@/src/store/useChatStore";
-import { useMyListings } from "@/src/hooks/useMyListings";
+import { useMyEmployer } from "@/src/hooks/useMyEmployer";
+import { canManageCompany } from "@/src/lib/catalog/companyRoles";
 
 type IconComp = ComponentType<{ className?: string }>;
 
@@ -120,12 +122,6 @@ const employerNav: NavSet = {
             href: "/home/applicants",
         },
         {
-            key: "company",
-            label: "Company",
-            icon: PiBuildingsFill,
-            href: "/home/company",
-        },
-        {
             key: "messages",
             label: "Messages",
             icon: PiChatCircleFill,
@@ -162,7 +158,10 @@ function resolveActiveKey(pathname: string, nav: NavSet): string {
     const segment = pathname.split("/")[2] ?? "";
     const all = [...nav.workspace, ...nav.profile];
     const match = all.find((it) => it.key === segment);
-    return match?.key ?? "dashboard";
+    // Fall back to the raw segment (e.g. "company") so a section with no
+    // workspace entry doesn't spuriously highlight Dashboard; empty path
+    // (= /home) still resolves to the dashboard.
+    return match?.key ?? (segment || "dashboard");
 }
 
 export function Sidebar() {
@@ -261,8 +260,8 @@ export function SidebarBody({
                 </div>
 
                 {role === "EMPLOYER" && initialized && (
-                    <EmployerListingsSection
-                        active={activeKey === "manage-listings"}
+                    <CompanySection
+                        pathname={pathname}
                         onNavigate={onNavigate}
                     />
                 )}
@@ -362,23 +361,42 @@ const NavItem = memo(function NavItem({
     );
 });
 
-// Slim "Your listings" block under the employer workspace nav. Lists the
-// active company's open listings (top 5) so a founder can deep-link to a
-// listing detail without clicking through My Listings → search → open.
-// Reuses the existing useMyListings hook so the data is shared with the
-// /home/manage-listings page and the dashboard widget.
-function EmployerListingsSection({
-    active,
+// "Company" section under the employer workspace nav. Always-expanded group
+// of company destinations. The Dashboard link is owner-only (founder /
+// co-founder) — everyone else sees the other three. Company role + id come
+// from the caller's first membership, mirroring /home/company.
+const COMPANY_LINKS: ReadonlyArray<{
+    sub: string;
+    label: string;
+    icon: IconComp;
+    adminOnly?: boolean;
+}> = [
+    {
+        sub: "dashboard",
+        label: "Dashboard",
+        icon: PiSquaresFourFill,
+        adminOnly: true,
+    },
+    { sub: "profile", label: "Profile", icon: PiBuildingsFill },
+    { sub: "listings", label: "Listings", icon: PiBriefcaseFill },
+    { sub: "members", label: "Members", icon: PiUsersFill },
+];
+
+function CompanySection({
+    pathname,
     onNavigate,
 }: {
-    active: boolean;
+    pathname: string;
     onNavigate?: () => void;
 }) {
-    const { items, loading } = useMyListings();
-    if (loading && items.length === 0) {
+    const { memberships, loading } = useMyEmployer();
+    const role = memberships[0]?.role ?? null;
+    // No company yet — hide the section entirely (the employer-setup flow
+    // owns that empty state, not the sidebar).
+    if (loading && memberships.length === 0) {
         return (
             <>
-                <SectionLabel className="mt-6">Your listings</SectionLabel>
+                <SectionLabel className="mt-6">Company</SectionLabel>
                 <div className="space-y-0.5">
                     {Array.from({ length: 3 }).map((_, i) => (
                         <NavItemSkeleton key={i} />
@@ -387,45 +405,43 @@ function EmployerListingsSection({
             </>
         );
     }
-    const openListings = items
-        .filter((l) => !l.closedAt && !l.takenDownAt)
-        .slice(0, 5);
-    if (openListings.length === 0) return null;
+    if (!role) return null;
+    const canAdmin = canManageCompany(role);
+    const activeSub = pathname.split("/")[3] ?? "";
+    const links = COMPANY_LINKS.filter((l) => !l.adminOnly || canAdmin);
+
     return (
         <>
-            <SectionLabel className="mt-6">Your listings</SectionLabel>
+            <SectionLabel className="mt-6">Company</SectionLabel>
             <div className="space-y-0.5">
-                {openListings.map((l) => (
-                    <Link
-                        key={l.id}
-                        href={`/home/listings/${l.id}`}
-                        prefetch
-                        onClick={() => onNavigate?.()}
-                        className={cn(
-                            "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
-                            "text-muted-foreground hover:text-foreground/80",
-                        )}
-                        title={l.title}
-                    >
-                        <PiBriefcaseFill className="h-3.5 w-3.5 shrink-0 text-neutral-500" />
-                        <span className="flex-1 truncate">{l.title}</span>
-                    </Link>
-                ))}
-                {items.length > openListings.length && (
-                    <Link
-                        href="/home/manage-listings"
-                        prefetch
-                        onClick={() => onNavigate?.()}
-                        className={cn(
-                            "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[11.5px] font-medium transition-colors",
-                            "text-orange-600 hover:text-orange-700",
-                            active && "opacity-70",
-                        )}
-                    >
-                        <ChevronRightIcon className="h-3 w-3 shrink-0" />
-                        <span>View all listings</span>
-                    </Link>
-                )}
+                {links.map((l) => {
+                    const Icon = l.icon;
+                    const active = activeSub === l.sub;
+                    return (
+                        <Link
+                            key={l.sub}
+                            href={`/home/company/${l.sub}`}
+                            prefetch
+                            onClick={() => onNavigate?.()}
+                            className={cn(
+                                "flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium transition-colors",
+                                active
+                                    ? "bg-neutral-100 ring-1 ring-black/9 shadow-sm shadow-black/4"
+                                    : "text-muted-foreground hover:text-foreground/80",
+                            )}
+                        >
+                            <Icon
+                                className={cn(
+                                    "h-4 w-4 shrink-0",
+                                    active
+                                        ? "text-orange-500"
+                                        : "text-neutral-500",
+                                )}
+                            />
+                            <span className="flex-1">{l.label}</span>
+                        </Link>
+                    );
+                })}
             </div>
         </>
     );

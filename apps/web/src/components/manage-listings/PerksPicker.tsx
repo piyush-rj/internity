@@ -27,7 +27,9 @@ export function PerksPicker({
 
     function toggle(perk: string) {
         if (lowered.has(perk.toLowerCase())) {
-            onChange(value.filter((v) => v.toLowerCase() !== perk.toLowerCase()));
+            onChange(
+                value.filter((v) => v.toLowerCase() !== perk.toLowerCase()),
+            );
         } else {
             onChange([...value, perk]);
         }

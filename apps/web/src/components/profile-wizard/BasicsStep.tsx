@@ -267,9 +267,7 @@ export function BasicsStep({
                                             : "border-border bg-background text-foreground hover:bg-secondary",
                                     )}
                                 >
-                                    {selected && (
-                                        <Check className="h-3 w-3" />
-                                    )}
+                                    {selected && <Check className="h-3 w-3" />}
                                     {o.label}
                                 </button>
                             );

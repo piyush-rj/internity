@@ -1,25 +1,57 @@
 import type { Request, Response } from "express";
-import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import type { Prisma } from "../../../db.ts";
+import {
+    ResponseWriter,
+    handleApiError,
+    Forbidden,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
+// GET /listing/mine — listings the caller can manage.
+//   scope=mine     → only listings the caller posted (postedById === me)
+//   scope=company  → every listing under the resolved company set (default)
+//   companyId=<id> → pin to one company (membership verified); omitted falls
+//                    back to all companies the caller belongs to.
 export default async function listMyListings(
     req: Request,
     res: Response,
 ): Promise<void> {
     const api = new ResponseWriter(res);
     try {
-        const memberships = await prisma.companyMember.findMany({
-            where: { userId: req.user!.id },
-            select: { companyId: true },
-        });
-        if (memberships.length === 0) {
+        const userId = req.user!.id;
+        const scope = req.query.scope === "mine" ? "mine" : "company";
+        const companyId =
+            typeof req.query.companyId === "string"
+                ? req.query.companyId
+                : undefined;
+
+        let companyIds: string[];
+        if (companyId) {
+            const member = await prisma.companyMember.findUnique({
+                where: { companyId_userId: { companyId, userId } },
+                select: { companyId: true },
+            });
+            if (!member) throw new Forbidden("Not a member of this company");
+            companyIds = [companyId];
+        } else {
+            const memberships = await prisma.companyMember.findMany({
+                where: { userId },
+                select: { companyId: true },
+            });
+            companyIds = memberships.map((m) => m.companyId);
+        }
+        if (companyIds.length === 0) {
             api.ok({ items: [] });
             return;
         }
-        const companyIds = memberships.map((m) => m.companyId);
+
+        const where: Prisma.ListingWhereInput = {
+            companyId: { in: companyIds },
+            ...(scope === "mine" ? { postedById: userId } : {}),
+        };
 
         const rows = await prisma.listing.findMany({
-            where: { companyId: { in: companyIds } },
+            where,
             orderBy: { createdAt: "desc" },
             include: {
                 company: {

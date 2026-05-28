@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
 import {
@@ -170,9 +171,7 @@ export default function CreateCompanyPage() {
                             <input
                                 type="url"
                                 value={form.website}
-                                onChange={(e) =>
-                                    set("website", e.target.value)
-                                }
+                                onChange={(e) => set("website", e.target.value)}
                                 placeholder="https://acme.com"
                                 className={inputCls()}
                             />
@@ -225,9 +224,7 @@ export default function CreateCompanyPage() {
                         <Field label="Country" required>
                             <select
                                 value={form.country}
-                                onChange={(e) =>
-                                    set("country", e.target.value)
-                                }
+                                onChange={(e) => set("country", e.target.value)}
                                 className={cn(
                                     inputCls(),
                                     "appearance-none pr-8 cursor-pointer",
@@ -296,10 +293,7 @@ export default function CreateCompanyPage() {
                             placeholder="What does your company do?"
                             rows={3}
                             maxLength={400}
-                            className={cn(
-                                inputCls(),
-                                "min-h-20 py-2 resize-y",
-                            )}
+                            className={cn(inputCls(), "min-h-20 py-2 resize-y")}
                         />
                         <div className="mt-1 text-right text-[11px] text-muted-foreground tabular-nums">
                             {form.about.length}/400
@@ -309,9 +303,10 @@ export default function CreateCompanyPage() {
                         <button
                             type="button"
                             onClick={() => router.back()}
-                            className="text-[12.5px] text-muted-foreground hover:text-foreground"
+                            className="inline-flex items-center gap-1 text-[12.5px] text-muted-foreground hover:text-foreground"
                         >
-                            ← Back
+                            <ArrowLeft className="h-3.5 w-3.5" />
+                            Back
                         </button>
                         <Button
                             type="button"

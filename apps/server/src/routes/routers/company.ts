@@ -27,6 +27,7 @@ import adminGetCompany from "../controllers/company-controllers/controller.compa
 import createCompanyInvitation from "../controllers/company-controllers/controller.company.create_invitation.ts";
 import listCompanyInvitations from "../controllers/company-controllers/controller.company.list_invitations.ts";
 import revokeCompanyInvitation from "../controllers/company-controllers/controller.company.revoke_invitation.ts";
+import getCompanyDashboard from "../controllers/company-controllers/controller.company.get_dashboard.ts";
 
 // Gate a route on company membership; optionally require the caller's
 // CompanyRole to satisfy a capability (e.g. founder-only actions like
@@ -76,6 +77,11 @@ router.get("/admin/:id", requireAdmin, adminGetCompany);
 router.get("/:slug", getCompanyBySlug);
 router.patch("/:id", requireCompanyMember({ adminOnly: true }), updateCompany);
 router.post("/:id/verification", requireAdmin, setCompanyVerification);
+router.get(
+    "/:id/dashboard",
+    requireCompanyMember({ adminOnly: true }),
+    getCompanyDashboard,
+);
 router.get("/:id/members", requireCompanyMember(), listCompanyMembers);
 router.post(
     "/:id/members",

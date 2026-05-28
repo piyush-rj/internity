@@ -160,6 +160,7 @@ export type StudentProfile = {
     portfolioUrl: string | null;
     college: string | null;
     branch: string | null;
+    isVerified: boolean;
     interestedJobTitles: JobTitle[];
     lastCoverLetter: string | null;
     educations: Education[];

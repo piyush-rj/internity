@@ -2,10 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronDown, Save, Trash2 } from "lucide-react";
-import type {
-    ScreeningQuestion,
-    ScreeningResponseType,
-} from "@/src/lib/api";
+import type { ScreeningQuestion, ScreeningResponseType } from "@/src/lib/api";
 import { SCREENING_SUGGESTIONS } from "@/src/lib/catalog/screening";
 import { cn } from "@/src/lib/utils";
 
@@ -115,9 +112,7 @@ export function ScreeningQuestionsEditor({
                                 <button
                                     key={s}
                                     type="button"
-                                    onClick={() =>
-                                        add({ q: s, type: "SHORT" })
-                                    }
+                                    onClick={() => add({ q: s, type: "SHORT" })}
                                     className="inline-flex items-center gap-1 rounded-full border border-border bg-background px-2.5 py-1 text-[11.5px] hover:bg-accent cursor-pointer"
                                 >
                                     + {s}

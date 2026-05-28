@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, ArrowLeft, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ArrowRight, ShieldCheck } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import {
     ListingForm,
@@ -88,10 +88,11 @@ function NoCompany() {
                 You haven’t set up a company yet.
             </p>
             <Link
-                href="/home/employer/setup"
+                href="/home/employer/onboard"
                 className="mt-2 inline-flex items-center gap-1 text-[12.5px] font-medium text-brand hover:underline"
             >
-                Finish employer setup →
+                Finish company setup
+                <ArrowRight className="h-3.5 w-3.5" />
             </Link>
         </div>
     );

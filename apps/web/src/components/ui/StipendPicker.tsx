@@ -41,10 +41,7 @@ export function StipendPicker({
     placeholderMin?: string;
     placeholderMax?: string;
 }) {
-    const maxSteps = useMemo(
-        () => maxStepsFor(min ?? 1000),
-        [min],
-    );
+    const maxSteps = useMemo(() => maxStepsFor(min ?? 1000), [min]);
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ComboNumber
@@ -81,7 +78,9 @@ function ComboNumber({
     placeholder: string;
     ariaLabel: string;
 }) {
-    const [text, setText] = useState<string>(value !== null ? String(value) : "");
+    const [text, setText] = useState<string>(
+        value !== null ? String(value) : "",
+    );
     const [open, setOpen] = useState(false);
     const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -112,7 +111,9 @@ function ComboNumber({
     return (
         <div className="relative">
             <div className="flex items-center rounded-md border border-border bg-background focus-within:border-foreground/40 focus-within:ring-3 focus-within:ring-foreground/5">
-                <span className="pl-3 pr-2 text-muted-foreground text-[13px]">₹</span>
+                <span className="pl-3 pr-2 text-muted-foreground text-[13px]">
+                    ₹
+                </span>
                 <input
                     ref={inputRef}
                     type="number"

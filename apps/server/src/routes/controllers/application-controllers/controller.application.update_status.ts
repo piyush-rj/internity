@@ -53,9 +53,7 @@ export default async function updateApplicationStatus(
         });
         if (!member) throw new Forbidden("Not a member of this company");
         if (!canManageApplicants(member.role)) {
-            throw new Forbidden(
-                "Your role can't change applicant status.",
-            );
+            throw new Forbidden("Your role can't change applicant status.");
         }
 
         const status = body.status as ApplicationStatus;

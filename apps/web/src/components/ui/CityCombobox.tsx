@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { ArrowLeft } from "lucide-react";
 import { OTHER_CITY_SENTINEL, TOP_INDIAN_CITIES } from "@/src/lib/cities";
 import { inputCls } from "@/src/components/profile-wizard/utils";
 import { cn } from "@/src/lib/utils";
@@ -110,9 +111,10 @@ export function CityCombobox({
                         setQuery("");
                         onChange("");
                     }}
-                    className="text-[11.5px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
+                    className="inline-flex items-center gap-1 text-[11.5px] text-muted-foreground hover:text-foreground underline-offset-2 hover:underline"
                 >
-                    ← Pick from list
+                    <ArrowLeft className="h-3 w-3" />
+                    Pick from list
                 </button>
             </div>
         );

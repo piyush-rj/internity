@@ -48,10 +48,7 @@ export default function SettingsPage() {
             // actually act on, so surface it as a dedicated dialog with the
             // company names baked into the message — a passing toast would
             // be too easy to miss.
-            if (
-                err instanceof ApiClientError &&
-                err.code === "SOLE_OWNER"
-            ) {
+            if (err instanceof ApiClientError && err.code === "SOLE_OWNER") {
                 setSoleOwnerMessage(err.message);
                 setConfirmDelete(false);
             } else {

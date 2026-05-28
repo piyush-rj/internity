@@ -1,8 +1,4 @@
-import type {
-    JobTitle,
-    ListingListFilters,
-    WorkMode,
-} from "@/src/lib/api";
+import type { JobTitle, ListingListFilters, WorkMode } from "@/src/lib/api";
 
 const JOB_TITLES_LIST = [
     "AI",

@@ -21,7 +21,12 @@ export type MyListingsState = {
     remove: (id: string) => Promise<void>;
 };
 
-export function useMyListings(): MyListingsState {
+export function useMyListings(opts?: {
+    scope?: "mine" | "company";
+    companyId?: string;
+}): MyListingsState {
+    const scope = opts?.scope;
+    const companyId = opts?.companyId;
     const [items, setItems] = useState<MyListing[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<ApiClientError | Error | null>(null);
@@ -30,14 +35,14 @@ export function useMyListings(): MyListingsState {
         setLoading(true);
         setError(null);
         try {
-            const { items } = await listingApi.list_mine();
+            const { items } = await listingApi.list_mine({ scope, companyId });
             setItems(items);
         } catch (err) {
             setError(err instanceof Error ? err : new Error(String(err)));
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [scope, companyId]);
 
     const close = useCallback(async (id: string) => {
         const { listing } = await listingApi.close(id);

@@ -1,5 +1,6 @@
 import { api } from "../apiClient";
 import type {
+    ApplicationStatus,
     Company,
     CompanyMember,
     CompanyRole,
@@ -181,6 +182,45 @@ export type InvitationLookup = {
     state: "pending" | "accepted" | "expired";
 };
 
+export type CompanyDashboard = {
+    companyId: string;
+    funnel: Record<
+        | "APPLIED"
+        | "SHORTLISTED"
+        | "INTERVIEW"
+        | "HIRED"
+        | "REJECTED"
+        | "WITHDRAWN",
+        number
+    > & { total: number };
+    listings: {
+        active: number;
+        paused: number;
+        closed: number;
+        expired: number;
+        takenDown: number;
+        total: number;
+    };
+    recentApplicants: Array<{
+        id: string;
+        status: ApplicationStatus;
+        appliedAt: string;
+        seenAt: string | null;
+        student: { id: string; name: string | null; image: string | null };
+        listing: { id: string; title: string };
+    }>;
+    interviews: { upcoming: number };
+    team: {
+        count: number;
+        members: Array<{
+            userId: string;
+            name: string | null;
+            image: string | null;
+            role: CompanyRole;
+        }>;
+    };
+};
+
 export const companyApi = {
     create: (input: CompanyInput) =>
         api.post<{ company: Company & { members: CompanyMember[] } }>(
@@ -215,6 +255,9 @@ export const companyApi = {
         }>("/company/admin/list", params),
     admin_get: (id: string) =>
         api.get<{ company: AdminCompanyDetail }>(`/company/admin/${id}`),
+
+    dashboard: (id: string) =>
+        api.get<{ dashboard: CompanyDashboard }>(`/company/${id}/dashboard`),
 
     list_members: (id: string) =>
         api.get<{ members: CompanyMemberWithUser[] }>(`/company/${id}/members`),

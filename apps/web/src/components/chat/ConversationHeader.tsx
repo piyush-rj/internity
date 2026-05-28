@@ -52,7 +52,9 @@ export function ConversationHeader({
                                 : "text-[13.5px] font-semibold truncate leading-tight"
                         }
                     >
-                        {isDeleted ? "Deleted account" : (peer.name ?? "Unknown")}
+                        {isDeleted
+                            ? "Deleted account"
+                            : (peer.name ?? "Unknown")}
                     </div>
                 </div>
                 {isDeleted ? (

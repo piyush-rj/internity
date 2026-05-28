@@ -120,6 +120,9 @@ model StudentProfile {
   college String?
   branch  String?
 
+  // Admin-toggled verification badge. Display-only — no functional gating.
+  isVerified Boolean @default(false)
+
   educations     Education[]
   experiences    WorkExperience[]
   projects       Project[]
@@ -794,6 +797,7 @@ enum NotificationType {
   LISTING_CLOSED
   LISTING_TAKEN_DOWN
   LISTING_RESTORED
+  COMPANY_INVITE
   COMPANY_MEMBER_ADDED
   COMPANY_APPROVED
   COMPANY_REJECTED

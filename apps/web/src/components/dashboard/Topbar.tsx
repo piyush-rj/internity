@@ -3,8 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu } from "lucide-react";
-import { PiArrowUUpLeft } from "react-icons/pi";
+import { ArrowLeft, Menu } from "lucide-react";
 import { PlusIcon, SearchIcon } from "@/src/components/dashboard/icons";
 import { NotificationPanel } from "@/src/components/dashboard/NotificationPanel";
 import { MobileNavDrawer } from "@/src/components/dashboard/MobileNavDrawer";
@@ -152,7 +151,7 @@ export function Topbar() {
                             "hover:bg-secondary hover:text-foreground transition-colors",
                         )}
                     >
-                        <PiArrowUUpLeft className="size-3" />
+                        <ArrowLeft className="size-3.5" />
                     </button>
                     <ol className="flex items-center gap-1.5 min-w-0 -ml-2">
                         {crumbs.map((crumb, i) => {

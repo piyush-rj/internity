@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Clock } from "lucide-react";
+import { ArrowRight, Clock } from "lucide-react";
 import { useMyListings } from "@/src/hooks/useMyListings";
 import { cn } from "@/src/lib/utils";
 
@@ -61,9 +61,10 @@ export function ListingLifecycleBanner() {
                 </p>
                 <Link
                     href="/home/manage-listings"
-                    className="inline-block mt-1 text-[11.5px] font-medium text-amber-900 underline-offset-2 hover:underline"
+                    className="mt-1 inline-flex items-center gap-1 text-[11.5px] font-medium text-amber-900 underline-offset-2 hover:underline"
                 >
-                    Open My listings →
+                    Open My listings
+                    <ArrowRight className="h-3 w-3" />
                 </Link>
             </div>
         </div>

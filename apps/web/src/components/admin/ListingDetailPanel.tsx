@@ -123,11 +123,7 @@ function DetailContent({
             )}
             <Section title="Snapshot">
                 <Facts>
-                    <Fact
-                        Icon={Briefcase}
-                        label="Mode"
-                        value={listing.mode}
-                    />
+                    <Fact Icon={Briefcase} label="Mode" value={listing.mode} />
                     {listing.city && (
                         <Fact
                             Icon={MapPin}

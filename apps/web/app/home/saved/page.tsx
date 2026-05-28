@@ -51,10 +51,7 @@ export default function SavedPage() {
                     />
                 </div>
                 <aside className="lg:sticky lg:top-20 lg:self-start">
-                    <SavedFilterPanel
-                        filters={filters}
-                        onChange={setFilters}
-                    />
+                    <SavedFilterPanel filters={filters} onChange={setFilters} />
                 </aside>
             </div>
         </EmptySection>

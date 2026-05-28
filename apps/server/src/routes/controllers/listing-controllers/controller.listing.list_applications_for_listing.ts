@@ -63,6 +63,7 @@ export default async function listApplicationsForListing(
                                 phone: true,
                                 city: true,
                                 bio: true,
+                                isVerified: true,
                                 skills: {
                                     select: {
                                         skill: { select: { name: true } },

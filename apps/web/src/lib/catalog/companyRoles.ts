@@ -40,7 +40,9 @@ export const SELECTABLE_COMPANY_ROLES: ReadonlyArray<
 // apps/server/src/utils/company-roles.ts. Keep these two files in sync.
 
 export function canManageCompany(role: CompanyRole): boolean {
-    return role === "FOUNDER_OWNER" || role === "CO_FOUNDER" || role === "OWNER";
+    return (
+        role === "FOUNDER_OWNER" || role === "CO_FOUNDER" || role === "OWNER"
+    );
 }
 
 export function canManageListings(role: CompanyRole): boolean {

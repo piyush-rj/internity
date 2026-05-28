@@ -7,10 +7,6 @@ import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { Button } from "@/src/components/ui/button";
 import { cn } from "@/src/lib/utils";
 
-// Frontend-only entry point for "join via company code". Founders share the
-// invite token (rendered as a "code"); the teammate types it here and we
-// route them to /home/invite/[token] where the existing acceptance flow
-// validates the code and writes the CompanyMember row.
 export default function JoinByCodePage() {
     const router = useRouter();
     const [code, setCode] = useState("");

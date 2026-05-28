@@ -91,10 +91,7 @@ function SequentialApplyFlow({ onDone }: { onDone: () => void }) {
     const removeOne = useMultiSelectStore((s) => s.remove);
     const markApplied = useAppliedStore((s) => s.markApplied);
 
-    const baseList = useMemo(
-        () => Array.from(selected.values()),
-        [selected],
-    );
+    const baseList = useMemo(() => Array.from(selected.values()), [selected]);
 
     const [queue, setQueue] = useState<ListingWithScreening[]>([]);
     const [loading, setLoading] = useState(true);
@@ -406,9 +403,7 @@ function PerCompanyCard({
 
                 {resumes.length > 0 && (
                     <section className="space-y-2">
-                        <div className="text-[12.5px] font-medium">
-                            Resume
-                        </div>
+                        <div className="text-[12.5px] font-medium">Resume</div>
                         <div className="space-y-1.5">
                             {resumes.map((r) => (
                                 <label

@@ -98,8 +98,7 @@ function Card({
         tone === "amber"
             ? "border-amber-200 bg-amber-50/40"
             : "border-emerald-200 bg-emerald-50/30";
-    const iconStyle =
-        tone === "amber" ? "text-amber-600" : "text-emerald-600";
+    const iconStyle = tone === "amber" ? "text-amber-600" : "text-emerald-600";
     return (
         <section
             className={cn(

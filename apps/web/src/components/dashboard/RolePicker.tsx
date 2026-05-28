@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { toast } from "sonner";
+import { ArrowRight } from "lucide-react";
 import { PiBriefcase, PiGraduationCap } from "react-icons/pi";
 import { authApi, type UserRole } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -125,8 +126,15 @@ function RoleCard({
             <span className="text-[12px] text-muted-foreground leading-relaxed">
                 {description}
             </span>
-            <span className="mt-1 text-[12px] font-medium text-brand">
-                {loading ? "Saving…" : "Continue →"}
+            <span className="mt-1 inline-flex items-center gap-1 text-[12px] font-medium text-brand">
+                {loading ? (
+                    "Saving…"
+                ) : (
+                    <>
+                        Continue
+                        <ArrowRight className="h-3.5 w-3.5" />
+                    </>
+                )}
             </span>
         </button>
     );

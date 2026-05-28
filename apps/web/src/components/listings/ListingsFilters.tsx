@@ -170,10 +170,7 @@ export function ListingsFilters({ basePath }: { basePath: string }) {
                         <select
                             value={filters.jobTitle}
                             onChange={(e) =>
-                                set(
-                                    "jobTitle",
-                                    e.target.value as JobTitle | "",
-                                )
+                                set("jobTitle", e.target.value as JobTitle | "")
                             }
                             className={cn(
                                 fieldInputCls,

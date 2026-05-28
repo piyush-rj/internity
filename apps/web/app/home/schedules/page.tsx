@@ -430,17 +430,17 @@ function InterviewRow({
                                 href={iv.meetingLink}
                                 target="_blank"
                                 rel="noreferrer"
-                            className={cn(
-                                "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
-                                isJoinable
-                                    ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
-                                    : "border border-border bg-white text-foreground hover:bg-secondary",
-                            )}
-                        >
-                            <PiVideoCameraFill className="h-3.5 w-3.5" />
-                            {isJoinable ? "Join now" : "Open link"}
-                        </a>
-                    )}
+                                className={cn(
+                                    "inline-flex items-center gap-1.5 h-9 px-3.5 rounded-md text-[13px] font-medium",
+                                    isJoinable
+                                        ? "bg-orange-500 text-white hover:bg-orange-600 shadow-sm shadow-orange-500/20"
+                                        : "border border-border bg-white text-foreground hover:bg-secondary",
+                                )}
+                            >
+                                <PiVideoCameraFill className="h-3.5 w-3.5" />
+                                {isJoinable ? "Join now" : "Open link"}
+                            </a>
+                        )}
                     {!counterpartDeleted &&
                         iv.type === "PHONE" &&
                         phone &&

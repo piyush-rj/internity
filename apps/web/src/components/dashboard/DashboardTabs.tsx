@@ -90,7 +90,7 @@ export function DashboardTabs() {
                     className="text-neutral-600 text-xs inline-flex items-center gap-1 hover:text-foreground transition-colors self-start sm:self-auto"
                 >
                     {tab === "recommended"
-                        ? "see all recommended jobs"
+                        ? "see all recommended internships"
                         : "see all your applications"}
                     <ChevronRight className="size-2.5" />
                 </Link>
