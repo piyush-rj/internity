@@ -272,8 +272,15 @@ export const ListingForm = forwardRef(function ListingForm(
             toast.error("City is required for hybrid and on-site roles.");
             return;
         }
+        if (form.stipendMin === null) {
+            toast.error("Stipend is required — enter 0 if the role is unpaid.");
+            return;
+        }
+        if (form.stipendMin < 0) {
+            toast.error("Stipend can't be negative.");
+            return;
+        }
         if (
-            form.stipendMin !== null &&
             form.stipendMax !== null &&
             form.stipendMax < form.stipendMin
         ) {
@@ -352,7 +359,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 form.skillTags.length > 0 ? form.skillTags : undefined,
             screeningQuestions:
                 cleanedQuestions.length > 0 ? cleanedQuestions : undefined,
-            stipendMin: form.stipendMin ?? undefined,
+            stipendMin: form.stipendMin,
             stipendMax: form.stipendMax ?? undefined,
             durationMonths: form.durationMonths ?? undefined,
             durationWeeks: form.durationWeeks ?? undefined,
@@ -576,7 +583,8 @@ export const ListingForm = forwardRef(function ListingForm(
             <Section title="Compensation & logistics">
                 <Field
                     label="Stipend (₹/month)"
-                    hint="Pick a preset or type your own amount in the box. Leave blank if unpaid."
+                    hint="Pick a preset or type your own amount. Enter 0 if the role is unpaid."
+                    required
                 >
                     <StipendPicker
                         min={form.stipendMin}

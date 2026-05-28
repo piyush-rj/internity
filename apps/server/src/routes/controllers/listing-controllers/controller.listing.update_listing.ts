@@ -39,8 +39,11 @@ const Body = z.object({
     preferences: z.array(z.string()).optional(),
     skillTagsRaw: z.array(z.string()).optional(),
     screeningQuestions: ScreeningQuestionsSchema.optional(),
-    stipendMin: z.number().int().nullable().optional(),
-    stipendMax: z.number().int().nullable().optional(),
+    // Stipend stays compulsory on update — `optional` lets callers omit
+    // the field entirely (no change), but if it IS sent it must be a
+    // non-negative number, not null.
+    stipendMin: z.number().int().min(0, "Stipend is required.").optional(),
+    stipendMax: z.number().int().min(0).nullable().optional(),
     durationMonths: z.number().int().nullable().optional(),
     durationWeeks: z.number().int().min(0).nullable().optional(),
     startDate: z.coerce.date().nullable().optional(),

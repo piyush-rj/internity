@@ -25,30 +25,36 @@ const JOB_TITLE_VALUES = [
     "CUSTOM",
 ] as const;
 
-const Body = z.object({
-    companyId: z.string().min(1),
-    title: z.string().min(1).max(120),
-    jobTitle: z.enum(JOB_TITLE_VALUES).nullable().optional(),
-    customJobTitle: z.string().max(120).nullable().optional(),
-    mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]),
-    city: z.string().nullable().optional(),
-    description: z.string().min(1),
-    responsibilities: z.array(z.string()).default([]),
-    perks: z.array(z.string()).default([]),
-    preferences: z.array(z.string()).default([]),
-    skillTagsRaw: z.array(z.string()).default([]),
-    screeningQuestions: ScreeningQuestionsSchema.default([]),
-    stipendMin: z.number().int().nullable().optional(),
-    stipendMax: z.number().int().nullable().optional(),
-    durationMonths: z.number().int().nullable().optional(),
-    durationWeeks: z.number().int().min(0).nullable().optional(),
-    startDate: z.coerce.date().nullable().optional(),
-    startDateLatest: z.coerce.date().nullable().optional(),
-    applyBy: z.coerce.date().nullable().optional(),
-    openings: z.number().int().nullable().optional(),
-    partTime: z.boolean().nullable().optional(),
-    ppo: z.boolean().nullable().optional(),
-});
+const Body = z
+    .object({
+        companyId: z.string().min(1),
+        title: z.string().min(1).max(120),
+        jobTitle: z.enum(JOB_TITLE_VALUES).nullable().optional(),
+        customJobTitle: z.string().max(120).nullable().optional(),
+        mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]),
+        city: z.string().nullable().optional(),
+        description: z.string().min(1),
+        responsibilities: z.array(z.string()).default([]),
+        perks: z.array(z.string()).default([]),
+        preferences: z.array(z.string()).default([]),
+        skillTagsRaw: z.array(z.string()).default([]),
+        screeningQuestions: ScreeningQuestionsSchema.default([]),
+        // Stipend is compulsory on create. Pass 0 explicitly for unpaid roles.
+        stipendMin: z.number().int().min(0, "Stipend is required."),
+        stipendMax: z.number().int().min(0).nullable().optional(),
+        durationMonths: z.number().int().nullable().optional(),
+        durationWeeks: z.number().int().min(0).nullable().optional(),
+        startDate: z.coerce.date().nullable().optional(),
+        startDateLatest: z.coerce.date().nullable().optional(),
+        applyBy: z.coerce.date().nullable().optional(),
+        openings: z.number().int().nullable().optional(),
+        partTime: z.boolean().nullable().optional(),
+        ppo: z.boolean().nullable().optional(),
+    })
+    .refine((b) => b.stipendMax == null || b.stipendMax >= b.stipendMin, {
+        message: "Max stipend must be at least the min stipend.",
+        path: ["stipendMax"],
+    });
 
 function normalize(tags: readonly string[]): string[] {
     return tags.map((t) => t.trim().toLowerCase()).filter((t) => t.length > 0);
