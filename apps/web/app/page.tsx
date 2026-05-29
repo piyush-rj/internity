@@ -31,7 +31,7 @@ export default function Home() {
                 <SectionWrap hideMarks>
                     <FinalCTA />
                 </SectionWrap>
-                <SectionWrap hideMarks>
+                <SectionWrap hideMarks noBorder>
                     <Footer />
                 </SectionWrap>
             </main>
@@ -57,13 +57,20 @@ function SectionWrap({
     children,
     first,
     hideMarks,
+    noBorder,
 }: {
     children: React.ReactNode;
     first?: boolean;
     hideMarks?: boolean;
+    noBorder?: boolean;
 }) {
     return (
-        <div className={cn("relative", !first && "border-t border-border")}>
+        <div
+            className={cn(
+                "relative",
+                !first && !noBorder && "border-t border-border",
+            )}
+        >
             {!first && !hideMarks && <RailIntersection />}
             {children}
         </div>

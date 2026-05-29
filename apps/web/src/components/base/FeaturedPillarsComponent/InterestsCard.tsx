@@ -92,9 +92,6 @@ export function InterestsCard() {
                                     "bg-white/95 backdrop-blur-sm ring-1 ring-black/5",
                                     "px-2.5 py-1 text-[11.5px] font-medium text-foreground",
                                     "shadow-[0_4px_12px_-6px_rgba(15,23,42,0.4)]",
-                                    // Highlight a couple of chips to suggest selection
-                                    (i === 0 || i === 3) &&
-                                        "bg-orange-500 text-white ring-orange-500/40",
                                 )}
                             >
                                 <Icon className="h-3.5 w-3.5" />

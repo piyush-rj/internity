@@ -346,14 +346,18 @@ export function HeroSearch() {
                 )}
             </form>
             <Button
-                onClick={() => navigate("/home")}
+                // The internships list is public, so this goes straight there
+                // for everyone — signed-in users land in the dashboard view,
+                // signed-out visitors get the public read-only list. No auth
+                // dialog either way (unlike `navigate`, which gates on auth).
+                onClick={() => router.push("/home/internships")}
                 variant={"exec-dark"}
                 className={cn(
                     "shrink-0 inline-flex items-center justify-center gap-2 rounded-lg",
                     "text-white px-4 h-11 sm:h-11.5 text-[14px] font-medium cursor-pointer",
                 )}
             >
-                Go to dashboard
+                Explore Internships
             </Button>
         </div>
     );
