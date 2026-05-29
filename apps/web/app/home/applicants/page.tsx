@@ -81,10 +81,9 @@ function ApplicantsView() {
         const next = params.toString();
         const current = searchParams?.toString() ?? "";
         if (next === current) return;
-        router.replace(
-            next ? `/home/applicants?${next}` : "/home/applicants",
-            { scroll: false },
-        );
+        router.replace(next ? `/home/applicants?${next}` : "/home/applicants", {
+            scroll: false,
+        });
     }, [filters.listingId, router, searchParams]);
 
     // Screening questions + best-match sort default depend on whether a
@@ -102,8 +101,7 @@ function ApplicantsView() {
         return sample?.listing.screeningQuestions ?? [];
     }, [items, activeListing]);
 
-    const getListingSkills = (a: AggregatedApplicant) =>
-        a.listing.skillTagsRaw;
+    const getListingSkills = (a: AggregatedApplicant) => a.listing.skillTagsRaw;
     const getListingId = (a: AggregatedApplicant) => a.listing.id;
 
     const visibleItems = useMemo(
@@ -167,7 +165,9 @@ function ApplicantsView() {
                             screeningQuestions={screeningQuestions}
                             listings={listingOptions}
                             visibleCount={
-                                loading || error ? undefined : visibleItems.length
+                                loading || error
+                                    ? undefined
+                                    : visibleItems.length
                             }
                             totalCount={
                                 loading || error ? undefined : items.length

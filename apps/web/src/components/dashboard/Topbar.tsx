@@ -15,6 +15,8 @@ import { UserMenu } from "@/src/components/navbar/UserMenu";
 import { ProfileCompletionPill } from "@/src/components/navbar/ProfileCompletionPill";
 import { useBreadcrumbOverride } from "@/src/components/dashboard/BreadcrumbContext";
 import { useMeStore } from "@/src/store/useMeStore";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
+import { useAuthDialog } from "@/src/store/useAuthDialog";
 
 type Crumb = {
     label: string;
@@ -57,6 +59,13 @@ export function Topbar() {
         crumbs[crumbs.length - 1]!.label = crumbOverride;
     }
     const role = useMeStore((s) => s.me?.role);
+    // Signed-out visitors can only reach the public internships list. Wait for
+    // the session store to initialise before swapping in the logged-out
+    // controls so we don't flash them at an authenticated user mid-hydration.
+    const loggedOut = useUserSessionStore(
+        (s) => s.initialized && !s.session?.user,
+    );
+    const openAuthDialog = useAuthDialog((s) => s.openDialog);
     const [search, setSearch] = useState<string>("");
     const [open, setOpen] = useState<boolean>(false);
     const [drawerOpen, setDrawerOpen] = useState<boolean>(false);
@@ -289,28 +298,56 @@ export function Topbar() {
                         </div>
                     )}
                 </div>
-                <div className="flex items-center gap-1">
-                    {primaryCta && (
-                        <Link
-                            href={primaryCta.href}
+                {loggedOut ? (
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            type="button"
+                            onClick={() => openAuthDialog("/home/internships")}
                             className={cn(
-                                "hidden sm:inline-flex items-center gap-1.5 h-8.5 px-2.5",
-                                "rounded-md bg-neutral-900",
-                                "text-[12px] font-medium text-white",
+                                "inline-flex items-center h-8.5 px-3 rounded-md cursor-pointer",
+                                "text-[12.5px] font-medium text-foreground",
+                                "hover:bg-secondary transition-colors",
+                            )}
+                        >
+                            Sign in
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => openAuthDialog("/home/internships")}
+                            className={cn(
+                                "inline-flex items-center h-8.5 px-3 rounded-md cursor-pointer",
+                                "bg-neutral-900 text-[12.5px] font-medium text-white",
                                 "transition-colors",
                                 "inset-shadow-xs inset-shadow-white/50 shadow-xs shadow-black/10",
                             )}
                         >
-                            <PlusIcon className="size-3.5" />
-                            {primaryCta.label}
-                        </Link>
-                    )}
-                    <ProfileCompletionPill />
-                    <NotificationPanel />
-                    <div className="ml-1">
-                        <UserMenu />
+                            Sign up
+                        </button>
                     </div>
-                </div>
+                ) : (
+                    <div className="flex items-center gap-1">
+                        {primaryCta && (
+                            <Link
+                                href={primaryCta.href}
+                                className={cn(
+                                    "hidden sm:inline-flex items-center gap-1.5 h-8.5 px-2.5",
+                                    "rounded-md bg-neutral-900",
+                                    "text-[12px] font-medium text-white",
+                                    "transition-colors",
+                                    "inset-shadow-xs inset-shadow-white/50 shadow-xs shadow-black/10",
+                                )}
+                            >
+                                <PlusIcon className="size-3.5" />
+                                {primaryCta.label}
+                            </Link>
+                        )}
+                        <ProfileCompletionPill />
+                        <NotificationPanel />
+                        <div className="ml-1">
+                            <UserMenu />
+                        </div>
+                    </div>
+                )}
             </div>
             <MobileNavDrawer
                 open={drawerOpen}

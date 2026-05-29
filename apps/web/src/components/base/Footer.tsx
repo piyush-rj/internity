@@ -1,4 +1,5 @@
 import { cn } from "@/src/lib/utils";
+import Image from "next/image";
 
 type FooterLink = { label: string; href: string };
 
@@ -36,6 +37,15 @@ export function Footer() {
                 <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6 sm:gap-8">
                     <div className="col-span-2 sm:col-span-4 md:col-span-2">
                         <div className="flex items-center gap-2">
+                            <div className="relative h-7.5 w-7.5 shrink-0 ring-1 ring-black/15 rounded-sm bg-linear-to-b from-neutral-50 to-neutral-100 shadow-sm shadow-black/10 overflow-hidden flex justify-center items-center inset-shadow-xs inset-shadow-black/10">
+                                <Image
+                                    src={"/app-logos/logo.png"}
+                                    alt="app-logo"
+                                    className="object-cover pt-0.75 scale-120"
+                                    fill
+                                    unoptimized
+                                />
+                            </div>
                             <span className="text-[16px] font-semibold tracking-tight">
                                 SpiderSkill
                             </span>

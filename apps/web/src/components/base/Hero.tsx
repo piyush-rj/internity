@@ -1,5 +1,4 @@
 import { Announcement } from "@/src/components/base/HeroComponents/Announcement";
-import { HeroCTAs } from "@/src/components/base/HeroComponents/HeroCTAs";
 import { HeroSearch } from "@/src/components/base/HeroComponents/HeroSearch";
 import { TabCard } from "@/src/components/base/HeroComponents/TabCard";
 
@@ -12,7 +11,7 @@ export function Hero() {
                     Turning caffeine into careers.
                 </h1>
                 <p className="mx-auto mt-4 sm:mt-5 max-w-136 text-[15px] sm:text-[17px] lg:text-[18px] tracking-[-0.25] text-neutral-600/95 font-medium leading-normal">
-                    Internity is India&apos;s modern career platform for
+                    SpiderSkill is India&apos;s modern career platform for
                     students internships, full&#8209;time jobs and skill
                     trainings.
                 </p>

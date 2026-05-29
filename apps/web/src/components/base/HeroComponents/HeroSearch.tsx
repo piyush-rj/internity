@@ -4,41 +4,35 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
     ArrowRight,
+    Briefcase,
     Building2,
     ChevronDown,
-    Home,
-    MapPin,
     Search,
 } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
-import { listingApi, type ListingWithCompany } from "@/src/lib/api";
+import {
+    listingApi,
+    type JobTitle,
+    type ListingWithCompany,
+} from "@/src/lib/api";
+import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
 
 // Landing-page search. Anyone (signed-in or out) can type and see live
 // suggestions from the public /listing endpoint. Auth is only required at
-// the moment of navigation: signed-out users get the auth dialog with the
+// the moment of navigation: signed-out visitors get the auth dialog with the
 // destination encoded as the post-sign-in next-path; signed-in users go
 // straight there.
 
-type WorkMode = "REMOTE" | "HYBRID" | "ONSITE";
+// Roles pickable in the dropdown: the predefined titles plus "Other", which
+// maps to the CUSTOM catch-all so visitors can browse custom-titled listings.
+type RoleValue = JobTitle;
 
-type LocationOption =
-    | { kind: "mode"; mode: WorkMode; label: string }
-    | { kind: "city"; city: string; label: string }
-    | { kind: "other"; label: string };
-
-const PRESET_LOCATIONS: LocationOption[] = [
-    { kind: "mode", mode: "REMOTE", label: "Work from home" },
-    { kind: "mode", mode: "HYBRID", label: "Hybrid" },
-    { kind: "city", city: "Bengaluru", label: "Bengaluru" },
-    { kind: "city", city: "Mumbai", label: "Mumbai" },
-    { kind: "city", city: "Delhi NCR", label: "Delhi NCR" },
-    { kind: "city", city: "Hyderabad", label: "Hyderabad" },
-    { kind: "city", city: "Pune", label: "Pune" },
-    { kind: "city", city: "Chennai", label: "Chennai" },
-    { kind: "other", label: "Other" },
+const ROLE_OPTIONS: ReadonlyArray<{ value: RoleValue; label: string }> = [
+    ...JOB_TITLES,
+    { value: "CUSTOM", label: "Other" },
 ];
 
 export function HeroSearch() {
@@ -47,36 +41,37 @@ export function HeroSearch() {
     const signedIn = useUserSessionStore((s) => !!s.session?.user?.id);
 
     const [query, setQuery] = useState("");
-    // Location is either a WorkMode (Remote/Hybrid) or a city string. We
-    // keep them in separate state so the URL we emit can use the right
-    // query param (?mode= vs ?city=). cityCustom holds the value the user
-    // typed when picking "Other".
-    const [mode, setMode] = useState<WorkMode | null>(null);
-    const [city, setCity] = useState<string>("");
-    const [cityCustom, setCityCustom] = useState<string>("");
+    // A predefined role is filtered server-side via the jobTitle enum. The
+    // "Other" branch instead lets the visitor type a free-form role, which we
+    // fold into the text query (`q`) since there's no enum value for it.
+    const [jobTitle, setJobTitle] = useState<Exclude<
+        RoleValue,
+        "CUSTOM"
+    > | null>(null);
+    const [customRole, setCustomRole] = useState("");
+    const [roleOtherMode, setRoleOtherMode] = useState(false);
 
     const [suggestions, setSuggestions] = useState<ListingWithCompany[]>([]);
     const [loading, setLoading] = useState(false);
     const [suggestOpen, setSuggestOpen] = useState(false);
-    const [locOpen, setLocOpen] = useState(false);
-    // When the user picks "Other" from the dropdown, we swap the option
-    // list for an inline text input so they can type a free-form location.
-    const [otherMode, setOtherMode] = useState(false);
+    const [roleOpen, setRoleOpen] = useState(false);
     const [activeIdx, setActiveIdx] = useState(-1);
 
     const containerRef = useRef<HTMLDivElement>(null);
     const customInputRef = useRef<HTMLInputElement>(null);
     const listboxId = useId();
-    const locListId = useId();
+    const roleListId = useId();
 
-    const cityForApi = city.trim() || cityCustom.trim();
+    // The main search box and a free-form "Other" role both feed the `q`
+    // text search; combine them so either (or both) narrows the results.
+    const effectiveQ = [query.trim(), customRole.trim()]
+        .filter(Boolean)
+        .join(" ");
 
-    // Debounced fetch of search suggestions whenever the query or city
+    // Debounced fetch of search suggestions whenever the query or role
     // changes.
     useEffect(() => {
-        const q = query.trim();
-        const c = cityForApi;
-        if (q.length < 2 && c.length < 2) {
+        if (effectiveQ.length < 2 && !jobTitle) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSuggestions([]);
             setLoading(false);
@@ -87,9 +82,8 @@ export function HeroSearch() {
             setLoading(true);
             try {
                 const res = await listingApi.list({
-                    q: q || undefined,
-                    city: c || undefined,
-                    mode: mode || undefined,
+                    q: effectiveQ || undefined,
+                    jobTitle: jobTitle || undefined,
                     pageSize: 6,
                 });
                 if (ctrl.signal.aborted) return;
@@ -105,23 +99,26 @@ export function HeroSearch() {
             ctrl.abort();
             window.clearTimeout(t);
         };
-    }, [query, cityForApi, mode]);
+    }, [effectiveQ, jobTitle]);
+
+    // Autofocus the free-form role input when "Other" is picked.
+    useEffect(() => {
+        if (roleOtherMode) customInputRef.current?.focus();
+    }, [roleOtherMode]);
 
     // Close any open popover on outside click or Escape.
     useEffect(() => {
-        if (!suggestOpen && !locOpen) return;
+        if (!suggestOpen && !roleOpen) return;
         function onDown(e: MouseEvent) {
             if (!containerRef.current?.contains(e.target as Node)) {
                 setSuggestOpen(false);
-                setLocOpen(false);
-                setOtherMode(false);
+                setRoleOpen(false);
             }
         }
         function onKey(e: KeyboardEvent) {
             if (e.key === "Escape") {
                 setSuggestOpen(false);
-                setLocOpen(false);
-                setOtherMode(false);
+                setRoleOpen(false);
             }
         }
         document.addEventListener("mousedown", onDown);
@@ -130,20 +127,12 @@ export function HeroSearch() {
             document.removeEventListener("mousedown", onDown);
             document.removeEventListener("keydown", onKey);
         };
-    }, [suggestOpen, locOpen]);
-
-    // Autofocus the custom-location input when "Other" is picked.
-    useEffect(() => {
-        if (otherMode) customInputRef.current?.focus();
-    }, [otherMode]);
+    }, [suggestOpen, roleOpen]);
 
     function buildListPath(): string {
         const params = new URLSearchParams();
-        const q = query.trim();
-        const c = cityForApi;
-        if (q) params.set("q", q);
-        if (c) params.set("city", c);
-        if (mode) params.set("mode", mode);
+        if (effectiveQ) params.set("q", effectiveQ);
+        if (jobTitle) params.set("jobTitle", jobTitle);
         const qs = params.toString();
         return qs ? `/home/internships?${qs}` : "/home/internships";
     }
@@ -177,46 +166,41 @@ export function HeroSearch() {
         }
     }
 
-    function pickPreset(opt: LocationOption) {
-        if (opt.kind === "mode") {
-            setMode(opt.mode);
-            setCity("");
-            setCityCustom("");
-            setOtherMode(false);
-            setLocOpen(false);
-        } else if (opt.kind === "city") {
-            setCity(opt.city);
-            setMode(null);
-            setCityCustom("");
-            setOtherMode(false);
-            setLocOpen(false);
-        } else {
-            // Other → swap the panel for a free-form input
-            setMode(null);
-            setCity("");
-            setOtherMode(true);
+    function pickRole(value: RoleValue) {
+        if (value === "CUSTOM") {
+            // "Other" → swap the panel for a free-form input instead of
+            // selecting an enum value.
+            setJobTitle(null);
+            setRoleOtherMode(true);
+            return;
         }
+        setJobTitle(value);
+        setCustomRole("");
+        setRoleOtherMode(false);
+        setRoleOpen(false);
+        // Surface the matching jobs (or a no-results state) for the picked
+        // role right away, without needing to focus the text input.
+        setSuggestOpen(true);
     }
 
-    function clearLocation() {
-        setMode(null);
-        setCity("");
-        setCityCustom("");
-        setOtherMode(false);
+    function clearRole() {
+        setJobTitle(null);
+        setCustomRole("");
+        setRoleOtherMode(false);
     }
+
+    const hasRole = !!jobTitle || customRole.trim().length > 0;
 
     const showSuggestPanel =
         suggestOpen &&
-        (loading || suggestions.length > 0 || query.trim().length >= 2);
+        (loading ||
+            suggestions.length > 0 ||
+            effectiveQ.length >= 2 ||
+            !!jobTitle);
 
-    const locationLabel = (() => {
-        if (mode === "REMOTE") return "Work from home";
-        if (mode === "HYBRID") return "Hybrid";
-        if (city) return city;
-        if (cityCustom) return cityCustom;
-        return "Location";
-    })();
-    const hasLocation = !!(mode || city || cityCustom);
+    const roleLabel = customRole.trim()
+        ? customRole.trim()
+        : (ROLE_OPTIONS.find((t) => t.value === jobTitle)?.label ?? "Role");
 
     return (
         <div
@@ -253,7 +237,7 @@ export function HeroSearch() {
                         }}
                         onFocus={() => {
                             setSuggestOpen(true);
-                            setLocOpen(false);
+                            setRoleOpen(false);
                         }}
                         onKeyDown={onKeyDown}
                         placeholder="Search role or company"
@@ -267,26 +251,21 @@ export function HeroSearch() {
                     />
                 </label>
 
-                <div
-                    aria-hidden
-                    className="w-px self-stretch bg-border my-2"
-                />
+                <div aria-hidden className="w-px self-stretch bg-border my-2" />
 
-                {/* Location dropdown trigger */}
+                {/* Role dropdown trigger */}
                 <div className="relative flex items-stretch shrink-0">
                     <button
                         type="button"
                         onClick={() => {
-                            setLocOpen((o) => !o);
+                            setRoleOpen((o) => !o);
                             setSuggestOpen(false);
                         }}
                         aria-haspopup="listbox"
-                        aria-expanded={locOpen}
-                        aria-controls={locListId}
+                        aria-expanded={roleOpen}
+                        aria-controls={roleListId}
                         aria-label={
-                            hasLocation
-                                ? `Location: ${locationLabel}`
-                                : "Choose location"
+                            hasRole ? `Role: ${roleLabel}` : "Choose role"
                         }
                         className={cn(
                             "inline-flex items-center gap-1 sm:gap-2",
@@ -296,27 +275,23 @@ export function HeroSearch() {
                             "transition-colors cursor-pointer rounded-none",
                         )}
                     >
-                        {mode === "REMOTE" ? (
-                            <Home className="h-4 w-4 text-muted-foreground shrink-0" />
-                        ) : (
-                            <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                        )}
-                        {/* On mobile only show the label when a value
-                            has been picked — empty state stays a compact
-                            icon + chevron. */}
+                        <Briefcase className="h-4 w-4 text-muted-foreground shrink-0" />
+                        {/* On mobile only show the label when a value has
+                            been picked — empty state stays a compact icon +
+                            chevron. */}
                         <span
                             className={cn(
                                 "truncate",
-                                !hasLocation && "hidden sm:inline",
-                                !hasLocation && "text-muted-foreground/80",
+                                !hasRole && "hidden sm:inline",
+                                !hasRole && "text-muted-foreground/80",
                             )}
                         >
-                            {locationLabel}
+                            {roleLabel}
                         </span>
                         <ChevronDown
                             className={cn(
                                 "h-3.5 w-3.5 text-muted-foreground shrink-0 transition-transform",
-                                locOpen && "rotate-180",
+                                roleOpen && "rotate-180",
                             )}
                         />
                     </button>
@@ -352,21 +327,20 @@ export function HeroSearch() {
                     />
                 )}
 
-                {locOpen && (
-                    <LocationPanel
-                        id={locListId}
-                        otherMode={otherMode}
-                        customValue={cityCustom}
-                        onCustomChange={setCityCustom}
+                {roleOpen && (
+                    <RolePanel
+                        id={roleListId}
+                        selected={jobTitle}
+                        otherMode={roleOtherMode}
+                        customValue={customRole}
+                        onCustomChange={setCustomRole}
                         customInputRef={customInputRef}
-                        hasSelection={hasLocation}
-                        selectedMode={mode}
-                        selectedCity={city}
-                        onPick={pickPreset}
-                        onClear={clearLocation}
+                        onPick={pickRole}
+                        onClear={clearRole}
                         onCustomDone={() => {
-                            setLocOpen(false);
-                            setOtherMode(false);
+                            setRoleOpen(false);
+                            setRoleOtherMode(false);
+                            setSuggestOpen(true);
                         }}
                     />
                 )}
@@ -492,31 +466,28 @@ function SuggestionPanel({
     );
 }
 
-function LocationPanel({
+function RolePanel({
     id,
+    selected,
     otherMode,
     customValue,
     onCustomChange,
     customInputRef,
-    hasSelection,
-    selectedMode,
-    selectedCity,
     onPick,
     onClear,
     onCustomDone,
 }: {
     id: string;
+    selected: Exclude<RoleValue, "CUSTOM"> | null;
     otherMode: boolean;
     customValue: string;
     onCustomChange: (v: string) => void;
     customInputRef: React.RefObject<HTMLInputElement | null>;
-    hasSelection: boolean;
-    selectedMode: WorkMode | null;
-    selectedCity: string;
-    onPick: (opt: LocationOption) => void;
+    onPick: (value: RoleValue) => void;
     onClear: () => void;
     onCustomDone: () => void;
 }) {
+    const hasSelection = !!selected || customValue.trim().length > 0;
     return (
         <div
             id={id}
@@ -530,7 +501,7 @@ function LocationPanel({
         >
             {otherMode ? (
                 <div className="p-2 flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+                    <Briefcase className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
                     <input
                         ref={customInputRef}
                         type="text"
@@ -542,8 +513,8 @@ function LocationPanel({
                                 onCustomDone();
                             }
                         }}
-                        placeholder="Type a city"
-                        aria-label="Type a city"
+                        placeholder="Type a role"
+                        aria-label="Type a role"
                         className={cn(
                             "flex-1 min-w-0 bg-transparent outline-none text-[14px]",
                             "placeholder:text-muted-foreground/80",
@@ -564,27 +535,17 @@ function LocationPanel({
             ) : (
                 <>
                     <ul className="max-h-80 overflow-y-auto p-1.5">
-                        {PRESET_LOCATIONS.map((opt) => {
-                            const active =
-                                (opt.kind === "mode" &&
-                                    selectedMode === opt.mode) ||
-                                (opt.kind === "city" &&
-                                    selectedCity === opt.city);
-                            const Icon =
-                                opt.kind === "mode" && opt.mode === "REMOTE"
-                                    ? Home
-                                    : opt.kind === "other"
-                                      ? Building2
-                                      : MapPin;
+                        {ROLE_OPTIONS.map((opt) => {
+                            const active = selected === opt.value;
                             return (
                                 <li
-                                    key={opt.label}
+                                    key={opt.value}
                                     role="option"
                                     aria-selected={active}
                                 >
                                     <button
                                         type="button"
-                                        onClick={() => onPick(opt)}
+                                        onClick={() => onPick(opt.value)}
                                         className={cn(
                                             "w-full flex items-center gap-2.5 px-2.5 py-2 text-left rounded-md cursor-pointer",
                                             "text-[13.5px] transition-colors",
@@ -593,7 +554,7 @@ function LocationPanel({
                                                 : "text-foreground hover:bg-secondary/60",
                                         )}
                                     >
-                                        <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        <Briefcase className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                                         <span className="flex-1 truncate">
                                             {opt.label}
                                         </span>
@@ -616,7 +577,7 @@ function LocationPanel({
                                 "text-[12.5px] text-muted-foreground hover:bg-secondary/60",
                             )}
                         >
-                            Clear location
+                            Clear role
                         </button>
                     )}
                 </>

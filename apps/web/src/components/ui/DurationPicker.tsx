@@ -229,6 +229,7 @@ function CustomOption({
         <button
             type="button"
             role="option"
+            aria-selected={false}
             value={sentinel}
             onMouseDown={(e) => e.preventDefault()}
             onClick={onPick}

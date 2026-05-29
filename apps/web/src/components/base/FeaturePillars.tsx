@@ -40,7 +40,7 @@ export function FeaturePillars() {
                     <PillarCard
                         className="bg-[#628FFA] text-white"
                         primary="200+ companies"
-                        secondary="actively hiring on Internity."
+                        secondary="actively hiring on spiderskill."
                     >
                         <IntegrationsMock />
                     </PillarCard>

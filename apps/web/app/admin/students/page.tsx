@@ -217,7 +217,7 @@ export default function AdminStudentsPage() {
                                         </a>
                                         {s.isVerified && (
                                             <span
-                                                className="inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[10.5px] font-medium text-orange-700"
+                                                className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10.5px] font-medium text-emerald-700"
                                                 title="Verified by an admin"
                                             >
                                                 <PiSealCheckFill className="h-3 w-3" />
@@ -303,8 +303,8 @@ export default function AdminStudentsPage() {
 
 function Avatar({ name, src }: { name: string; src: string | null }) {
     if (src) {
-        // eslint-disable-next-line @next/next/no-img-element
         return (
+            // eslint-disable-next-line @next/next/no-img-element
             <img
                 src={src}
                 alt={name}

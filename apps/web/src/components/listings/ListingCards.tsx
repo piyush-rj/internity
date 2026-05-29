@@ -19,6 +19,8 @@ import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { formatDuration } from "@/src/lib/format/duration";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
+import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { cn } from "@/src/lib/utils";
 
@@ -275,10 +277,18 @@ function CompanyAvatar({
 function SaveButton({ listing }: { listing: ListingWithCompany }) {
     const saved = useIsSaved(listing.id);
     const toggle = useSavedStore((s) => s.toggle);
+    const signedIn = useUserSessionStore((s) => !!s.session?.user?.id);
+    const openDialog = useAuthDialog((s) => s.openDialog);
 
     function handleClick(e: React.MouseEvent) {
         e.preventDefault();
         e.stopPropagation();
+        // Saving requires an account — signed-out visitors browsing the
+        // public list get the sign-in dialog instead.
+        if (!signedIn) {
+            openDialog("/home/internships");
+            return;
+        }
         toggle(listing);
     }
 

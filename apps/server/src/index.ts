@@ -11,13 +11,25 @@ import v1 from "./routes/routes.ts";
 const app = express();
 const server = createServer(app);
 
-// trust reverse proxy so req.ip and req.protocol are correct
 app.set("trust proxy", 1);
 
 app.use(express.json({ limit: "1mb" }));
+
+const allowedOrigins = new Set(
+    config.CORS_ORIGIN.split(",")
+        .map((o) => o.trim().replace(/\/$/, ""))
+        .filter(Boolean),
+);
+
 app.use(
     cors({
-        origin: config.CORS_ORIGIN,
+        origin(origin, cb) {
+            if (!origin || allowedOrigins.has(origin.replace(/\/$/, ""))) {
+                cb(null, true);
+                return;
+            }
+            cb(new Error(`Origin ${origin} not allowed by CORS`));
+        },
         credentials: true,
     }),
 );
@@ -27,7 +39,6 @@ app.use(errorHandler);
 
 new ChatSocket(server, "/api/v1/chat/ws");
 
-// reset stale presence rows from a previous crashed process
 prisma.user
     .updateMany({
         where: { isOnline: true },

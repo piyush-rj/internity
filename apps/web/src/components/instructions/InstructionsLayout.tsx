@@ -59,11 +59,7 @@ export function InstructionsLayout({
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-10">
                 <article className="space-y-10 min-w-0">
                     {sections.map((s) => (
-                        <section
-                            key={s.id}
-                            id={s.id}
-                            className="scroll-mt-20"
-                        >
+                        <section key={s.id} id={s.id} className="scroll-mt-20">
                             <h2 className="text-[17px] font-semibold tracking-tight">
                                 {s.title}
                             </h2>

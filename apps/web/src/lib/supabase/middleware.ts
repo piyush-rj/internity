@@ -6,7 +6,14 @@ import { ENV } from "@/src/config/config.env";
 // listed here is public (landing, /pricing, /company/:slug, /auth/*).
 const PROTECTED_PREFIXES = ["/home", "/admin"];
 
+// Routes that live under a protected prefix but are intentionally public so
+// signed-out visitors can browse them read-only. The internships list is
+// open; clicking through to a listing (/home/listings/:id) stays gated, so
+// any apply/save action still funnels through the sign-in dialog.
+const PUBLIC_EXCEPTIONS = ["/home/internships"];
+
 function isProtected(pathname: string): boolean {
+    if (PUBLIC_EXCEPTIONS.includes(pathname)) return false;
     return PROTECTED_PREFIXES.some(
         (p) => pathname === p || pathname.startsWith(`${p}/`),
     );
@@ -55,14 +62,10 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(landingUrl);
     }
 
-    // Signed-in users hitting the marketing landing page go straight to their
-    // dashboard. The sidebar logo links to "/?landing" so they can still view
-    // the landing page on purpose without being bounced back here.
-    if (
-        user &&
-        request.nextUrl.pathname === "/" &&
-        !request.nextUrl.searchParams.has("landing")
-    ) {
+    // Signed-in users have no business on the marketing landing page — always
+    // bounce them to their dashboard. The landing page is reserved for
+    // signed-out visitors.
+    if (user && request.nextUrl.pathname === "/") {
         const dashboardUrl = request.nextUrl.clone();
         dashboardUrl.pathname = "/home/dashboard";
         dashboardUrl.search = "";

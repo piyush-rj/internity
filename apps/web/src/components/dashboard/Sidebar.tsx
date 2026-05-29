@@ -21,9 +21,10 @@ import {
     PiUserFill,
     PiUsersFill,
 } from "react-icons/pi";
-import { GiTie } from "react-icons/gi";
 import type { UserRole } from "@/src/lib/api";
 import { useMeStore } from "@/src/store/useMeStore";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
+import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { selectTotalUnread, useChatStore } from "@/src/store/useChatStore";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { canManageCompany } from "@/src/lib/catalog/companyRoles";
@@ -201,6 +202,14 @@ export function SidebarBody({
     const pathname = usePathname() ?? "/home";
     const role = useMeStore((s) => s.me?.role);
     const initialized = useMeStore((s) => s.initialized);
+    // Signed-out visitors only ever reach the public internships list, so we
+    // render a stripped-down sidebar for them: just the one browsable
+    // destination plus a sign-in prompt. We wait for the session store to
+    // initialise before deciding, to avoid flashing the logged-out chrome at
+    // an authenticated user mid-hydration.
+    const loggedOut = useUserSessionStore(
+        (s) => s.initialized && !s.session?.user,
+    );
     const totalUnread = useChatStore(selectTotalUnread);
     const nav = pickNav(role);
     const resolvedKey = resolveActiveKey(pathname, nav);
@@ -234,7 +243,7 @@ export function SidebarBody({
     return (
         <>
             <Link
-                href={"/?landing"}
+                href={loggedOut ? "/" : "/home"}
                 onClick={() => onNavigate?.()}
                 className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer shrink-0"
             >
@@ -257,48 +266,71 @@ export function SidebarBody({
                 </div>
             </Link>
 
-            <nav className="flex-1 overflow-y-auto px-3 py-4">
-                <SectionLabel>Workspace</SectionLabel>
-                <div className="space-y-0.5">
-                    {!initialized
-                        ? Array.from({ length: 6 }).map((_, i) => (
-                              <NavItemSkeleton key={i} />
-                          ))
-                        : nav.workspace.map((item) => (
-                              <NavItem
-                                  key={item.key}
-                                  item={decorate(item)}
-                                  active={item.key === activeKey}
-                                  onClick={onNavClick}
-                              />
-                          ))}
-                </div>
+            {loggedOut ? (
+                <>
+                    <nav className="flex-1 overflow-y-auto px-3 py-4">
+                        <SectionLabel>Browse</SectionLabel>
+                        <div className="space-y-0.5">
+                            <NavItem
+                                item={{
+                                    key: "internships",
+                                    label: "Internships",
+                                    icon: PiBriefcaseFill,
+                                    href: "/home/internships",
+                                }}
+                                active={resolvedKey === "internships"}
+                                onClick={onNavClick}
+                            />
+                        </div>
+                    </nav>
+                    <SignInCard onNavigate={onNavigate} />
+                </>
+            ) : (
+                <>
+                    <nav className="flex-1 overflow-y-auto px-3 py-4">
+                        <SectionLabel>Workspace</SectionLabel>
+                        <div className="space-y-0.5">
+                            {!initialized
+                                ? Array.from({ length: 6 }).map((_, i) => (
+                                      <NavItemSkeleton key={i} />
+                                  ))
+                                : nav.workspace.map((item) => (
+                                      <NavItem
+                                          key={item.key}
+                                          item={decorate(item)}
+                                          active={item.key === activeKey}
+                                          onClick={onNavClick}
+                                      />
+                                  ))}
+                        </div>
 
-                {role === "EMPLOYER" && initialized && (
-                    <CompanySection
-                        pathname={pathname}
-                        onNavigate={onNavigate}
-                    />
-                )}
+                        {role === "EMPLOYER" && initialized && (
+                            <CompanySection
+                                pathname={pathname}
+                                onNavigate={onNavigate}
+                            />
+                        )}
 
-                <SectionLabel className="mt-6">Profile</SectionLabel>
-                <div className="space-y-0.5">
-                    {!initialized
-                        ? Array.from({ length: 3 }).map((_, i) => (
-                              <NavItemSkeleton key={i} />
-                          ))
-                        : nav.profile.map((item) => (
-                              <NavItem
-                                  key={item.key}
-                                  item={decorate(item)}
-                                  active={item.key === activeKey}
-                                  onClick={onNavClick}
-                              />
-                          ))}
-                </div>
-            </nav>
+                        <SectionLabel className="mt-6">Profile</SectionLabel>
+                        <div className="space-y-0.5">
+                            {!initialized
+                                ? Array.from({ length: 3 }).map((_, i) => (
+                                      <NavItemSkeleton key={i} />
+                                  ))
+                                : nav.profile.map((item) => (
+                                      <NavItem
+                                          key={item.key}
+                                          item={decorate(item)}
+                                          active={item.key === activeKey}
+                                          onClick={onNavClick}
+                                      />
+                                  ))}
+                        </div>
+                    </nav>
 
-            <UpgradeCard />
+                    <UpgradeCard />
+                </>
+            )}
         </>
     );
 }
@@ -459,6 +491,39 @@ function CompanySection({
                 })}
             </div>
         </>
+    );
+}
+
+// Sign-in prompt shown in place of the profile nav + upgrade card for
+// signed-out visitors browsing the public internships list.
+function SignInCard({ onNavigate }: { onNavigate?: () => void }) {
+    const openDialog = useAuthDialog((s) => s.openDialog);
+
+    return (
+        <div className="rounded-lg border border-orange-200 bg-brand-soft p-3 m-2">
+            <div className="flex items-center gap-2 text-[12px] font-medium">
+                <SparklesIcon className="text-orange-600 h-3.5 w-3.5" />
+                <span>Join SpiderSkill</span>
+            </div>
+            <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                Sign in to apply to internships, save listings, and message
+                founders.
+            </p>
+            <button
+                type="button"
+                onClick={() => {
+                    onNavigate?.();
+                    openDialog("/home/internships");
+                }}
+                className={cn(
+                    "mt-3 inline-flex w-full items-center justify-center h-8 rounded-md cursor-pointer",
+                    "bg-neutral-900 text-[12px] font-medium text-white",
+                    "inset-shadow-xs inset-shadow-white/40 shadow-xs shadow-black/10",
+                )}
+            >
+                Sign in
+            </button>
+        </div>
     );
 }
 

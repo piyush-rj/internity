@@ -8,9 +8,18 @@ export function FinalCTA() {
     const router = useRouter();
 
     return (
-        <section className="relative">
-            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-20">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 md:gap-14 items-start">
+        <section className="relative overflow-hidden">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-20 ">
+                {/* background image */}
+                <div
+                    aria-hidden
+                    className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
+                    style={{
+                        backgroundImage: "url('/platform-images/image3.png')",
+                    }}
+                />
+
+                <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 md:gap-14 items-start">
                     {/* Left column */}
                     <div className="flex flex-col h-full">
                         <span
@@ -149,6 +158,7 @@ function AvatarStack() {
     return (
         <div className="flex -space-x-2">
             {AVATAR_IMAGES.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
                 <img
                     key={src}
                     src={src}

@@ -1,7 +1,6 @@
 import "dotenv/config";
 import { z } from "zod";
 
-// prefer PORT injected by paas providers over SERVER_PORT
 if (process.env.PORT && !process.env.SERVER_PORT) {
     process.env.SERVER_PORT = process.env.PORT;
 }
@@ -19,12 +18,6 @@ const schema = z.object({
 
     ADMIN_EMAILS: z.string().optional().default(""),
     ADMIN_EMAIL: z.string().optional().default(""),
-
-    GOOGLE_OAUTH_CLIENT_ID: z.string().optional(),
-    GOOGLE_OAUTH_CLIENT_SECRET: z.string().optional(),
-    GOOGLE_OAUTH_REDIRECT_URI: z.string().url().optional(),
-    OAUTH_STATE_SECRET: z.string().optional(),
-    APP_URL: z.string().url().default("http://localhost:3000"),
 });
 
 const parsed = schema.safeParse(process.env);

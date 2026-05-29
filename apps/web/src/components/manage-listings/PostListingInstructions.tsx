@@ -63,7 +63,11 @@ const RULES: ReadonlyArray<Tip> = [
 export function PostListingInstructions() {
     return (
         <aside className="space-y-4">
-            <Card icon={Lightbulb} title="Tips for a great listing" tips={TIPS} />
+            <Card
+                icon={Lightbulb}
+                title="Tips for a great listing"
+                tips={TIPS}
+            />
             <Card icon={BadgeCheck} title="Platform rules" tips={RULES} />
             <div className="rounded-lg border border-amber-200 bg-amber-50/60 px-3 py-2.5 flex items-start gap-2">
                 <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0 text-amber-600" />

@@ -3,7 +3,6 @@ import { FinalCTA } from "@/src/components/base/FinalCTA";
 import { Footer } from "@/src/components/base/Footer";
 import { Hero } from "@/src/components/base/Hero";
 import { InternshipsSection } from "@/src/components/base/InternshipsSection";
-import { JobsSection } from "@/src/components/base/JobsSection";
 import { SocialProofGallery } from "@/src/components/base/SocialProofGallery";
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { cn } from "@/src/lib/utils";
@@ -29,10 +28,10 @@ export default function Home() {
                 <SectionWrap>
                     <InternshipsSection />
                 </SectionWrap>
-                <SectionWrap>
+                <SectionWrap hideMarks>
                     <FinalCTA />
                 </SectionWrap>
-                <SectionWrap>
+                <SectionWrap hideMarks>
                     <Footer />
                 </SectionWrap>
             </main>
@@ -57,13 +56,15 @@ function PageRails() {
 function SectionWrap({
     children,
     first,
+    hideMarks,
 }: {
     children: React.ReactNode;
     first?: boolean;
+    hideMarks?: boolean;
 }) {
     return (
         <div className={cn("relative", !first && "border-t border-border")}>
-            {!first && <RailIntersection />}
+            {!first && !hideMarks && <RailIntersection />}
             {children}
         </div>
     );

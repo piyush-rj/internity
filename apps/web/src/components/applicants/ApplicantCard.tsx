@@ -491,7 +491,7 @@ function StatusPill({ status }: { status: ApplicationStatus }) {
 function VerifiedStudentBadge() {
     return (
         <span
-            className="inline-flex items-center gap-1 rounded-md border border-orange-200 bg-orange-50 px-1.5 py-0.5 text-[10px] font-medium text-orange-700"
+            className="inline-flex items-center gap-1 rounded-md border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700"
             title="Verified by SpiderSkill admins"
             aria-label="Verified student"
         >

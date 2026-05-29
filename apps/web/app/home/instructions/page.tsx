@@ -26,9 +26,7 @@ export default function InstructionsPage() {
                     ? "How to get the most out of SpiderSkill as a founder or hiring manager. Read once, refer back any time."
                     : "How to get the most out of SpiderSkill as a student. Read once, refer back any time."
             }
-            sections={
-                isEmployer ? EMPLOYER_INSTRUCTIONS : STUDENT_INSTRUCTIONS
-            }
+            sections={isEmployer ? EMPLOYER_INSTRUCTIONS : STUDENT_INSTRUCTIONS}
         />
     );
 }

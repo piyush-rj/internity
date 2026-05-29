@@ -120,6 +120,14 @@ export const EMPLOYER_INSTRUCTIONS: ReadonlyArray<InstructionSection> = [
         ],
     },
     {
+        id: "company-dashboard-access",
+        title: "Company dashboard access",
+        body: [
+            "The company dashboard is only visible to the founder and co-founder of the company.",
+            "Other team members can still browse listings, review applicants, and manage the company profile — but the dashboard with company-wide metrics stays limited to the founder and co-founder.",
+        ],
+    },
+    {
         id: "keep-listings-updated",
         title: "Keep your listings updated",
         body: [

@@ -21,6 +21,7 @@ export function ProfileCompletionBanner() {
 
     useEffect(() => {
         if (typeof window === "undefined") return;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setDismissed(sessionStorage.getItem(DISMISS_KEY) === "1");
     }, []);
 
@@ -34,6 +35,7 @@ export function ProfileCompletionBanner() {
 
     useEffect(() => {
         if (!eligible) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setVisible(false);
             return;
         }

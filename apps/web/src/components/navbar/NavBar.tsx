@@ -135,9 +135,7 @@ export function NavBar({
                     )}
                     <button
                         type="button"
-                        aria-label={
-                            mobileOpen ? "Close menu" : "Open menu"
-                        }
+                        aria-label={mobileOpen ? "Close menu" : "Open menu"}
                         aria-expanded={mobileOpen}
                         onClick={() => setMobileOpen((o) => !o)}
                         className={cn(
