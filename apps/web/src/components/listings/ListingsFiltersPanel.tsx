@@ -113,9 +113,12 @@ export function ListingsFiltersPanel({
         setFilters((f) => ({ ...f, [k]: v }));
     }
 
-    function applyNow() {
-        const qs = toQueryString(filters);
+    function applyWith(next: Filters) {
+        const qs = toQueryString(next);
         router.replace(qs ? `${basePath}?${qs}` : basePath);
+    }
+    function applyNow() {
+        applyWith(filters);
         onApplied?.();
     }
 
@@ -237,14 +240,24 @@ export function ListingsFiltersPanel({
                         label="Work from home"
                         checked={filters.remote}
                         onChange={(checked) => {
-                            set("remote", checked);
-                            if (checked) set("city", "");
+                            // checkboxes filter immediately
+                            const next = {
+                                ...filters,
+                                remote: checked,
+                                city: checked ? "" : filters.city,
+                            };
+                            setFilters(next);
+                            applyWith(next);
                         }}
                     />
                     <CheckboxRow
                         label="Part-time"
                         checked={filters.partTime}
-                        onChange={(checked) => set("partTime", checked)}
+                        onChange={(checked) => {
+                            const next = { ...filters, partTime: checked };
+                            setFilters(next);
+                            applyWith(next);
+                        }}
                     />
                 </div>
 

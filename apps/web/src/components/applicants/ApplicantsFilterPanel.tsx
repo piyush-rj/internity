@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState } from "react";
 import { Filter, Search, X } from "lucide-react";
 import type {
     ApplicationStatus,
@@ -92,6 +92,7 @@ export function countActiveApplicantFilters(f: ApplicantsFilters): number {
 export function ApplicantsFilterPanel({
     filters,
     onChange,
+    onApplied,
     screeningQuestions,
     listings,
     visibleCount,
@@ -99,6 +100,8 @@ export function ApplicantsFilterPanel({
 }: {
     filters: ApplicantsFilters;
     onChange: (next: ApplicantsFilters) => void;
+    // Called after "Apply filters" — lets the mobile drawer close itself.
+    onApplied?: () => void;
     // Screening questions are only meaningful when a single listing is
     // selected; pass [] otherwise and the screening section hides itself.
     screeningQuestions: ScreeningQuestion[];
@@ -108,36 +111,40 @@ export function ApplicantsFilterPanel({
     visibleCount?: number;
     totalCount?: number;
 }) {
-    const activeCount = useMemo(
-        () => countActiveApplicantFilters(filters),
-        [filters],
-    );
+    // Search, listing, sort and numeric screening inputs are held in a draft
+    // and applied via "Apply filters". Status + yes/no + multiple-choice
+    // checkboxes apply immediately on toggle.
+    const [draft, setDraft] = useState<ApplicantsFilters>(filters);
+    const activeCount = countActiveApplicantFilters(draft);
 
-    function setQ(v: string) {
-        onChange({ ...filters, q: v });
-    }
-    function setListing(id: ListingFilter) {
-        // Switching listings invalidates screening filters (different
-        // question set), so reset that block.
-        onChange({ ...filters, listingId: id, screening: {} });
-    }
     function toggleStatus(s: ApplicationStatus) {
-        const next = new Set(filters.statuses);
+        const next = new Set(draft.statuses);
         if (next.has(s)) next.delete(s);
         else next.add(s);
-        onChange({ ...filters, statuses: next });
+        const updated = { ...draft, statuses: next };
+        setDraft(updated);
+        onChange(updated);
     }
-    function setSort(s: SortKey) {
-        onChange({ ...filters, sort: s });
-    }
-    function setScreening(idx: number, sf: ScreeningFilter | null) {
-        const next = { ...filters.screening };
+    function setScreening(
+        idx: number,
+        sf: ScreeningFilter | null,
+        immediate: boolean,
+    ) {
+        const next = { ...draft.screening };
         if (sf === null) delete next[idx];
         else next[idx] = sf;
-        onChange({ ...filters, screening: next });
+        const updated = { ...draft, screening: next };
+        setDraft(updated);
+        if (immediate) onChange(updated);
     }
     function clearAll() {
-        onChange(emptyApplicantsFilters());
+        const empty = emptyApplicantsFilters();
+        setDraft(empty);
+        onChange(empty);
+    }
+    function apply() {
+        onChange(draft);
+        onApplied?.();
     }
 
     return (
@@ -146,6 +153,11 @@ export function ApplicantsFilterPanel({
                 <div className="inline-flex items-center gap-2 text-[13px] font-semibold">
                     <Filter className="h-3.5 w-3.5 text-brand" />
                     Filters
+                    {activeCount > 0 && (
+                        <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-brand text-white text-[10.5px] font-semibold tabular-nums">
+                            {activeCount}
+                        </span>
+                    )}
                 </div>
                 {activeCount > 0 && (
                     <button
@@ -165,8 +177,13 @@ export function ApplicantsFilterPanel({
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                         <input
                             type="text"
-                            value={filters.q}
-                            onChange={(e) => setQ(e.target.value)}
+                            value={draft.q}
+                            onChange={(e) =>
+                                setDraft({ ...draft, q: e.target.value })
+                            }
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") apply();
+                            }}
                             placeholder="Name, email, college"
                             className={cn(inputCls, "pl-9")}
                         />
@@ -186,9 +203,14 @@ export function ApplicantsFilterPanel({
                             )}
                     </div>
                     <select
-                        value={filters.listingId}
+                        value={draft.listingId}
                         onChange={(e) =>
-                            setListing(e.target.value as ListingFilter)
+                            // switching listings invalidates screening filters
+                            setDraft({
+                                ...draft,
+                                listingId: e.target.value as ListingFilter,
+                                screening: {},
+                            })
                         }
                         className={cn(
                             inputCls,
@@ -206,8 +228,13 @@ export function ApplicantsFilterPanel({
 
                 <Field label="Sort">
                     <select
-                        value={filters.sort}
-                        onChange={(e) => setSort(e.target.value as SortKey)}
+                        value={draft.sort}
+                        onChange={(e) =>
+                            setDraft({
+                                ...draft,
+                                sort: e.target.value as SortKey,
+                            })
+                        }
                         className={cn(
                             inputCls,
                             "appearance-none pr-8 cursor-pointer",
@@ -227,7 +254,7 @@ export function ApplicantsFilterPanel({
                             <CheckRow
                                 key={o.value}
                                 label={o.label}
-                                checked={filters.statuses.has(o.value)}
+                                checked={draft.statuses.has(o.value)}
                                 onChange={() => toggleStatus(o.value)}
                             />
                         ))}
@@ -242,13 +269,28 @@ export function ApplicantsFilterPanel({
                                     key={i}
                                     index={i}
                                     question={q}
-                                    filter={filters.screening[i]}
-                                    onChange={(sf) => setScreening(i, sf)}
+                                    filter={draft.screening[i]}
+                                    onChange={(sf, immediate) =>
+                                        setScreening(i, sf, immediate)
+                                    }
                                 />
                             ))}
                         </div>
                     </Field>
                 )}
+
+                <button
+                    type="button"
+                    onClick={apply}
+                    className={cn(
+                        "w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-lg",
+                        "bg-brand text-white text-[13px] font-semibold",
+                        "hover:bg-brand/90 transition-colors cursor-pointer",
+                    )}
+                >
+                    <Search className="h-3.5 w-3.5" />
+                    Apply filters
+                </button>
             </div>
         </section>
     );
@@ -263,7 +305,9 @@ function ScreeningFilterRow({
     index: number;
     question: ScreeningQuestion;
     filter: ScreeningFilter | undefined;
-    onChange: (next: ScreeningFilter | null) => void;
+    // immediate=true for checkbox-style answers (apply on toggle); false for
+    // number/scale inputs (held in the draft until "Apply filters").
+    onChange: (next: ScreeningFilter | null, immediate: boolean) => void;
 }) {
     // SHORT answers are too free-form to filter cleanly — skip the row.
     if (question.type === "SHORT") return null;
@@ -279,6 +323,7 @@ function ScreeningFilterRow({
             else next.add(v);
             onChange(
                 next.size === 0 ? null : { kind: "YES_NO", selected: next },
+                true,
             );
         }
         return (
@@ -313,6 +358,7 @@ function ScreeningFilterRow({
                 next.size === 0
                     ? null
                     : { kind: "MULTIPLE_CHOICE", selected: next },
+                true,
             );
         }
         return (
@@ -343,13 +389,14 @@ function ScreeningFilterRow({
                     value={val === null ? "" : val}
                     onChange={(e) => {
                         const t = e.target.value;
-                        if (t === "") onChange(null);
+                        if (t === "") onChange(null, false);
                         else {
                             const n = Number(t);
                             onChange(
                                 Number.isFinite(n)
                                     ? { kind: "NUMBERS", min: Math.trunc(n) }
                                     : null,
+                                false,
                             );
                         }
                     }}
@@ -375,6 +422,7 @@ function ScreeningFilterRow({
                                   kind: "SCALE_1_5",
                                   min: Number(e.target.value),
                               },
+                        false,
                     )
                 }
                 className={cn(inputCls, "appearance-none pr-8 cursor-pointer")}

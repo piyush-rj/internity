@@ -5,9 +5,11 @@ import { ApplicationCards } from "@/src/components/applications/ApplicationCards
 import {
     ApplicationsFilterPanel,
     applyApplicationsFilters,
+    countApplicationsFilters,
     emptyApplicationsFilters,
     type ApplicationsFilters,
 } from "@/src/components/applications/ApplicationsFilterPanel";
+import { FilterDrawer } from "@/src/components/base/FilterDrawer";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { useBreadcrumbLabel } from "@/src/components/dashboard/BreadcrumbContext";
 import { useMyApplications } from "@/src/hooks/useMyApplications";
@@ -35,7 +37,20 @@ export default function ApplicationsPage() {
             description="Track every internship you've applied to."
         >
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-                <div className="min-w-0">
+                <div className="min-w-0 space-y-5">
+                    <div className="lg:hidden">
+                        <FilterDrawer
+                            activeCount={countApplicationsFilters(filters)}
+                        >
+                            {(close) => (
+                                <ApplicationsFilterPanel
+                                    filters={filters}
+                                    onChange={setFilters}
+                                    onApplied={close}
+                                />
+                            )}
+                        </FilterDrawer>
+                    </div>
                     <ApplicationCards
                         items={filtered}
                         loading={loading}
@@ -48,7 +63,7 @@ export default function ApplicationsPage() {
                         }
                     />
                 </div>
-                <aside className="lg:sticky lg:top-20 lg:self-start">
+                <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
                     <ApplicationsFilterPanel
                         filters={filters}
                         onChange={setFilters}

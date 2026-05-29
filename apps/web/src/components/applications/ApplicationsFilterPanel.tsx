@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState } from "react";
 import { Filter, Search, X } from "lucide-react";
 import type { ApplicationStatus, JobTitle } from "@/src/lib/api";
 import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
@@ -45,7 +45,7 @@ export function emptyApplicationsFilters(): ApplicationsFilters {
     };
 }
 
-function countActive(f: ApplicationsFilters): number {
+export function countApplicationsFilters(f: ApplicationsFilters): number {
     let n = 0;
     if (f.q.trim()) n++;
     if (f.statuses.size > 0) n++;
@@ -56,26 +56,34 @@ function countActive(f: ApplicationsFilters): number {
 export function ApplicationsFilterPanel({
     filters,
     onChange,
+    onApplied,
 }: {
     filters: ApplicationsFilters;
     onChange: (next: ApplicationsFilters) => void;
+    // Called after "Apply filters" — lets the mobile drawer close itself.
+    onApplied?: () => void;
 }) {
-    const activeCount = useMemo(() => countActive(filters), [filters]);
+    // Search + selects are held in a draft and only take effect on "Apply
+    // filters". Status checkboxes apply immediately on toggle.
+    const [draft, setDraft] = useState<ApplicationsFilters>(filters);
+    const activeCount = countApplicationsFilters(draft);
 
-    function setQ(v: string) {
-        onChange({ ...filters, q: v });
-    }
     function toggleStatus(s: ApplicationStatus) {
-        const next = new Set(filters.statuses);
+        const next = new Set(draft.statuses);
         if (next.has(s)) next.delete(s);
         else next.add(s);
-        onChange({ ...filters, statuses: next });
+        const updated = { ...draft, statuses: next };
+        setDraft(updated);
+        onChange(updated);
     }
-    function setJobTitle(v: JobTitle | "") {
-        onChange({ ...filters, jobTitle: v });
+    function clearAll() {
+        const empty = emptyApplicationsFilters();
+        setDraft(empty);
+        onChange(empty);
     }
-    function setSort(v: ApplicationsSortKey) {
-        onChange({ ...filters, sort: v });
+    function apply() {
+        onChange(draft);
+        onApplied?.();
     }
 
     return (
@@ -84,16 +92,16 @@ export function ApplicationsFilterPanel({
                 <div className="inline-flex items-center gap-2 text-[13px] font-semibold">
                     <Filter className="h-3.5 w-3.5 text-brand" />
                     Filters
+                    {activeCount > 0 && (
+                        <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-brand text-white text-[10.5px] font-semibold tabular-nums">
+                            {activeCount}
+                        </span>
+                    )}
                 </div>
                 {activeCount > 0 && (
                     <button
                         type="button"
-                        onClick={() =>
-                            onChange({
-                                ...emptyApplicationsFilters(),
-                                sort: filters.sort,
-                            })
-                        }
+                        onClick={clearAll}
                         className="inline-flex items-center gap-1 text-[11.5px] font-medium text-orange-600 hover:text-orange-700 cursor-pointer"
                     >
                         <X className="h-3 w-3" />
@@ -108,8 +116,13 @@ export function ApplicationsFilterPanel({
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                         <input
                             type="text"
-                            value={filters.q}
-                            onChange={(e) => setQ(e.target.value)}
+                            value={draft.q}
+                            onChange={(e) =>
+                                setDraft({ ...draft, q: e.target.value })
+                            }
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") apply();
+                            }}
                             placeholder="Role, company, or skill"
                             className={cn(inputCls, "pl-9")}
                         />
@@ -118,9 +131,12 @@ export function ApplicationsFilterPanel({
 
                 <Field label="Sort">
                     <select
-                        value={filters.sort}
+                        value={draft.sort}
                         onChange={(e) =>
-                            setSort(e.target.value as ApplicationsSortKey)
+                            setDraft({
+                                ...draft,
+                                sort: e.target.value as ApplicationsSortKey,
+                            })
                         }
                         className={cn(
                             inputCls,
@@ -137,9 +153,12 @@ export function ApplicationsFilterPanel({
 
                 <Field label="Role">
                     <select
-                        value={filters.jobTitle}
+                        value={draft.jobTitle}
                         onChange={(e) =>
-                            setJobTitle(e.target.value as JobTitle | "")
+                            setDraft({
+                                ...draft,
+                                jobTitle: e.target.value as JobTitle | "",
+                            })
                         }
                         className={cn(
                             inputCls,
@@ -162,12 +181,25 @@ export function ApplicationsFilterPanel({
                             <CheckRow
                                 key={o.value}
                                 label={o.label}
-                                checked={filters.statuses.has(o.value)}
+                                checked={draft.statuses.has(o.value)}
                                 onChange={() => toggleStatus(o.value)}
                             />
                         ))}
                     </div>
                 </Field>
+
+                <button
+                    type="button"
+                    onClick={apply}
+                    className={cn(
+                        "w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-lg",
+                        "bg-brand text-white text-[13px] font-semibold",
+                        "hover:bg-brand/90 transition-colors cursor-pointer",
+                    )}
+                >
+                    <Search className="h-3.5 w-3.5" />
+                    Apply filters
+                </button>
             </div>
         </section>
     );

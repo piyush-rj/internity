@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Plus } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
+import { FilterDrawer } from "@/src/components/base/FilterDrawer";
 import { ApplicantCard } from "@/src/components/applicants/ApplicantCard";
 import {
     ApplicantsFilterPanel,
@@ -130,6 +131,29 @@ function ApplicantsView() {
             ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
                     <div className="min-w-0 space-y-3">
+                        <div className="lg:hidden">
+                            <FilterDrawer activeCount={activeFilterCount}>
+                                {(close) => (
+                                    <ApplicantsFilterPanel
+                                        filters={filters}
+                                        onChange={setFilters}
+                                        onApplied={close}
+                                        screeningQuestions={screeningQuestions}
+                                        listings={listingOptions}
+                                        visibleCount={
+                                            loading || error
+                                                ? undefined
+                                                : visibleItems.length
+                                        }
+                                        totalCount={
+                                            loading || error
+                                                ? undefined
+                                                : items.length
+                                        }
+                                    />
+                                )}
+                            </FilterDrawer>
+                        </div>
                         {error ? (
                             <ErrorRow message={error.message} />
                         ) : loading ? (
