@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, Search, X } from "lucide-react";
 import { CityCombobox } from "@/src/components/ui/CityCombobox";
@@ -13,25 +13,25 @@ import { cn } from "@/src/lib/utils";
 type AppliedFilter = "" | "applied" | "not_applied";
 
 type Filters = {
-    q: string;
     city: string;
     remote: boolean;
     jobTitle: JobTitle | "";
+    // Free-text role name, only used when jobTitle === "CUSTOM". Sent as the
+    // `q` param, which the server matches against title + customJobTitle.
+    customJobTitle: string;
     skills: string[];
     stipendMin: string;
-    durationMax: string;
     partTime: boolean;
     applied: AppliedFilter;
 };
 
 const EMPTY: Filters = {
-    q: "",
     city: "",
     remote: false,
     jobTitle: "",
+    customJobTitle: "",
     skills: [],
     stipendMin: "",
-    durationMax: "",
     partTime: false,
     applied: "",
 };
@@ -51,16 +51,15 @@ function fromParams(sp: URLSearchParams | null): Filters {
             ? appliedRaw
             : "";
     return {
-        q: sp.get("q") ?? "",
         city: sp.get("city") ?? "",
         remote: sp.get("mode") === "REMOTE",
         jobTitle: validJt,
+        customJobTitle: validJt === "CUSTOM" ? (sp.get("q") ?? "") : "",
         skills: (sp.get("skills") ?? "")
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean),
         stipendMin: sp.get("stipendMin") ?? "",
-        durationMax: sp.get("durationMax") ?? "",
         partTime: sp.get("partTime") === "true",
         applied,
     };
@@ -68,13 +67,14 @@ function fromParams(sp: URLSearchParams | null): Filters {
 
 function toQueryString(f: Filters): string {
     const params = new URLSearchParams();
-    if (f.q.trim()) params.set("q", f.q.trim());
     if (f.city.trim()) params.set("city", f.city.trim());
     if (f.remote) params.set("mode", "REMOTE");
     if (f.jobTitle) params.set("jobTitle", f.jobTitle);
+    if (f.jobTitle === "CUSTOM" && f.customJobTitle.trim()) {
+        params.set("q", f.customJobTitle.trim());
+    }
     if (f.skills.length > 0) params.set("skills", f.skills.join(","));
     if (f.stipendMin.trim()) params.set("stipendMin", f.stipendMin.trim());
-    if (f.durationMax.trim()) params.set("durationMax", f.durationMax.trim());
     if (f.partTime) params.set("partTime", "true");
     if (f.applied) params.set("applied", f.applied);
     return params.toString();
@@ -82,56 +82,46 @@ function toQueryString(f: Filters): string {
 
 function countActive(f: Filters): number {
     let n = 0;
-    if (f.q.trim()) n++;
     if (f.city.trim()) n++;
     if (f.remote) n++;
     if (f.jobTitle) n++;
     if (f.skills.length > 0) n++;
     if (f.stipendMin.trim()) n++;
-    if (f.durationMax.trim()) n++;
     if (f.partTime) n++;
     if (f.applied) n++;
     return n;
 }
 
-// vertical filter sidebar for the listings browse page
+// vertical filter sidebar for the listings browse page. Selections are held
+// locally and only applied to the URL (i.e. the search runs) when the user
+// clicks "Find internships" — nothing happens live as you type.
 export function ListingsFiltersPanel({
     basePath,
-    hideFindButton = false,
+    onApplied,
 }: {
     basePath: string;
-    // Mobile renders this inside a drawer that already has its own
-    // "Show results" footer, so the inline Find button is suppressed there.
-    hideFindButton?: boolean;
+    // Called after Find applies the filters — mobile uses it to close the
+    // drawer once the search has run.
+    onApplied?: () => void;
 }) {
     const router = useRouter();
     const sp = useSearchParams();
 
     const [filters, setFilters] = useState<Filters>(() => fromParams(sp));
-    const firstRun = useRef<boolean>(true);
-
-    useEffect(() => {
-        if (firstRun.current) {
-            firstRun.current = false;
-            return;
-        }
-        const handle = setTimeout(() => {
-            const qs = toQueryString(filters);
-            router.replace(qs ? `${basePath}?${qs}` : basePath);
-        }, 300);
-        return () => clearTimeout(handle);
-    }, [filters, basePath, router]);
 
     function set<K extends keyof Filters>(k: K, v: Filters[K]) {
         setFilters((f) => ({ ...f, [k]: v }));
     }
 
-    // Apply the current selection immediately (skips the 300ms debounce) so
-    // the "Find" button gives instant feedback even though filters also apply
-    // live as you type.
     function applyNow() {
         const qs = toQueryString(filters);
         router.replace(qs ? `${basePath}?${qs}` : basePath);
+        onApplied?.();
+    }
+
+    function clearAll() {
+        setFilters(EMPTY);
+        router.replace(basePath);
     }
 
     const activeCount = countActive(filters);
@@ -145,7 +135,7 @@ export function ListingsFiltersPanel({
                     {activeCount > 0 && (
                         <span
                             className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-brand text-white text-[10.5px] font-semibold tabular-nums"
-                            aria-label={`${activeCount} active filters`}
+                            aria-label={`${activeCount} selected filters`}
                         >
                             {activeCount}
                         </span>
@@ -154,7 +144,7 @@ export function ListingsFiltersPanel({
                 {activeCount > 0 && (
                     <button
                         type="button"
-                        onClick={() => setFilters(EMPTY)}
+                        onClick={clearAll}
                         className="inline-flex items-center gap-1 text-[11.5px] font-medium text-orange-600 hover:text-orange-700 cursor-pointer"
                     >
                         <X className="h-3 w-3" />
@@ -164,19 +154,6 @@ export function ListingsFiltersPanel({
             </header>
 
             <div className="p-4 space-y-4">
-                <Field label="Search title">
-                    <div className="relative">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-                        <input
-                            type="text"
-                            value={filters.q}
-                            onChange={(e) => set("q", e.target.value)}
-                            placeholder="Frontend Intern, Acme…"
-                            className={cn(inputCls, "pl-9")}
-                        />
-                    </div>
-                </Field>
-
                 <Field label="Application">
                     <select
                         value={filters.applied}
@@ -213,6 +190,21 @@ export function ListingsFiltersPanel({
                         ))}
                         <option value="CUSTOM">Other / Custom</option>
                     </select>
+                    {filters.jobTitle === "CUSTOM" && (
+                        <input
+                            type="text"
+                            value={filters.customJobTitle}
+                            onChange={(e) =>
+                                set("customJobTitle", e.target.value)
+                            }
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") applyNow();
+                            }}
+                            placeholder="Type the role, e.g. Robotics Intern"
+                            className={cn(inputCls, "mt-2")}
+                            autoFocus
+                        />
+                    )}
                 </Field>
 
                 <Field
@@ -267,32 +259,19 @@ export function ListingsFiltersPanel({
                     />
                 </Field>
 
-                <Field label="Max duration" hint="Months">
-                    <input
-                        type="number"
-                        min={1}
-                        value={filters.durationMax}
-                        onChange={(e) => set("durationMax", e.target.value)}
-                        placeholder="3"
-                        className={inputCls}
-                    />
-                </Field>
-
-                {!hideFindButton && (
-                    <button
-                        type="button"
-                        onClick={applyNow}
-                        className={cn(
-                            "w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-lg",
-                            "bg-brand text-white text-[13px] font-semibold",
-                            "hover:bg-brand/90 transition-colors cursor-pointer",
-                        )}
-                    >
-                        <Search className="h-3.5 w-3.5" />
-                        Find internships
-                        {activeCount > 0 ? ` (${activeCount})` : ""}
-                    </button>
-                )}
+                <button
+                    type="button"
+                    onClick={applyNow}
+                    className={cn(
+                        "w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-lg",
+                        "bg-brand text-white text-[13px] font-semibold",
+                        "hover:bg-brand/90 transition-colors cursor-pointer",
+                    )}
+                >
+                    <Search className="h-3.5 w-3.5" />
+                    Find internships
+                    {activeCount > 0 ? ` (${activeCount})` : ""}
+                </button>
             </div>
         </section>
     );

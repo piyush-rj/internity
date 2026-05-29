@@ -890,7 +890,8 @@ export default function TermsPage() {
                                 Welcome to spiderskill.com (the
                                 &ldquo;Site&rdquo; or
                                 &ldquo;SpiderSkill&rdquo;), a platform operated
-                                by [Your Company Name] (hereinafter referred to
+                                by 1on1 Teaching Friend Technologies Pvt. Ltd.
+                                (hereinafter referred to
                                 as &ldquo;SpiderSkill&rdquo;, &ldquo;we&rdquo;,
                                 &ldquo;us&rdquo;, or &ldquo;our&rdquo;). These
                                 Terms &amp; Conditions (&ldquo;Terms&rdquo;)

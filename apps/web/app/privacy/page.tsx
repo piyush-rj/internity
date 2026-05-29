@@ -681,7 +681,8 @@ export default function PrivacyPolicyPage() {
                             subdomains), and SpiderSkill&apos;s mobile
                             applications (collectively referred to as
                             &ldquo;Services&rdquo;). SpiderSkill is operated by
-                            [Your Company Name] (hereinafter referred to as
+                            1on1 Teaching Friend Technologies Pvt. Ltd.
+                            (hereinafter referred to as
                             &ldquo;SpiderSkill&rdquo;, &ldquo;we&rdquo;,
                             &ldquo;us&rdquo;, or &ldquo;our&rdquo;).
                         </p>

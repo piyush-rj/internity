@@ -1,3 +1,4 @@
+import { SocialLinks } from "@/src/components/base/SocialLinks";
 import { cn } from "@/src/lib/utils";
 import Image from "next/image";
 
@@ -51,6 +52,7 @@ export function Footer() {
                             India&apos;s largest career platform for students
                             and freshers to grab their firsts with skills.
                         </p>
+                        <SocialLinks className="mt-4" />
                     </div>
                     {Object.entries(cols).map(([heading, links]) => (
                         <div key={heading}>

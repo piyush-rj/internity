@@ -8,13 +8,11 @@ import { ListingsFiltersPanel } from "@/src/components/listings/ListingsFiltersP
 import { cn } from "@/src/lib/utils";
 
 const FILTER_PARAMS = [
-    "q",
     "city",
     "mode",
     "jobTitle",
     "skills",
     "stipendMin",
-    "durationMax",
     "partTime",
     "applied",
 ] as const;
@@ -85,17 +83,11 @@ export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
                     </button>
                 </header>
                 <div className="flex-1 overflow-y-auto p-3">
-                    <ListingsFiltersPanel basePath={basePath} hideFindButton />
+                    <ListingsFiltersPanel
+                        basePath={basePath}
+                        onApplied={() => setOpen(false)}
+                    />
                 </div>
-                <footer className="border-t border-border px-4 py-3 shrink-0">
-                    <button
-                        type="button"
-                        onClick={() => setOpen(false)}
-                        className="inline-flex items-center justify-center w-full h-10 rounded-lg bg-foreground text-background text-[13px] font-medium hover:bg-foreground/90 transition-colors cursor-pointer"
-                    >
-                        Show {activeCount > 0 ? "filtered " : ""}results
-                    </button>
-                </footer>
             </MobileNavDrawer>
         </>
     );
