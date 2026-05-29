@@ -234,7 +234,7 @@ export function SidebarBody({
     return (
         <>
             <Link
-                href={"/"}
+                href={"/?landing"}
                 onClick={() => onNavigate?.()}
                 className="flex items-center gap-2 px-5 h-13 border-b border-border cursor-pointer shrink-0"
             >

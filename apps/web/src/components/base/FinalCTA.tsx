@@ -9,8 +9,8 @@ export function FinalCTA() {
 
     return (
         <section className="relative">
-            <div className="mx-auto max-w-6xl px-10 py-20">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-14 items-start">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 md:gap-14 items-start">
                     {/* Left column */}
                     <div className="flex flex-col h-full">
                         <span
@@ -26,7 +26,7 @@ export function FinalCTA() {
 
                         <h2
                             className={cn(
-                                "mt-5 text-[40px] sm:text-[48px]",
+                                "mt-4 sm:mt-5 text-[30px] sm:text-[40px] lg:text-[48px]",
                                 "leading-[1.05] tracking-[-0.025em] font-semibold",
                                 "text-neutral-900",
                             )}
@@ -113,8 +113,8 @@ function StatCard({
         <div
             className={cn(
                 "rounded-2xl bg-neutral-100/80 ring-1 ring-black/5",
-                "p-5 sm:p-6 flex flex-col justify-between",
-                big ? "min-h-[180px]" : "min-h-[220px]",
+                "p-4 sm:p-5 lg:p-6 flex flex-col justify-between",
+                big ? "min-h-36 sm:min-h-44" : "min-h-44 sm:min-h-56",
                 className,
             )}
         >
@@ -125,11 +125,11 @@ function StatCard({
                 </span>
             </div>
 
-            <div className="mt-auto">
-                <div className="text-[44px] sm:text-[52px] leading-none tracking-[-0.03em] font-semibold text-neutral-900">
+            <div className="mt-6 sm:mt-auto">
+                <div className="text-[36px] sm:text-[44px] lg:text-[52px] leading-none tracking-[-0.03em] font-semibold text-neutral-900">
                     {value}
                 </div>
-                <div className="mt-3 text-[13px] text-neutral-600">
+                <div className="mt-2 sm:mt-3 text-[12.5px] sm:text-[13px] text-neutral-600">
                     {caption}
                 </div>
             </div>

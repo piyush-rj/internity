@@ -34,7 +34,7 @@ export function SectionHeader({
         <div className={cn("max-w-2xl", isCenter && "mx-auto text-center")}>
             <h2
                 className={cn(
-                    "text-[32px] sm:text-[44px] font-semibold",
+                    "text-[26px] sm:text-[34px] lg:text-[44px] font-semibold",
                     "leading-[1.05] tracking-[-0.02em]",
                     "text-foreground",
                 )}
@@ -45,7 +45,7 @@ export function SectionHeader({
             {description && (
                 <p
                     className={cn(
-                        "mt-4 text-[16px] sm:text-[17px] text-muted-foreground leading-relaxed max-w-xl",
+                        "mt-3 sm:mt-4 text-[14.5px] sm:text-[16px] lg:text-[17px] text-muted-foreground leading-relaxed max-w-xl",
                         isCenter && "mx-auto",
                     )}
                 >
@@ -54,7 +54,12 @@ export function SectionHeader({
             )}
 
             {cta && (
-                <div className={cn("mt-8", isCenter && "flex justify-center")}>
+                <div
+                    className={cn(
+                        "mt-6 sm:mt-8",
+                        isCenter && "flex justify-center",
+                    )}
+                >
                     <Button
                         variant={"exec-dark"}
                         className={cn(
@@ -70,13 +75,15 @@ export function SectionHeader({
 
     // No accent or center-aligned headers fall back to the original layout.
     if (!accent || isCenter) {
-        return <div className={cn("mb-12", className)}>{textColumn}</div>;
+        return (
+            <div className={cn("mb-8 sm:mb-12", className)}>{textColumn}</div>
+        );
     }
 
     return (
         <div
             className={cn(
-                "mb-12 flex items-start gap-8",
+                "mb-8 sm:mb-12 flex items-start gap-8",
                 "lg:items-center",
                 className,
             )}

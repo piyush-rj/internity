@@ -16,7 +16,7 @@ const containerVariants: Variants = {
 export function FeaturePillars() {
     return (
         <section className="relative bg-neutral-50">
-            <SectionFrame className="px-10 py-20 sm:py-20">
+            <SectionFrame className="px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-20">
                 <SectionHeader
                     title="Everything you need to land your next role"
                     description="Smart applications, AI resume coaching, and 200+ partner companies — all in one place."

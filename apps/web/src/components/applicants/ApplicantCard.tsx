@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import {
     PiArrowSquareOut,
+    PiBriefcaseFill,
     PiClock,
     PiEnvelope,
     PiMapPin,
@@ -211,6 +212,13 @@ export function ApplicantCard({
                                 </label>
                             )}
                         </div>
+
+                        {listingTitle && (
+                            <div className="flex items-center gap-1.5 text-[12px] font-medium text-foreground/80">
+                                <PiBriefcaseFill className="h-3 w-3 text-orange-500" />
+                                <span className="truncate">{listingTitle}</span>
+                            </div>
+                        )}
 
                         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11.5px] text-muted-foreground">
                             <Meta

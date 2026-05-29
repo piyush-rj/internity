@@ -31,10 +31,10 @@ export function Footer() {
         ],
     };
     return (
-        <footer className="border-t border-black/6 pt-14 pb-6">
-            <div className="mx-auto max-w-6xl px-6">
-                <div className="grid grid-cols-2 md:grid-cols-6 gap-8">
-                    <div className="col-span-2 md:col-span-2">
+        <footer className="border-t border-black/6 pt-10 sm:pt-14 pb-6">
+            <div className="mx-auto max-w-6xl px-4 sm:px-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6 sm:gap-8">
+                    <div className="col-span-2 sm:col-span-4 md:col-span-2">
                         <div className="flex items-center gap-2">
                             <span className="text-[16px] font-semibold tracking-tight">
                                 SpiderSkill
@@ -67,7 +67,7 @@ export function Footer() {
                 </div>
                 <div
                     className={cn(
-                        "mt-12 flex flex-col sm:flex-row items-center justify-between -mx-6 px-6",
+                        "mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 -mx-4 sm:-mx-6 px-4 sm:px-6",
                         "border-t border-black/6 pt-6",
                         "text-[12px] text-muted-foreground",
                     )}

@@ -8,7 +8,7 @@ export function InternshipsSection() {
             subtitle="Browse 70,000+ openings across 50+ profiles. Filter by location, stipend, and work-from-home options."
             cta={{ label: "Browse internships", href: "#" }}
         >
-            <div className="grid md:grid-cols-3 gap-3">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                 <CategoryCard
                     status="Trending"
                     color="bg-success"

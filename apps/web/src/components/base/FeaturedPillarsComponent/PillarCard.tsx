@@ -29,9 +29,9 @@ export function PillarCard({
         <motion.article
             variants={cardVariants}
             className={cn(
-                "group relative flex h-110 flex-col overflow-hidden",
-                "rounded-[28px] border border-border/70",
-                "bg-secondary/40 p-7 sm:p-8",
+                "group relative flex h-96 sm:h-110 flex-col overflow-hidden",
+                "rounded-3xl sm:rounded-[28px] border border-border/70",
+                "bg-secondary/40 p-6 sm:p-8",
                 "transition-colors duration-300",
                 className,
             )}

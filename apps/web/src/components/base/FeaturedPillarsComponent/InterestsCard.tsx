@@ -38,8 +38,8 @@ export function InterestsCard() {
         <motion.article
             variants={cardVariants}
             className={cn(
-                "group relative flex h-110 flex-col overflow-hidden",
-                "rounded-[28px] border border-border/70",
+                "group relative flex h-96 sm:h-110 flex-col overflow-hidden",
+                "rounded-3xl sm:rounded-[28px] border border-border/70",
                 "transition-colors duration-300",
             )}
         >
@@ -54,7 +54,7 @@ export function InterestsCard() {
                 /> */}
             </div>
 
-            <header className="relative z-10 flex items-start justify-between gap-3 p-7 sm:p-8">
+            <header className="relative z-10 flex items-start justify-between gap-3 p-6 sm:p-8">
                 <h3
                     className={cn(
                         "text-[22px] sm:text-[22px]",

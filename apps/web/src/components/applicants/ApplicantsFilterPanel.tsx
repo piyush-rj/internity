@@ -43,17 +43,23 @@ export type ScreeningFilter =
     | { kind: "NUMBERS"; min: number | null }
     | { kind: "SCALE_1_5"; min: number | null };
 
+// "all" = show applicants across every listing the caller can see.
+export type ListingFilter = string | "all";
+
 export type ApplicantsFilters = {
     q: string;
+    listingId: ListingFilter;
     statuses: Set<ApplicationStatus>;
     sort: SortKey;
-    // Indexed by the question position on the listing
+    // Indexed by the question position on the listing. Only meaningful
+    // when a specific listing is selected (questions differ per listing).
     screening: Record<number, ScreeningFilter>;
 };
 
 export function emptyApplicantsFilters(): ApplicantsFilters {
     return {
         q: "",
+        listingId: "all",
         statuses: new Set<ApplicationStatus>(),
         sort: "applied_desc",
         screening: {},
@@ -63,6 +69,7 @@ export function emptyApplicantsFilters(): ApplicantsFilters {
 export function countActiveApplicantFilters(f: ApplicantsFilters): number {
     let n = 0;
     if (f.q.trim()) n++;
+    if (f.listingId !== "all") n++;
     if (f.statuses.size > 0) n++;
     for (const sf of Object.values(f.screening)) {
         if (
@@ -85,10 +92,20 @@ export function ApplicantsFilterPanel({
     filters,
     onChange,
     screeningQuestions,
+    listings,
+    visibleCount,
+    totalCount,
 }: {
     filters: ApplicantsFilters;
     onChange: (next: ApplicantsFilters) => void;
+    // Screening questions are only meaningful when a single listing is
+    // selected; pass [] otherwise and the screening section hides itself.
     screeningQuestions: ScreeningQuestion[];
+    listings: ReadonlyArray<{ id: string; title: string }>;
+    // Shown next to the Listing label so the count travels with the
+    // selector instead of sitting on a separate header above the list.
+    visibleCount?: number;
+    totalCount?: number;
 }) {
     const activeCount = useMemo(
         () => countActiveApplicantFilters(filters),
@@ -97,6 +114,11 @@ export function ApplicantsFilterPanel({
 
     function setQ(v: string) {
         onChange({ ...filters, q: v });
+    }
+    function setListing(id: ListingFilter) {
+        // Switching listings invalidates screening filters (different
+        // question set), so reset that block.
+        onChange({ ...filters, listingId: id, screening: {} });
     }
     function toggleStatus(s: ApplicationStatus) {
         const next = new Set(filters.statuses);
@@ -149,6 +171,37 @@ export function ApplicantsFilterPanel({
                         />
                     </div>
                 </Field>
+
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between gap-2">
+                        <span className="block text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                            Listing
+                        </span>
+                        {typeof visibleCount === "number" &&
+                            typeof totalCount === "number" && (
+                                <span className="text-[11px] tabular-nums text-muted-foreground">
+                                    {visibleCount} of {totalCount}
+                                </span>
+                            )}
+                    </div>
+                    <select
+                        value={filters.listingId}
+                        onChange={(e) =>
+                            setListing(e.target.value as ListingFilter)
+                        }
+                        className={cn(
+                            inputCls,
+                            "appearance-none pr-8 cursor-pointer",
+                        )}
+                    >
+                        <option value="all">All listings</option>
+                        {listings.map((l) => (
+                            <option key={l.id} value={l.id}>
+                                {l.title}
+                            </option>
+                        ))}
+                    </select>
+                </div>
 
                 <Field label="Sort">
                     <select
@@ -390,6 +443,8 @@ function CheckRow({
 }
 
 // Apply the filters to a list of applicants. Sort is applied last.
+// `getListingSkills` lets the page provide per-applicant skill tags when
+// the list spans multiple listings (each row has its own listing context).
 export function applyApplicantsFilters<
     T extends {
         appliedAt: string;
@@ -406,11 +461,22 @@ export function applyApplicantsFilters<
         };
         screeningAnswers: ScreeningAnswer[];
     },
->(items: T[], filters: ApplicantsFilters, listingSkills: string[]): T[] {
+>(
+    items: T[],
+    filters: ApplicantsFilters,
+    getListingSkills: (item: T) => string[],
+    getListingId?: (item: T) => string,
+): T[] {
     const q = filters.q.trim().toLowerCase();
-    const tagSet = new Set(listingSkills.map((t) => t.trim().toLowerCase()));
 
     let arr = items.filter((a) => {
+        if (
+            filters.listingId !== "all" &&
+            getListingId &&
+            getListingId(a) !== filters.listingId
+        )
+            return false;
+
         if (filters.statuses.size > 0 && !filters.statuses.has(a.status))
             return false;
 
@@ -484,11 +550,17 @@ export function applyApplicantsFilters<
             break;
         case "match_desc":
             arr = arr.sort(
-                (a, b) => matchCount(b, tagSet) - matchCount(a, tagSet),
+                (a, b) =>
+                    matchCount(b, toTagSet(getListingSkills(b))) -
+                    matchCount(a, toTagSet(getListingSkills(a))),
             );
             break;
     }
     return arr;
+}
+
+function toTagSet(tags: string[]): Set<string> {
+    return new Set(tags.map((t) => t.trim().toLowerCase()));
 }
 
 function nameOf(a: {

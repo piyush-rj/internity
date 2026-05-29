@@ -20,7 +20,7 @@ export function SectionShell({
 }) {
     return (
         <section>
-            <SectionFrame className="px-10 py-24">
+            <SectionFrame className="px-4 sm:px-6 lg:px-10 py-12 sm:py-16 lg:py-24">
                 <SectionHeader
                     title={title}
                     description={subtitle}

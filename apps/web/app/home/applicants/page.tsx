@@ -13,10 +13,12 @@ import {
     emptyApplicantsFilters,
     type ApplicantsFilters,
 } from "@/src/components/applicants/ApplicantsFilterPanel";
-import { useListingApplicants } from "@/src/hooks/useListingApplicants";
+import {
+    useCompanyApplicants,
+    type AggregatedApplicant,
+} from "@/src/hooks/useCompanyApplicants";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { useMyListings } from "@/src/hooks/useMyListings";
-import { cn } from "@/src/lib/utils";
 
 export default function ApplicantsPage() {
     return (
@@ -41,53 +43,78 @@ function ApplicantsView() {
         companyId,
     });
 
-    // resolve which listing's applicants to show, preferring the url param
-    const activeListingId = useMemo(() => {
-        if (listings.length === 0) return null;
-        if (queriedId && listings.some((l) => l.id === queriedId))
-            return queriedId;
-        return listings[0]?.id ?? null;
-    }, [listings, queriedId]);
+    const listingOptions = useMemo(
+        () => listings.map((l) => ({ id: l.id, title: l.title })),
+        [listings],
+    );
 
-    // keep the url in sync with the resolved choice
-    useEffect(() => {
-        if (!activeListingId) return;
-        if (queriedId === activeListingId) return;
-        const params = new URLSearchParams(searchParams?.toString() ?? "");
-        params.set("listingId", activeListingId);
-        router.replace(`/home/applicants?${params.toString()}`);
-    }, [activeListingId, queriedId, router, searchParams]);
+    const { items, loading, error, updateStatus } =
+        useCompanyApplicants(listingOptions);
 
-    const {
-        items,
-        screeningQuestions,
-        skillTagsRaw,
-        loading,
-        error,
-        updateStatus,
-    } = useListingApplicants(activeListingId);
-
-    // Filters live in state and start fresh when the active listing changes
-    // (different screening questions, different default sort).
     const [filters, setFilters] = useState<ApplicantsFilters>(() =>
         emptyApplicantsFilters(),
     );
+
+    // Seed the listing filter from the URL on first load so deep links
+    // from the dashboard still scope to the right role. After that the
+    // filter card owns the state and we keep the URL in sync.
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setFilters({
-            ...emptyApplicantsFilters(),
-            sort: skillTagsRaw.length > 0 ? "match_desc" : "applied_desc",
-        });
-    }, [activeListingId, skillTagsRaw.length]);
+        if (listings.length === 0) return;
+        if (
+            queriedId &&
+            queriedId !== filters.listingId &&
+            listings.some((l) => l.id === queriedId)
+        ) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setFilters((f) => ({
+                ...f,
+                listingId: queriedId,
+                screening: {},
+            }));
+        }
+    }, [queriedId, listings, filters.listingId]);
+
+    useEffect(() => {
+        const params = new URLSearchParams(searchParams?.toString() ?? "");
+        if (filters.listingId === "all") params.delete("listingId");
+        else params.set("listingId", filters.listingId);
+        const next = params.toString();
+        const current = searchParams?.toString() ?? "";
+        if (next === current) return;
+        router.replace(
+            next ? `/home/applicants?${next}` : "/home/applicants",
+            { scroll: false },
+        );
+    }, [filters.listingId, router, searchParams]);
+
+    // Screening questions + best-match sort default depend on whether a
+    // single listing is selected.
+    const activeListing = useMemo(
+        () =>
+            filters.listingId === "all"
+                ? null
+                : (listings.find((l) => l.id === filters.listingId) ?? null),
+        [listings, filters.listingId],
+    );
+    const screeningQuestions = useMemo(() => {
+        if (!activeListing) return [];
+        const sample = items.find((a) => a.listing.id === activeListing.id);
+        return sample?.listing.screeningQuestions ?? [];
+    }, [items, activeListing]);
+
+    const getListingSkills = (a: AggregatedApplicant) =>
+        a.listing.skillTagsRaw;
+    const getListingId = (a: AggregatedApplicant) => a.listing.id;
 
     const visibleItems = useMemo(
-        () => applyApplicantsFilters(items, filters, skillTagsRaw),
-        [items, filters, skillTagsRaw],
-    );
-
-    const activeListingTitle = useMemo(
-        () => listings.find((l) => l.id === activeListingId)?.title ?? "",
-        [listings, activeListingId],
+        () =>
+            applyApplicantsFilters(
+                items,
+                filters,
+                getListingSkills,
+                getListingId,
+            ),
+        [items, filters],
     );
 
     const activeFilterCount = countActiveApplicantFilters(filters);
@@ -102,134 +129,73 @@ function ApplicantsView() {
             ) : listings.length === 0 ? (
                 <NoListings />
             ) : (
-                <>
-                    <ListingPicker
-                        listings={listings}
-                        activeId={activeListingId}
-                        onChange={(id) =>
-                            router.replace(`/home/applicants?listingId=${id}`)
-                        }
-                    />
-                    <div className="mt-3 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
-                        <section className="rounded-lg border border-border bg-card overflow-hidden min-w-0">
-                            <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 sm:px-5 py-3.5 sm:py-4 border-b border-border">
-                                <div className="flex items-center gap-3 flex-wrap">
-                                    <div className="text-[13px] font-medium">
-                                        Applicants
-                                    </div>
-                                    {!loading && !error && (
-                                        <span className="text-[11.5px] text-muted-foreground tabular-nums">
-                                            {visibleItems.length} of{" "}
-                                            {items.length}
-                                        </span>
-                                    )}
-                                    {activeFilterCount > 0 && (
-                                        <span className="inline-flex items-center gap-1 rounded-full bg-orange-50 border border-orange-200 px-2 py-0.5 text-[11px] text-orange-700">
-                                            {activeFilterCount}{" "}
-                                            {activeFilterCount === 1
-                                                ? "filter"
-                                                : "filters"}{" "}
-                                            active
-                                        </span>
-                                    )}
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
+                    <div className="min-w-0 space-y-3">
+                        {error ? (
+                            <ErrorRow message={error.message} />
+                        ) : loading ? (
+                            <Skeleton />
+                        ) : visibleItems.length === 0 ? (
+                            <EmptyCard hasFilters={activeFilterCount > 0} />
+                        ) : (
+                            visibleItems.map((applicant) => (
+                                <div
+                                    key={applicant.id}
+                                    className="rounded-lg border border-border bg-card overflow-hidden"
+                                >
+                                    <ApplicantCard
+                                        applicant={applicant}
+                                        screeningQuestions={
+                                            applicant.listing.screeningQuestions
+                                        }
+                                        listingSkillTags={
+                                            applicant.listing.skillTagsRaw
+                                        }
+                                        listingTitle={applicant.listing.title}
+                                        companyName={companyName}
+                                        onUpdateStatus={updateStatus}
+                                    />
                                 </div>
-                            </header>
-
-                            {error ? (
-                                <ErrorRow message={error.message} />
-                            ) : loading ? (
-                                <Skeleton />
-                            ) : visibleItems.length === 0 ? (
-                                <Empty hasFilters={activeFilterCount > 0} />
-                            ) : (
-                                <ul className="divide-y divide-border">
-                                    {visibleItems.map((applicant) => (
-                                        <li key={applicant.id}>
-                                            <ApplicantCard
-                                                applicant={applicant}
-                                                screeningQuestions={
-                                                    screeningQuestions
-                                                }
-                                                listingSkillTags={skillTagsRaw}
-                                                listingTitle={
-                                                    activeListingTitle
-                                                }
-                                                companyName={companyName}
-                                                onUpdateStatus={updateStatus}
-                                            />
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                        </section>
-
-                        <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
-                            <ApplicantsFilterPanel
-                                filters={filters}
-                                onChange={setFilters}
-                                screeningQuestions={screeningQuestions}
-                            />
-                        </aside>
+                            ))
+                        )}
                     </div>
-                </>
+
+                    <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
+                        <ApplicantsFilterPanel
+                            filters={filters}
+                            onChange={setFilters}
+                            screeningQuestions={screeningQuestions}
+                            listings={listingOptions}
+                            visibleCount={
+                                loading || error ? undefined : visibleItems.length
+                            }
+                            totalCount={
+                                loading || error ? undefined : items.length
+                            }
+                        />
+                    </aside>
+                </div>
             )}
         </EmptySection>
     );
 }
 
-function ListingPicker({
-    listings,
-    activeId,
-    onChange,
-}: {
-    listings: ReturnType<typeof useMyListings>["items"];
-    activeId: string | null;
-    onChange: (id: string) => void;
-}) {
-    return (
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <label
-                htmlFor="listing-picker"
-                className="text-[12.5px] font-medium text-muted-foreground"
-            >
-                Listing
-            </label>
-            <select
-                id="listing-picker"
-                value={activeId ?? ""}
-                onChange={(e) => onChange(e.target.value)}
-                className={cn(
-                    "h-9 w-full sm:w-auto rounded-md border border-border bg-background px-2 pr-8",
-                    "text-[13px] appearance-none",
-                    "outline-none focus:border-foreground/40 focus:ring-3 focus:ring-foreground/5",
-                )}
-            >
-                {listings.map((l) => (
-                    <option key={l.id} value={l.id}>
-                        {l.title} {l.closedAt ? "(closed)" : ""}
-                    </option>
-                ))}
-            </select>
-        </div>
-    );
-}
-
 function Skeleton() {
     return (
-        <ul className="divide-y divide-border">
+        <>
             {Array.from({ length: 3 }).map((_, i) => (
-                <li
+                <div
                     key={i}
-                    className="flex items-start gap-4 px-5 py-4 animate-pulse"
+                    className="rounded-lg border border-border bg-card flex items-start gap-4 px-5 py-4 animate-pulse"
                 >
                     <div className="h-10 w-10 rounded-full bg-muted shrink-0" />
                     <div className="flex-1 space-y-2">
                         <div className="h-3 w-1/2 rounded-full bg-muted" />
                         <div className="h-2.5 w-2/3 rounded-full bg-muted" />
                     </div>
-                </li>
+                </div>
             ))}
-        </ul>
+        </>
     );
 }
 
@@ -242,12 +208,12 @@ function SectionSkeleton() {
     );
 }
 
-function Empty({ hasFilters }: { hasFilters: boolean }) {
+function EmptyCard({ hasFilters }: { hasFilters: boolean }) {
     return (
-        <div className="px-5 py-12 text-center text-[13px] text-muted-foreground">
+        <div className="rounded-lg border border-border bg-card px-5 py-12 text-center text-[13px] text-muted-foreground">
             {hasFilters
                 ? "No applicants match these filters."
-                : "No applicants yet for this listing."}
+                : "No applicants yet."}
         </div>
     );
 }
@@ -272,7 +238,7 @@ function NoListings() {
 
 function ErrorRow({ message }: { message: string }) {
     return (
-        <div className="mx-5 my-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
+        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
             Couldn’t load applicants — {message}
         </div>
     );

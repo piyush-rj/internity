@@ -55,5 +55,19 @@ export async function updateSession(request: NextRequest) {
         return NextResponse.redirect(landingUrl);
     }
 
+    // Signed-in users hitting the marketing landing page go straight to their
+    // dashboard. The sidebar logo links to "/?landing" so they can still view
+    // the landing page on purpose without being bounced back here.
+    if (
+        user &&
+        request.nextUrl.pathname === "/" &&
+        !request.nextUrl.searchParams.has("landing")
+    ) {
+        const dashboardUrl = request.nextUrl.clone();
+        dashboardUrl.pathname = "/home/dashboard";
+        dashboardUrl.search = "";
+        return NextResponse.redirect(dashboardUrl);
+    }
+
     return supabaseResponse;
 }

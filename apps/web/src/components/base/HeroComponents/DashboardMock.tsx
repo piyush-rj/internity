@@ -53,7 +53,7 @@ export function DashboardMock() {
                 <DashboardSidebar />
                 <div className="flex flex-col min-w-0">
                     <DashboardTopbar />
-                    <div className="px-3 py-4 sm:px-5 sm:py-5 space-y-4">
+                    <div className="px-3 py-3 sm:px-5 sm:py-5 space-y-3 sm:space-y-4">
                         <Greeting />
                         <StatsRow />
 
@@ -61,7 +61,7 @@ export function DashboardMock() {
                             <div className="lg:col-span-2 min-w-0 space-y-3">
                                 <DashboardTabs />
                             </div>
-                            <div className="min-w-0">
+                            <div className="hidden lg:block min-w-0">
                                 <ProfileCompletion />
                             </div>
                         </div>
@@ -199,7 +199,7 @@ function SidebarNavItem({ item }: { item: NavItem }) {
 
 function DashboardTopbar() {
     return (
-        <div className="flex items-center gap-3 px-3 sm:px-4 h-12 border-b border-border bg-card">
+        <div className="flex items-center gap-3 px-3 sm:px-4 h-10 sm:h-12 border-b border-border bg-card">
             <span className="text-[11px] sm:text-[12px] font-medium text-foreground">
                 Home
             </span>
@@ -221,8 +221,8 @@ function DashboardTopbar() {
                         86
                     </span>
                 </span>
-                <Bell className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="h-6 w-6 rounded-full bg-secondary ring-1 ring-border" />
+                <Bell className="hidden sm:block h-3.5 w-3.5 text-muted-foreground" />
+                <span className="hidden sm:block h-6 w-6 rounded-full bg-secondary ring-1 ring-border" />
             </div>
         </div>
     );
@@ -232,7 +232,7 @@ function DashboardTopbar() {
 
 function Greeting() {
     return (
-        <div className="flex items-end justify-between gap-3">
+        <div className="hidden sm:flex items-end justify-between gap-3">
             <h2 className="text-[18px] sm:text-[22px] font-semibold tracking-tight">
                 Good afternoon, Piyush
             </h2>
@@ -299,18 +299,18 @@ function StatCard({ stat }: { stat: Stat }) {
     return (
         <div
             className={cn(
-                "rounded-lg border border-border bg-card/90 px-3 py-2.5 sm:px-3.5 sm:py-3",
+                "rounded-lg border border-border bg-card/90 px-2.5 py-2 sm:px-3.5 sm:py-3",
                 "shadow-xs",
             )}
         >
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 sm:gap-2.5">
                 <span className="relative shrink-0">
-                    <span className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-secondary text-foreground/70 ring-1 ring-border">
-                        <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                    <span className="flex h-7 w-7 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-secondary text-foreground/70 ring-1 ring-border">
+                        <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
                     </span>
                     <span
                         className={cn(
-                            "absolute -top-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full ring-2 ring-card",
+                            "absolute -top-0.5 -right-0.5 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full ring-2 ring-card",
                             stat.direction === "up"
                                 ? "bg-orange-500 text-white"
                                 : stat.direction === "down"
@@ -327,13 +327,15 @@ function StatCard({ stat }: { stat: Stat }) {
                     </span>
                 </span>
                 <div className="min-w-0 flex-1">
-                    <div className="text-[9.5px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    <div className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {stat.label}
                     </div>
-                    <div className="mt-0.5 text-[15px] sm:text-[18px] font-semibold tracking-tight leading-none tabular-nums">
+                    <div className="mt-0.5 text-[13px] sm:text-[18px] font-semibold tracking-tight leading-none tabular-nums">
                         {stat.value}
                     </div>
-                    <div className="mt-1 text-[10px] sm:text-[11px] text-muted-foreground truncate">
+                    {/* Captions are extra context that just adds noise on
+                        small screens — hide them below sm. */}
+                    <div className="hidden sm:block mt-1 text-[11px] text-muted-foreground truncate">
                         {stat.caption}
                     </div>
                 </div>
@@ -408,23 +410,29 @@ function DashboardTabs() {
                         Applications
                     </span>
                 </nav>
-                <span className="text-[10.5px] sm:text-[11px] text-muted-foreground inline-flex items-center gap-1">
+                <span className="hidden sm:inline-flex text-[10.5px] sm:text-[11px] text-muted-foreground items-center gap-1">
                     see all recommended internships
                     <PiCaretRight className="h-2.5 w-2.5" />
                 </span>
             </div>
 
             <div className="rounded-lg border border-border bg-card overflow-hidden">
-                <div className="grid grid-cols-[1.4fr_1fr_0.6fr_0.7fr_0.6fr] px-3 sm:px-4 py-2 border-b border-border text-[9.5px] sm:text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+                <div className="grid grid-cols-[1.4fr_0.7fr_0.6fr] sm:grid-cols-[1.4fr_1fr_0.6fr_0.7fr_0.6fr] px-3 sm:px-4 py-2 border-b border-border text-[9.5px] sm:text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                     <span>Role</span>
-                    <span>Company</span>
+                    <span className="hidden sm:block">Company</span>
                     <span>Mode</span>
                     <span>Stipend</span>
-                    <span>Posted</span>
+                    <span className="hidden sm:block">Posted</span>
                 </div>
                 <ul className="divide-y divide-border">
-                    {LISTINGS.map((l) => (
-                        <ListingItem key={l.role} listing={l} />
+                    {LISTINGS.map((l, i) => (
+                        <ListingItem
+                            key={l.role}
+                            listing={l}
+                            // Keep only the first 2 rows on mobile so the
+                            // mock stays compact; full list shows from sm.
+                            hideOnMobile={i >= 2}
+                        />
                     ))}
                 </ul>
             </div>
@@ -432,9 +440,20 @@ function DashboardTabs() {
     );
 }
 
-function ListingItem({ listing }: { listing: ListingRow }) {
+function ListingItem({
+    listing,
+    hideOnMobile,
+}: {
+    listing: ListingRow;
+    hideOnMobile?: boolean;
+}) {
     return (
-        <li className="grid grid-cols-[1.4fr_1fr_0.6fr_0.7fr_0.6fr] items-center px-3 sm:px-4 py-2.5 text-[11px] sm:text-[12.5px] hover:bg-secondary/30">
+        <li
+            className={cn(
+                "grid grid-cols-[1.4fr_0.7fr_0.6fr] sm:grid-cols-[1.4fr_1fr_0.6fr_0.7fr_0.6fr] items-center px-3 sm:px-4 py-2 sm:py-2.5 text-[11px] sm:text-[12.5px] hover:bg-secondary/30",
+                hideOnMobile && "hidden sm:grid",
+            )}
+        >
             <div className="flex items-center gap-2 min-w-0">
                 <span className="relative h-7 w-7 sm:h-8 sm:w-8 rounded-md overflow-hidden bg-white ring-1 ring-border shrink-0">
                     <Image
@@ -445,9 +464,16 @@ function ListingItem({ listing }: { listing: ListingRow }) {
                         className="object-cover"
                     />
                 </span>
-                <span className="font-medium truncate">{listing.role}</span>
+                <span className="min-w-0 flex-1">
+                    <span className="block font-medium truncate">
+                        {listing.role}
+                    </span>
+                    <span className="sm:hidden block text-[10px] text-muted-foreground truncate">
+                        {listing.company}
+                    </span>
+                </span>
             </div>
-            <div className="flex items-center gap-1 min-w-0">
+            <div className="hidden sm:flex items-center gap-1 min-w-0">
                 <span className="truncate">{listing.company}</span>
                 {listing.verified && (
                     <PiSealCheckFill
@@ -474,7 +500,7 @@ function ListingItem({ listing }: { listing: ListingRow }) {
             <span className="text-foreground/90 tabular-nums">
                 {listing.stipend}
             </span>
-            <span className="text-muted-foreground tabular-nums">
+            <span className="hidden sm:block text-muted-foreground tabular-nums">
                 {listing.posted}
             </span>
         </li>

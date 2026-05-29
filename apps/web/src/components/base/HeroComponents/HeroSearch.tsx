@@ -2,7 +2,14 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Building2, MapPin, Search } from "lucide-react";
+import {
+    ArrowRight,
+    Building2,
+    ChevronDown,
+    Home,
+    MapPin,
+    Search,
+} from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { listingApi, type ListingWithCompany } from "@/src/lib/api";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
@@ -14,30 +21,61 @@ import { cn } from "@/src/lib/utils";
 // the moment of navigation: signed-out users get the auth dialog with the
 // destination encoded as the post-sign-in next-path; signed-in users go
 // straight there.
+
+type WorkMode = "REMOTE" | "HYBRID" | "ONSITE";
+
+type LocationOption =
+    | { kind: "mode"; mode: WorkMode; label: string }
+    | { kind: "city"; city: string; label: string }
+    | { kind: "other"; label: string };
+
+const PRESET_LOCATIONS: LocationOption[] = [
+    { kind: "mode", mode: "REMOTE", label: "Work from home" },
+    { kind: "mode", mode: "HYBRID", label: "Hybrid" },
+    { kind: "city", city: "Bengaluru", label: "Bengaluru" },
+    { kind: "city", city: "Mumbai", label: "Mumbai" },
+    { kind: "city", city: "Delhi NCR", label: "Delhi NCR" },
+    { kind: "city", city: "Hyderabad", label: "Hyderabad" },
+    { kind: "city", city: "Pune", label: "Pune" },
+    { kind: "city", city: "Chennai", label: "Chennai" },
+    { kind: "other", label: "Other" },
+];
+
 export function HeroSearch() {
     const router = useRouter();
     const openDialog = useAuthDialog((s) => s.openDialog);
-    // Read sign-in state from the Supabase-backed session store, which is
-    // hydrated globally by SessionSetter in the root layout. The Me store
-    // (useMeStore) is only bootstrapped under /home and /admin, so it's
-    // always null on the landing page — using it here would mis-flag
-    // signed-in users as signed-out.
     const signedIn = useUserSessionStore((s) => !!s.session?.user?.id);
 
     const [query, setQuery] = useState("");
-    const [city, setCity] = useState("");
+    // Location is either a WorkMode (Remote/Hybrid) or a city string. We
+    // keep them in separate state so the URL we emit can use the right
+    // query param (?mode= vs ?city=). cityCustom holds the value the user
+    // typed when picking "Other".
+    const [mode, setMode] = useState<WorkMode | null>(null);
+    const [city, setCity] = useState<string>("");
+    const [cityCustom, setCityCustom] = useState<string>("");
+
     const [suggestions, setSuggestions] = useState<ListingWithCompany[]>([]);
     const [loading, setLoading] = useState(false);
-    const [open, setOpen] = useState(false);
+    const [suggestOpen, setSuggestOpen] = useState(false);
+    const [locOpen, setLocOpen] = useState(false);
+    // When the user picks "Other" from the dropdown, we swap the option
+    // list for an inline text input so they can type a free-form location.
+    const [otherMode, setOtherMode] = useState(false);
     const [activeIdx, setActiveIdx] = useState(-1);
 
     const containerRef = useRef<HTMLDivElement>(null);
+    const customInputRef = useRef<HTMLInputElement>(null);
     const listboxId = useId();
+    const locListId = useId();
 
-    // Debounced fetch of suggestions whenever the query or city changes.
+    const cityForApi = city.trim() || cityCustom.trim();
+
+    // Debounced fetch of search suggestions whenever the query or city
+    // changes.
     useEffect(() => {
         const q = query.trim();
-        const c = city.trim();
+        const c = cityForApi;
         if (q.length < 2 && c.length < 2) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setSuggestions([]);
@@ -51,6 +89,7 @@ export function HeroSearch() {
                 const res = await listingApi.list({
                     q: q || undefined,
                     city: c || undefined,
+                    mode: mode || undefined,
                     pageSize: 6,
                 });
                 if (ctrl.signal.aborted) return;
@@ -66,17 +105,24 @@ export function HeroSearch() {
             ctrl.abort();
             window.clearTimeout(t);
         };
-    }, [query, city]);
+    }, [query, cityForApi, mode]);
 
-    // Close on outside click or Escape.
+    // Close any open popover on outside click or Escape.
     useEffect(() => {
-        if (!open) return;
+        if (!suggestOpen && !locOpen) return;
         function onDown(e: MouseEvent) {
-            if (!containerRef.current?.contains(e.target as Node))
-                setOpen(false);
+            if (!containerRef.current?.contains(e.target as Node)) {
+                setSuggestOpen(false);
+                setLocOpen(false);
+                setOtherMode(false);
+            }
         }
         function onKey(e: KeyboardEvent) {
-            if (e.key === "Escape") setOpen(false);
+            if (e.key === "Escape") {
+                setSuggestOpen(false);
+                setLocOpen(false);
+                setOtherMode(false);
+            }
         }
         document.addEventListener("mousedown", onDown);
         document.addEventListener("keydown", onKey);
@@ -84,14 +130,20 @@ export function HeroSearch() {
             document.removeEventListener("mousedown", onDown);
             document.removeEventListener("keydown", onKey);
         };
-    }, [open]);
+    }, [suggestOpen, locOpen]);
+
+    // Autofocus the custom-location input when "Other" is picked.
+    useEffect(() => {
+        if (otherMode) customInputRef.current?.focus();
+    }, [otherMode]);
 
     function buildListPath(): string {
         const params = new URLSearchParams();
         const q = query.trim();
-        const c = city.trim();
+        const c = cityForApi;
         if (q) params.set("q", q);
         if (c) params.set("city", c);
+        if (mode) params.set("mode", mode);
         const qs = params.toString();
         return qs ? `/home/internships?${qs}` : "/home/internships";
     }
@@ -113,7 +165,7 @@ export function HeroSearch() {
     }
 
     function onKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-        if (!open || suggestions.length === 0) return;
+        if (!suggestOpen || suggestions.length === 0) return;
         if (e.key === "ArrowDown") {
             e.preventDefault();
             setActiveIdx((i) => (i + 1) % suggestions.length);
@@ -125,15 +177,52 @@ export function HeroSearch() {
         }
     }
 
-    const showPanel =
-        open &&
-        (loading || suggestions.length > 0 || trimmedHasQuery(query, city));
+    function pickPreset(opt: LocationOption) {
+        if (opt.kind === "mode") {
+            setMode(opt.mode);
+            setCity("");
+            setCityCustom("");
+            setOtherMode(false);
+            setLocOpen(false);
+        } else if (opt.kind === "city") {
+            setCity(opt.city);
+            setMode(null);
+            setCityCustom("");
+            setOtherMode(false);
+            setLocOpen(false);
+        } else {
+            // Other → swap the panel for a free-form input
+            setMode(null);
+            setCity("");
+            setOtherMode(true);
+        }
+    }
+
+    function clearLocation() {
+        setMode(null);
+        setCity("");
+        setCityCustom("");
+        setOtherMode(false);
+    }
+
+    const showSuggestPanel =
+        suggestOpen &&
+        (loading || suggestions.length > 0 || query.trim().length >= 2);
+
+    const locationLabel = (() => {
+        if (mode === "REMOTE") return "Work from home";
+        if (mode === "HYBRID") return "Hybrid";
+        if (city) return city;
+        if (cityCustom) return cityCustom;
+        return "Location";
+    })();
+    const hasLocation = !!(mode || city || cityCustom);
 
     return (
         <div
             ref={containerRef}
             className={cn(
-                "relative mx-auto mt-9 w-full max-w-3xl",
+                "relative mx-auto mt-7 sm:mt-9 w-full max-w-3xl",
                 "flex flex-col sm:flex-row items-stretch sm:items-center gap-2",
             )}
         >
@@ -143,28 +232,31 @@ export function HeroSearch() {
                     onSubmit();
                 }}
                 className={cn(
-                    "flex-1 min-w-0 sm:h-12 relative",
+                    "flex-1 min-w-0 h-12 relative",
                     "rounded-lg border border-border bg-white",
                     "shadow-[0_8px_30px_-12px_rgba(15,23,42,0.08)]",
-                    "flex flex-col sm:flex-row items-stretch overflow-visible",
+                    "flex flex-row items-stretch overflow-visible",
                 )}
                 role="combobox"
-                aria-expanded={showPanel}
+                aria-expanded={showSuggestPanel}
                 aria-controls={listboxId}
                 aria-haspopup="listbox"
             >
-                <div className="flex items-center gap-2 flex-1 min-w-0 px-4 py-1.5">
+                <label className="flex items-center gap-2 flex-1 min-w-0 pl-3 sm:pl-4 pr-2">
                     <Search className="h-4 w-4 text-muted-foreground shrink-0" />
                     <input
                         type="text"
                         value={query}
                         onChange={(e) => {
                             setQuery(e.target.value);
-                            setOpen(true);
+                            setSuggestOpen(true);
                         }}
-                        onFocus={() => setOpen(true)}
+                        onFocus={() => {
+                            setSuggestOpen(true);
+                            setLocOpen(false);
+                        }}
                         onKeyDown={onKeyDown}
-                        placeholder="Search role, skill, or company"
+                        placeholder="Search role or company"
                         aria-label="Search role, skill, or company"
                         aria-autocomplete="list"
                         aria-controls={listboxId}
@@ -173,37 +265,64 @@ export function HeroSearch() {
                             "placeholder:text-muted-foreground/80",
                         )}
                     />
-                </div>
+                </label>
+
                 <div
                     aria-hidden
-                    className="hidden sm:block w-px self-stretch bg-border my-2"
+                    className="w-px self-stretch bg-border my-2"
                 />
-                <div
-                    aria-hidden
-                    className="block sm:hidden h-px self-stretch bg-border mx-4"
-                />
-                <div className="flex items-center gap-2 sm:w-56 px-4 py-1.5">
-                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
-                    <input
-                        type="text"
-                        value={city}
-                        onChange={(e) => {
-                            setCity(e.target.value);
-                            setOpen(true);
+
+                {/* Location dropdown trigger */}
+                <div className="relative flex items-stretch shrink-0">
+                    <button
+                        type="button"
+                        onClick={() => {
+                            setLocOpen((o) => !o);
+                            setSuggestOpen(false);
                         }}
-                        onFocus={() => setOpen(true)}
-                        onKeyDown={onKeyDown}
-                        placeholder="Location"
-                        aria-label="Location"
-                        aria-autocomplete="list"
-                        aria-controls={listboxId}
+                        aria-haspopup="listbox"
+                        aria-expanded={locOpen}
+                        aria-controls={locListId}
+                        aria-label={
+                            hasLocation
+                                ? `Location: ${locationLabel}`
+                                : "Choose location"
+                        }
                         className={cn(
-                            "w-full bg-transparent outline-none text-[14px]",
-                            "placeholder:text-muted-foreground/80",
+                            "inline-flex items-center gap-1 sm:gap-2",
+                            "px-2 sm:px-3 text-[13px] sm:text-[14px] font-medium",
+                            "max-w-28 sm:max-w-none",
+                            "text-foreground hover:bg-secondary/60",
+                            "transition-colors cursor-pointer rounded-none",
                         )}
-                    />
+                    >
+                        {mode === "REMOTE" ? (
+                            <Home className="h-4 w-4 text-muted-foreground shrink-0" />
+                        ) : (
+                            <MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+                        )}
+                        {/* On mobile only show the label when a value
+                            has been picked — empty state stays a compact
+                            icon + chevron. */}
+                        <span
+                            className={cn(
+                                "truncate",
+                                !hasLocation && "hidden sm:inline",
+                                !hasLocation && "text-muted-foreground/80",
+                            )}
+                        >
+                            {locationLabel}
+                        </span>
+                        <ChevronDown
+                            className={cn(
+                                "h-3.5 w-3.5 text-muted-foreground shrink-0 transition-transform",
+                                locOpen && "rotate-180",
+                            )}
+                        />
+                    </button>
                 </div>
-                <div className="p-1.5">
+
+                <div className="p-1.5 shrink-0">
                     <Button
                         type="submit"
                         aria-label="Search"
@@ -215,7 +334,7 @@ export function HeroSearch() {
                     </Button>
                 </div>
 
-                {showPanel && (
+                {showSuggestPanel && (
                     <SuggestionPanel
                         id={listboxId}
                         loading={loading}
@@ -223,12 +342,31 @@ export function HeroSearch() {
                         activeIdx={activeIdx}
                         onHover={setActiveIdx}
                         onPick={(id) => {
-                            setOpen(false);
+                            setSuggestOpen(false);
                             navigate(`/home/listings/${id}`);
                         }}
                         onSeeAll={() => {
-                            setOpen(false);
+                            setSuggestOpen(false);
                             navigate(buildListPath());
+                        }}
+                    />
+                )}
+
+                {locOpen && (
+                    <LocationPanel
+                        id={locListId}
+                        otherMode={otherMode}
+                        customValue={cityCustom}
+                        onCustomChange={setCityCustom}
+                        customInputRef={customInputRef}
+                        hasSelection={hasLocation}
+                        selectedMode={mode}
+                        selectedCity={city}
+                        onPick={pickPreset}
+                        onClear={clearLocation}
+                        onCustomDone={() => {
+                            setLocOpen(false);
+                            setOtherMode(false);
                         }}
                     />
                 )}
@@ -237,18 +375,14 @@ export function HeroSearch() {
                 onClick={() => navigate("/home")}
                 variant={"exec-dark"}
                 className={cn(
-                    "shrink-0 inline-flex items-center gap-2 rounded-lg",
-                    "text-white px-4 sm:h-11.75 text-[14px] font-medium cursor-pointer",
+                    "shrink-0 inline-flex items-center justify-center gap-2 rounded-lg",
+                    "text-white px-4 h-11 sm:h-11.5 text-[14px] font-medium cursor-pointer",
                 )}
             >
                 Go to dashboard
             </Button>
         </div>
     );
-}
-
-function trimmedHasQuery(q: string, c: string): boolean {
-    return q.trim().length >= 2 || c.trim().length >= 2;
 }
 
 function SuggestionPanel({
@@ -352,6 +486,139 @@ function SuggestionPanel({
                             <ArrowRight className="h-3.5 w-3.5" />
                         </span>
                     </button>
+                </>
+            )}
+        </div>
+    );
+}
+
+function LocationPanel({
+    id,
+    otherMode,
+    customValue,
+    onCustomChange,
+    customInputRef,
+    hasSelection,
+    selectedMode,
+    selectedCity,
+    onPick,
+    onClear,
+    onCustomDone,
+}: {
+    id: string;
+    otherMode: boolean;
+    customValue: string;
+    onCustomChange: (v: string) => void;
+    customInputRef: React.RefObject<HTMLInputElement | null>;
+    hasSelection: boolean;
+    selectedMode: WorkMode | null;
+    selectedCity: string;
+    onPick: (opt: LocationOption) => void;
+    onClear: () => void;
+    onCustomDone: () => void;
+}) {
+    return (
+        <div
+            id={id}
+            role="listbox"
+            className={cn(
+                "absolute right-0 left-0 sm:left-auto top-full mt-2 z-30",
+                "sm:w-72 rounded-lg border border-border bg-white",
+                "shadow-[0_12px_40px_-16px_rgba(15,23,42,0.18)]",
+                "overflow-hidden",
+            )}
+        >
+            {otherMode ? (
+                <div className="p-2 flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0 ml-1" />
+                    <input
+                        ref={customInputRef}
+                        type="text"
+                        value={customValue}
+                        onChange={(e) => onCustomChange(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault();
+                                onCustomDone();
+                            }
+                        }}
+                        placeholder="Type a city"
+                        aria-label="Type a city"
+                        className={cn(
+                            "flex-1 min-w-0 bg-transparent outline-none text-[14px]",
+                            "placeholder:text-muted-foreground/80",
+                        )}
+                    />
+                    <button
+                        type="button"
+                        onClick={onCustomDone}
+                        className={cn(
+                            "shrink-0 inline-flex items-center justify-center",
+                            "h-8 px-3 rounded-md text-[12.5px] font-medium cursor-pointer",
+                            "bg-brand text-white hover:bg-brand/90 transition-colors",
+                        )}
+                    >
+                        Done
+                    </button>
+                </div>
+            ) : (
+                <>
+                    <ul className="max-h-80 overflow-y-auto p-1.5">
+                        {PRESET_LOCATIONS.map((opt) => {
+                            const active =
+                                (opt.kind === "mode" &&
+                                    selectedMode === opt.mode) ||
+                                (opt.kind === "city" &&
+                                    selectedCity === opt.city);
+                            const Icon =
+                                opt.kind === "mode" && opt.mode === "REMOTE"
+                                    ? Home
+                                    : opt.kind === "other"
+                                      ? Building2
+                                      : MapPin;
+                            return (
+                                <li
+                                    key={opt.label}
+                                    role="option"
+                                    aria-selected={active}
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => onPick(opt)}
+                                        className={cn(
+                                            "w-full flex items-center gap-2.5 px-2.5 py-2 text-left rounded-md cursor-pointer",
+                                            "text-[13.5px] transition-colors",
+                                            active
+                                                ? "bg-secondary text-foreground"
+                                                : "text-foreground hover:bg-secondary/60",
+                                        )}
+                                    >
+                                        <Icon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                                        <span className="flex-1 truncate">
+                                            {opt.label}
+                                        </span>
+                                        {active && (
+                                            <span className="text-[10.5px] uppercase tracking-wider text-brand">
+                                                Selected
+                                            </span>
+                                        )}
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                    {hasSelection && (
+                        <button
+                            type="button"
+                            onClick={onClear}
+                            className={cn(
+                                "w-full border-t border-border px-4 py-2 text-left cursor-pointer",
+                                "text-[12.5px] text-muted-foreground hover:bg-secondary/60",
+                            )}
+                        >
+                            Clear location
+                        </button>
+                    )}
                 </>
             )}
         </div>
