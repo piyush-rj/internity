@@ -7,6 +7,17 @@ import { RolePicker } from "@/src/components/dashboard/RolePicker";
 import { useMe } from "@/src/hooks/useMe";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
+// Routes only employers/admins should reach. A student who follows a stray
+// link here — e.g. the footer's "Post an internship", which hard-links to
+// /home/manage-listings/new — would otherwise land on a confusing "set up a
+// company" empty state. Bounce them back to their dashboard instead.
+const EMPLOYER_ONLY_PREFIXES = [
+    "/home/manage-listings",
+    "/home/applicants",
+    "/home/company",
+    "/home/employer",
+];
+
 // gates first-time users at the dashboard for role pick and onboarding
 export function RoleGate() {
     const session = useUserSessionStore((s) => s.session);
@@ -15,6 +26,20 @@ export function RoleGate() {
     const pathname = usePathname() ?? "";
 
     const [picked, setPicked] = useState(false);
+
+    const onEmployerOnlyRoute = EMPLOYER_ONLY_PREFIXES.some((p) =>
+        pathname.startsWith(p),
+    );
+    const studentOnEmployerRoute =
+        !!me && me.role === "STUDENT" && me.roleConfirmed && onEmployerOnlyRoute;
+
+    useEffect(() => {
+        if (!studentOnEmployerRoute) return;
+        toast("That section is for employer accounts", {
+            description:
+                "Posting and managing listings needs an employer account.",
+        });
+    }, [studentOnEmployerRoute]);
 
     const profileComplete = !!(me?.hasStudentProfile || me?.hasEmployerProfile);
     const needsProfileNudge =
@@ -55,7 +80,18 @@ export function RoleGate() {
         );
     }, [needsProfileNudge, me, router]);
 
-    if (!session?.user || loading || !me) return null;
+    if (!session?.user) return null;
+
+    // On employer-only routes we can't let the page paint until we know the
+    // role — otherwise the employer UI flashes for the fraction of a second it
+    // takes /auth/me to resolve (and again while we redirect a student away).
+    // Block it behind a skeleton overlay until the user is confirmed allowed.
+    if (onEmployerOnlyRoute && (loading || !me || studentOnEmployerRoute)) {
+        if (studentOnEmployerRoute) router.replace("/home/dashboard");
+        return <RouteGuardSkeleton />;
+    }
+
+    if (loading || !me) return null;
 
     if (me.isAdmin) {
         // Admins live in /admin, not the student/employer /home shell. Bounce
@@ -102,5 +138,29 @@ export function RoleGate() {
                 refetch();
             }}
         />
+    );
+}
+
+// Covers the content area (beside the sidebar on desktop) while we resolve the
+// role on an employer-only route, so the employer page never flashes before a
+// student is redirected away.
+function RouteGuardSkeleton() {
+    return (
+        <div
+            aria-hidden
+            className="fixed inset-0 z-40 bg-neutral-50 lg:left-60"
+        >
+            <div className="mx-auto max-w-6xl px-6 pt-8 animate-pulse">
+                <div className="h-7 w-56 rounded-md bg-secondary" />
+                <div className="mt-2 h-4 w-80 max-w-full rounded-md bg-secondary/70" />
+                <div className="mt-8 grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6">
+                    <div className="space-y-4">
+                        <div className="h-40 rounded-lg border border-border bg-card" />
+                        <div className="h-64 rounded-lg border border-border bg-card" />
+                    </div>
+                    <div className="h-72 rounded-lg border border-border bg-card" />
+                </div>
+            </div>
+        </div>
     );
 }
