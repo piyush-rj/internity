@@ -95,7 +95,15 @@ function countActive(f: Filters): number {
 }
 
 // vertical filter sidebar for the listings browse page
-export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
+export function ListingsFiltersPanel({
+    basePath,
+    hideFindButton = false,
+}: {
+    basePath: string;
+    // Mobile renders this inside a drawer that already has its own
+    // "Show results" footer, so the inline Find button is suppressed there.
+    hideFindButton?: boolean;
+}) {
     const router = useRouter();
     const sp = useSearchParams();
 
@@ -118,6 +126,14 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
         setFilters((f) => ({ ...f, [k]: v }));
     }
 
+    // Apply the current selection immediately (skips the 300ms debounce) so
+    // the "Find" button gives instant feedback even though filters also apply
+    // live as you type.
+    function applyNow() {
+        const qs = toQueryString(filters);
+        router.replace(qs ? `${basePath}?${qs}` : basePath);
+    }
+
     const activeCount = countActive(filters);
 
     return (
@@ -126,6 +142,14 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
                 <div className="inline-flex items-center gap-2 text-[13px] font-semibold">
                     <Filter className="h-3.5 w-3.5 text-brand" />
                     Filters
+                    {activeCount > 0 && (
+                        <span
+                            className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-brand text-white text-[10.5px] font-semibold tabular-nums"
+                            aria-label={`${activeCount} active filters`}
+                        >
+                            {activeCount}
+                        </span>
+                    )}
                 </div>
                 {activeCount > 0 && (
                     <button
@@ -253,6 +277,22 @@ export function ListingsFiltersPanel({ basePath }: { basePath: string }) {
                         className={inputCls}
                     />
                 </Field>
+
+                {!hideFindButton && (
+                    <button
+                        type="button"
+                        onClick={applyNow}
+                        className={cn(
+                            "w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-lg",
+                            "bg-brand text-white text-[13px] font-semibold",
+                            "hover:bg-brand/90 transition-colors cursor-pointer",
+                        )}
+                    >
+                        <Search className="h-3.5 w-3.5" />
+                        Find internships
+                        {activeCount > 0 ? ` (${activeCount})` : ""}
+                    </button>
+                )}
             </div>
         </section>
     );

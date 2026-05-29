@@ -18,6 +18,7 @@ import {
     isAnswered,
 } from "@/src/components/listings/ScreeningAnswerInput";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { useMe } from "@/src/hooks/useMe";
 import { useAppliedStore } from "@/src/store/useAppliedStore";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
@@ -328,7 +329,7 @@ function PerCompanyCard({
                         Apply to {listing.company.name}
                     </h2>
                     <p className="text-[12px] text-muted-foreground truncate">
-                        {listing.title}
+                        {formatListingTitle(listing.title)}
                     </p>
                 </div>
                 <button

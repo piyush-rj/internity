@@ -16,6 +16,7 @@ import {
     type ListingWithCompany,
 } from "@/src/lib/api";
 import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
@@ -436,7 +437,7 @@ function SuggestionPanel({
                                         </span>
                                         <span className="min-w-0 flex-1">
                                             <span className="block text-[13.5px] font-medium truncate">
-                                                {l.title}
+                                                {formatListingTitle(l.title)}
                                             </span>
                                             <span className="block text-[11.5px] text-muted-foreground truncate">
                                                 {l.company.name}

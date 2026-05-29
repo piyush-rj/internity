@@ -6,7 +6,7 @@ export function InternshipsSection() {
         <SectionShell
             title="Find an internship that opens doors"
             subtitle="Browse 70,000+ openings across 50+ profiles. Filter by location, stipend, and work-from-home options."
-            cta={{ label: "Browse internships", href: "#" }}
+            cta={{ label: "Browse internships", href: "/home/internships" }}
         >
             <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
                 <CategoryCard
@@ -96,7 +96,7 @@ function CategoryCard({
                 {items.map((it) => (
                     <a
                         key={it.id}
-                        href="#"
+                        href="/home/internships"
                         className={cn(
                             "block p-3",
                             "rounded-lg border border-black/5 bg-surface/40",

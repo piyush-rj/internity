@@ -18,7 +18,11 @@ const createPrismaClient = () =>
             keepAlive: true,
             idleTimeoutMillis: 30_000,
             connectionTimeoutMillis: 10_000,
-            max: 10,
+            // Supabase's session-mode pooler caps the whole project at
+            // pool_size: 15 clients. Keep our pool well under that so we don't
+            // hit EMAXCONNSESSION (leaves headroom for migrations, a second
+            // backend, and dev-reload overlap).
+            max: 8,
         }),
     });
 

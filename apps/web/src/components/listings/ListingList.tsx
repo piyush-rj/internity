@@ -20,6 +20,7 @@ import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { formatDuration } from "@/src/lib/format/duration";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
 
 export function ListingList({
@@ -211,7 +212,7 @@ function ListingRow({
                         logoUrl={listing.company.logoUrl}
                     />
                     <span className="font-medium text-foreground truncate group-hover:text-orange-600 transition-colors transform duration-200">
-                        {listing.title}
+                        {formatListingTitle(listing.title)}
                     </span>
                 </Link>
             </Td>
@@ -310,8 +311,8 @@ function RowCheckbox({ listing }: { listing: ListingWithCompany }) {
             onClick={(e) => e.stopPropagation()}
             aria-label={
                 checked
-                    ? `Unselect ${listing.title}`
-                    : `Select ${listing.title}`
+                    ? `Unselect ${formatListingTitle(listing.title)}`
+                    : `Select ${formatListingTitle(listing.title)}`
             }
             className="h-4 w-4 rounded border-border accent-orange-500 cursor-pointer"
         />

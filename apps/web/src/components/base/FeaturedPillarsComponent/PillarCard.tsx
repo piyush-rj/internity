@@ -50,7 +50,7 @@ export function PillarCard({
                     </span>
                 </h3>
                 <a
-                    href="#"
+                    href="/home/internships"
                     aria-label={primary}
                     className={cn(
                         "shrink-0 inline-flex h-9 w-9 items-center justify-center",

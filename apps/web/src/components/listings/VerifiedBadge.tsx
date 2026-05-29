@@ -11,8 +11,8 @@ export function VerifiedBadge({
 }) {
     const wrap =
         size === "chip"
-            ? "inline-flex items-center gap-1 rounded-md bg-orange-50 text-orange-700 border border-orange-200 px-2 py-0.5 text-[11px] font-medium"
-            : "inline-flex items-center gap-0.5 text-orange-600";
+            ? "inline-flex items-center gap-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 text-[11px] font-medium"
+            : "inline-flex items-center gap-0.5 text-emerald-600";
     const icon = size === "chip" ? "h-3.5 w-3.5" : "h-3.5 w-3.5";
     const labelClass = size === "chip" ? "" : "text-[11px] font-medium";
 

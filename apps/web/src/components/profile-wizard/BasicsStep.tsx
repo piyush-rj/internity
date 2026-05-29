@@ -277,16 +277,16 @@ export function BasicsStep({
 
                 <Field
                     label="Short bio"
-                    hint="A line or two recruiters see at the top of your profile."
+                    hint="Optional — one line is plenty. You can edit it anytime."
                     icon={<Info className="h-3.5 w-3.5" />}
                 >
                     <textarea
                         value={form.bio}
                         onChange={(e) => set("bio", e.target.value)}
                         placeholder="CS undergrad at IIT Delhi, building things on weekends."
-                        rows={3}
+                        rows={2}
                         maxLength={240}
-                        className={cn(inputCls(), "min-h-24 resize-y py-2")}
+                        className={cn(inputCls(), "min-h-16 resize-y py-2")}
                     />
                     <div className="mt-1 text-right text-[11px] text-muted-foreground tabular-nums">
                         {form.bio.length}/240

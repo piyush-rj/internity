@@ -16,6 +16,7 @@ import {
     StatusBadge,
     type ApplicationCardItem,
 } from "@/src/components/applications/ApplicationCard";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
 
 export function ApplicationsList({
@@ -180,7 +181,7 @@ function ApplicationRow({
                         logoUrl={listing.company.logoUrl}
                     />
                     <span className="font-medium text-foreground truncate group-hover:text-orange-600 transition-colors transform duration-200">
-                        {listing.title}
+                        {formatListingTitle(listing.title)}
                     </span>
                 </Link>
             </Td>

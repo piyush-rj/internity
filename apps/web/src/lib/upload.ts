@@ -7,9 +7,10 @@ export async function uploadAsset(input: {
     kind: UploadKind;
     file: File;
     companyId?: string;
+    fileName?: string;
     onProgress?: (pct: number) => void;
 }): Promise<{ getUrl: string; key: string }> {
-    const { kind, file, companyId, onProgress } = input;
+    const { kind, file, companyId, fileName, onProgress } = input;
     const { key, putUrl, getUrl } = await uploadApi.sign({
         kind,
         contentType: file.type,
@@ -22,6 +23,7 @@ export async function uploadAsset(input: {
         contentType: file.type,
         sizeBytes: file.size,
         companyId,
+        fileName,
     });
     return { getUrl, key };
 }

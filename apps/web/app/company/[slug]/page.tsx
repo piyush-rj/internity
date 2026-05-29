@@ -15,6 +15,7 @@ import {
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { companyApi, type Company, type Listing } from "@/src/lib/api";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
@@ -261,7 +262,7 @@ function PublicListingRow({
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-[14px] font-medium truncate">
-                        {listing.title}
+                        {formatListingTitle(listing.title)}
                     </span>
                     <ModeBadge mode={listing.mode} />
                 </div>

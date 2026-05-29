@@ -16,6 +16,7 @@ import {
 } from "@/src/components/applications/ApplicationCard";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
 
 export function ApplicationCards({
@@ -94,7 +95,7 @@ function ApplicationItemCard({
                                 className="block"
                             >
                                 <h3 className="text-[15px] font-semibold text-foreground group-hover:text-orange-600 transition-colors truncate">
-                                    {listing.title}
+                                    {formatListingTitle(listing.title)}
                                 </h3>
                             </Link>
                             <div className="mt-1 flex items-center gap-2 flex-wrap text-[12.5px] text-muted-foreground">

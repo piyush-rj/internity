@@ -16,6 +16,13 @@ const schema = z.object({
 
     CORS_ORIGIN: z.string().default("http://localhost:3000"),
 
+    MINIO_ENDPOINT: z.url(),
+    MINIO_PUBLIC_ENDPOINT: z.url().optional(),
+    MINIO_ACCESS_KEY: z.string().min(1),
+    MINIO_SECRET_KEY: z.string().min(1),
+    MINIO_BUCKET: z.string().min(1),
+    MINIO_REGION: z.string().min(1).default("us-east-1"),
+
     ADMIN_EMAILS: z.string().optional().default(""),
     ADMIN_EMAIL: z.string().optional().default(""),
 });

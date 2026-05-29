@@ -21,6 +21,7 @@ import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { Button } from "@/src/components/ui/button";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { useConfirm } from "@/src/hooks/useConfirm";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import {
     interviewApi,
     type InterviewWithRelations,
@@ -339,7 +340,7 @@ function InterviewRow({
                         )}{" "}
                         ·{" "}
                         <span className="text-muted-foreground">
-                            {iv.application.listing.title}
+                            {formatListingTitle(iv.application.listing.title)}
                         </span>
                     </div>
 

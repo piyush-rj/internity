@@ -21,6 +21,7 @@ import { ReportListingButton } from "@/src/components/listings/ReportListingButt
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { formatDuration } from "@/src/lib/format/duration";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
 
 export function ListingDetail({
@@ -97,7 +98,7 @@ export function ListingDetail({
                             <div className="mb-3 flex items-center justify-between gap-2">
                                 <ShareMenu
                                     url={`/listings/${listing.id}`}
-                                    title={listing.title}
+                                    title={formatListingTitle(listing.title)}
                                     company={listing.company.name}
                                 />
                                 <ReportListingButton listingId={listing.id} />
@@ -236,7 +237,7 @@ function Header({
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                         <h1 className="text-[18px] sm:text-[22px] font-semibold tracking-tight">
-                            {listing.title}
+                            {formatListingTitle(listing.title)}
                         </h1>
                         <ModeBadge mode={listing.mode} />
                         {closed && (

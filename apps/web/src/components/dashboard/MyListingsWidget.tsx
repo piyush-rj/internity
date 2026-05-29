@@ -11,6 +11,7 @@ import {
 } from "react-icons/pi";
 import { ListHeader } from "@/src/components/listings/ListHeader";
 import { useMyListings, type MyListing } from "@/src/hooks/useMyListings";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
 
 export function MyListingsWidget() {
@@ -137,7 +138,7 @@ function ListingRow({ listing }: { listing: MyListing }) {
                         {listing.title.charAt(0).toUpperCase()}
                     </span>
                     <span className="font-medium text-foreground truncate group-hover:text-orange-600 transition-colors duration-200">
-                        {listing.title}
+                        {formatListingTitle(listing.title)}
                     </span>
                 </Link>
             </Td>

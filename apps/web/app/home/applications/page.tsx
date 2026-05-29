@@ -9,9 +9,11 @@ import {
     type ApplicationsFilters,
 } from "@/src/components/applications/ApplicationsFilterPanel";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
+import { useBreadcrumbLabel } from "@/src/components/dashboard/BreadcrumbContext";
 import { useMyApplications } from "@/src/hooks/useMyApplications";
 
 export default function ApplicationsPage() {
+    useBreadcrumbLabel("My Applications");
     const { items, loading, error, withdraw } = useMyApplications();
     const [filters, setFilters] = useState<ApplicationsFilters>(
         emptyApplicationsFilters,
@@ -29,8 +31,8 @@ export default function ApplicationsPage() {
 
     return (
         <EmptySection
-            title="Applications"
-            description="Track every internship and job you've applied to."
+            title="My Applications"
+            description="Track every internship you've applied to."
         >
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
                 <div className="min-w-0">

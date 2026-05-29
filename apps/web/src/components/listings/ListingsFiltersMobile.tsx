@@ -11,11 +11,12 @@ const FILTER_PARAMS = [
     "q",
     "city",
     "mode",
+    "jobTitle",
     "skills",
     "stipendMin",
     "durationMax",
     "partTime",
-    "companySize",
+    "applied",
 ] as const;
 
 function countActiveFromParams(sp: URLSearchParams | null): number {
@@ -84,7 +85,7 @@ export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
                     </button>
                 </header>
                 <div className="flex-1 overflow-y-auto p-3">
-                    <ListingsFiltersPanel basePath={basePath} />
+                    <ListingsFiltersPanel basePath={basePath} hideFindButton />
                 </div>
                 <footer className="border-t border-border px-4 py-3 shrink-0">
                     <button

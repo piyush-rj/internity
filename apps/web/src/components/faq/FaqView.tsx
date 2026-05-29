@@ -1,6 +1,5 @@
 "use client";
 
-import { useMemo, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { Footer } from "@/src/components/base/Footer";
@@ -11,7 +10,6 @@ import {
     UL,
     type PolicySection,
 } from "@/src/components/policy/PolicyLayout";
-import { cn } from "@/src/lib/utils";
 
 export type Audience = "students" | "founders";
 
@@ -173,7 +171,7 @@ const STUDENT_GROUPS: FaqGroup[] = [
                     <P>
                         Don&apos;t pay. SpiderSkill never allows founders to
                         charge students anything. Report it immediately at
-                        info@spiderskill.in.
+                        info@spiderskill.com.
                     </P>
                 ),
             },
@@ -183,7 +181,7 @@ const STUDENT_GROUPS: FaqGroup[] = [
                     <P>
                         Don&apos;t proceed. Report it via the
                         &ldquo;Report&rdquo; option on the listing or write to
-                        info@spiderskill.in.
+                        info@spiderskill.com.
                     </P>
                 ),
             },
@@ -193,16 +191,6 @@ const STUDENT_GROUPS: FaqGroup[] = [
                     <P>
                         Yes. Use the Bookmark feature. Bookmarking does not
                         count as applying.
-                    </P>
-                ),
-            },
-            {
-                q: "Does SpiderSkill guarantee I'll get an internship?",
-                a: (
-                    <P>
-                        No. We bring you the best opportunities, but selection
-                        depends on the founder&apos;s requirements and your
-                        profile.
                     </P>
                 ),
             },
@@ -397,20 +385,25 @@ const FOUNDER_GROUPS: FaqGroup[] = [
     },
 ];
 
-const TABS: { id: Audience; label: string; description: string }[] = [
-    {
-        id: "students",
-        label: "For Students",
+const AUDIENCE_META: Record<
+    Audience,
+    { title: string; description: string; otherLabel: string; otherHref: string }
+> = {
+    students: {
+        title: "Student FAQs",
         description:
             "How to apply, what to expect, and how to stay safe on SpiderSkill.",
+        otherLabel: "Looking for employer FAQs?",
+        otherHref: "/faq/employers",
     },
-    {
-        id: "founders",
-        label: "For Founders / Employers",
+    founders: {
+        title: "Employer FAQs",
         description:
             "Posting listings, managing applicants, pricing, and account setup.",
+        otherLabel: "Looking for student FAQs?",
+        otherHref: "/faq",
     },
-];
+};
 
 function groupsToSections(groups: FaqGroup[]): PolicySection[] {
     return groups.map((g) => ({
@@ -436,19 +429,10 @@ function groupsToSections(groups: FaqGroup[]): PolicySection[] {
     }));
 }
 
-export function FaqView({
-    initialAudience = "students",
-}: {
-    initialAudience?: Audience;
-}) {
-    const [tab, setTab] = useState<Audience>(initialAudience);
-
-    const sections = useMemo(() => {
-        const groups = tab === "students" ? STUDENT_GROUPS : FOUNDER_GROUPS;
-        return groupsToSections(groups);
-    }, [tab]);
-
-    const activeTab = TABS.find((t) => t.id === tab)!;
+export function FaqView({ audience }: { audience: Audience }) {
+    const groups = audience === "students" ? STUDENT_GROUPS : FOUNDER_GROUPS;
+    const sections = groupsToSections(groups);
+    const meta = AUDIENCE_META[audience];
 
     return (
         <div className="flex flex-col min-h-screen">
@@ -456,16 +440,15 @@ export function FaqView({
             <main className="flex-1 pt-14">
                 <PolicyLayout
                     eyebrow="Help Center"
-                    title="Frequently asked questions"
+                    title={meta.title}
                     intro={
                         <p className="text-muted-foreground">
-                            {activeTab.description} Switch audience using the
-                            toggle in the sidebar. Still stuck? Write to{" "}
+                            {meta.description} Still stuck? Write to{" "}
                             <a
-                                href="mailto:info@spiderskill.in"
+                                href="mailto:info@spiderskill.com"
                                 className="text-orange-700 hover:underline"
                             >
-                                info@spiderskill.in
+                                info@spiderskill.com
                             </a>
                             .
                         </p>
@@ -473,34 +456,15 @@ export function FaqView({
                     sidebarHeader={
                         <div>
                             <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground mb-2">
-                                Audience
+                                Help Center
                             </p>
-                            <div
-                                role="tablist"
-                                aria-label="FAQ audience"
-                                className="rounded-md border border-border bg-card p-1 flex flex-col gap-0.5"
+                            <a
+                                href={meta.otherHref}
+                                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand hover:underline"
                             >
-                                {TABS.map((t) => {
-                                    const active = t.id === tab;
-                                    return (
-                                        <button
-                                            key={t.id}
-                                            type="button"
-                                            role="tab"
-                                            aria-selected={active}
-                                            onClick={() => setTab(t.id)}
-                                            className={cn(
-                                                "text-left px-2.5 py-1.5 rounded text-[12.5px] cursor-pointer transition-colors",
-                                                active
-                                                    ? "bg-brand text-white font-medium"
-                                                    : "text-muted-foreground hover:bg-secondary hover:text-foreground",
-                                            )}
-                                        >
-                                            {t.label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
+                                {meta.otherLabel}
+                                <ArrowRight className="h-3 w-3" />
+                            </a>
                         </div>
                     }
                     sections={sections}

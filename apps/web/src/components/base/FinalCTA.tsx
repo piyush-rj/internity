@@ -46,8 +46,8 @@ export function FinalCTA() {
                         </h2>
 
                         <p className="mt-5 text-[14.5px] text-neutral-600 leading-relaxed max-w-sm">
-                            Land verified internships and graduate roles faster
-                            with a profile built to get noticed.
+                            Land verified internships faster with a profile
+                            built to get noticed.
                         </p>
 
                         <button

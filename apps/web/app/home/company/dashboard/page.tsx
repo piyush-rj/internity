@@ -17,6 +17,7 @@ import {
     YAxis,
 } from "recharts";
 import type { ApplicationStatus, CompanyDashboard } from "@/src/lib/api";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { CountLegend } from "@/src/components/dashboard/StatsChartRow";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { ChatAvatar } from "@/src/components/chat/ChatAvatar";
@@ -323,7 +324,7 @@ function RecentApplicants({
                                     {a.student.name ?? "Candidate"}
                                 </div>
                                 <div className="text-[12px] text-muted-foreground truncate">
-                                    {a.listing.title}
+                                    {formatListingTitle(a.listing.title)}
                                 </div>
                             </div>
                             <span

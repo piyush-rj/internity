@@ -60,7 +60,7 @@ const studentNav: NavSet = {
         },
         {
             key: "applications",
-            label: "Applications",
+            label: "My Applications",
             icon: PiFileTextFill,
             href: "/home/applications",
         },
@@ -329,7 +329,7 @@ export function SidebarBody({
                         </div>
                     </nav>
 
-                    <UpgradeCard />
+                    {role === "EMPLOYER" && initialized && <UpgradeCard />}
                 </>
             )}
         </>

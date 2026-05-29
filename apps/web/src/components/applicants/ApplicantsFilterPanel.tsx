@@ -8,6 +8,7 @@ import type {
     ScreeningQuestion,
 } from "@/src/lib/api";
 import { cn } from "@/src/lib/utils";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 
 // Sort + status + free-text + per-question screening filters for the
 // applicants page. Mirrors the student-side ListingsFiltersPanel layout
@@ -197,7 +198,7 @@ export function ApplicantsFilterPanel({
                         <option value="all">All listings</option>
                         {listings.map((l) => (
                             <option key={l.id} value={l.id}>
-                                {l.title}
+                                {formatListingTitle(l.title)}
                             </option>
                         ))}
                     </select>

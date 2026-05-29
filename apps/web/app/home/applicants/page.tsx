@@ -18,6 +18,7 @@ import {
     type AggregatedApplicant,
 } from "@/src/hooks/useCompanyApplicants";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { useMyListings } from "@/src/hooks/useMyListings";
 
 export default function ApplicantsPage() {
@@ -149,7 +150,9 @@ function ApplicantsView() {
                                         listingSkillTags={
                                             applicant.listing.skillTagsRaw
                                         }
-                                        listingTitle={applicant.listing.title}
+                                        listingTitle={formatListingTitle(
+                                            applicant.listing.title,
+                                        )}
                                         companyName={companyName}
                                         onUpdateStatus={updateStatus}
                                     />

@@ -2,5 +2,5 @@ import { FaqView } from "@/src/components/faq/FaqView";
 
 // Employer FAQ's
 export default function EmployerFaqPage() {
-    return <FaqView initialAudience="founders" />;
+    return <FaqView audience="founders" />;
 }

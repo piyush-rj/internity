@@ -5,7 +5,7 @@ import { cn } from "@/src/lib/utils";
 export function Announcement() {
     return (
         <a
-            href="#"
+            href="/about"
             className={cn(
                 "group inline-flex items-center gap-1.5 max-w-full",
                 "rounded-full border border-black/10 bg-card",

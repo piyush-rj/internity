@@ -17,6 +17,7 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import type { MyListing } from "@/src/hooks/useMyListings";
 import { useConfirm } from "@/src/hooks/useConfirm";
 import { formatDuration } from "@/src/lib/format/duration";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
 
 type BusyKind =
@@ -88,14 +89,14 @@ export function MyListingCard({
                     <div className="flex items-center gap-2 flex-wrap">
                         {takenDown ? (
                             <span className="text-[16px] font-semibold text-muted-foreground line-through truncate">
-                                {listing.title}
+                                {formatListingTitle(listing.title)}
                             </span>
                         ) : (
                             <Link
                                 href={`/home/listings/${listing.id}`}
                                 className="text-[16px] font-semibold text-foreground truncate hover:text-orange-600 transition-colors"
                             >
-                                {listing.title}
+                                {formatListingTitle(listing.title)}
                             </Link>
                         )}
                         <ModeBadge mode={listing.mode} />
@@ -288,7 +289,7 @@ export function MyListingCard({
                         type="button"
                         onClick={async () => {
                             const ok = await confirm({
-                                title: `Delete "${listing.title}"?`,
+                                title: `Delete "${formatListingTitle(listing.title)}"?`,
                                 description:
                                     "Applicants and all data for this listing will be removed. This can’t be undone.",
                                 confirmLabel: "Delete listing",

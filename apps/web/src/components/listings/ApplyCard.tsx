@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
-import { Check, X, Wand2 } from "lucide-react";
+import { Check, Upload, X, Wand2 } from "lucide-react";
 import {
     listingApi,
     resumeApi,
@@ -15,6 +15,7 @@ import {
     isAnswered,
 } from "@/src/components/listings/ScreeningAnswerInput";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { uploadAsset } from "@/src/lib/upload";
 import { Button } from "@/src/components/ui/button";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { useMe } from "@/src/hooks/useMe";
@@ -23,6 +24,8 @@ import { useMyProfileStore } from "@/src/store/useMyProfileStore";
 import { cn } from "@/src/lib/utils";
 
 const COVER_LIMIT = 150;
+const MAX_RESUMES = 4;
+const MAX_RESUME_BYTES = 10 * 1024 * 1024;
 
 export function ApplyCard({
     listingId,
@@ -138,6 +141,9 @@ function ApplyDialog({
     const [resumeId, setResumeId] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState<boolean>(false);
     const [showResumeWarning, setShowResumeWarning] = useState<boolean>(false);
+    const [uploading, setUploading] = useState<boolean>(false);
+    const [uploadError, setUploadError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
@@ -204,6 +210,53 @@ function ApplyDialog({
             return;
         }
         void submit();
+    }
+
+    async function handleUploadFile(file: File) {
+        setUploadError(null);
+        if (file.type !== "application/pdf") {
+            setUploadError("Only PDF files are supported.");
+            return;
+        }
+        if (file.size > MAX_RESUME_BYTES) {
+            setUploadError("File must be under 10 MB.");
+            return;
+        }
+        if (file.size === 0) {
+            setUploadError("That file looks empty.");
+            return;
+        }
+        if (resumes.length >= MAX_RESUMES) {
+            setUploadError(
+                `You can keep up to ${MAX_RESUMES} resumes — manage them from the Resumes page.`,
+            );
+            return;
+        }
+        setUploading(true);
+        try {
+            const before = new Set(resumes.map((r) => r.id));
+            await uploadAsset({ kind: "RESUME", file, fileName: file.name });
+            const res = await resumeApi.list();
+            setResumes(res.items);
+            // select the freshly uploaded resume so it's used for this apply
+            const created =
+                res.items.find((r) => !before.has(r.id)) ??
+                res.items.find((r) => r.isDefault) ??
+                res.items[0];
+            setResumeId(created?.id ?? null);
+            toast.success("Resume uploaded.");
+        } catch (err) {
+            setUploadError(
+                err instanceof ApiClientError
+                    ? err.message
+                    : err instanceof Error
+                      ? err.message
+                      : "Upload failed.",
+            );
+        } finally {
+            setUploading(false);
+            if (fileInputRef.current) fileInputRef.current.value = "";
+        }
     }
 
     async function submit() {
@@ -350,16 +403,35 @@ function ApplyDialog({
                             Resume{" "}
                             <span className="text-muted-foreground font-normal">
                                 {resumes.length > 0
-                                    ? `(${resumes.length}/4)`
+                                    ? `(${resumes.length}/${MAX_RESUMES})`
                                     : "(none uploaded)"}
                             </span>
                         </div>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept="application/pdf"
+                            className="sr-only"
+                            onChange={(e) => {
+                                const f = e.target.files?.[0];
+                                if (f) void handleUploadFile(f);
+                            }}
+                        />
                         {resumes.length === 0 ? (
-                            <p className="text-[12px] text-muted-foreground rounded-md border border-border bg-secondary/40 px-3 py-2">
-                                You haven&rsquo;t uploaded any resume yet. You
-                                can still apply with just a cover note — most
-                                employers expect a resume though.
-                            </p>
+                            <div className="space-y-2">
+                                <p className="text-[12px] text-muted-foreground rounded-md border border-border bg-secondary/40 px-3 py-2">
+                                    You haven&rsquo;t uploaded any resume yet.
+                                    Upload one now (PDF, max 10 MB) — most
+                                    employers expect a resume.
+                                </p>
+                                <UploadResumeButton
+                                    uploading={uploading}
+                                    onClick={() =>
+                                        fileInputRef.current?.click()
+                                    }
+                                    label="Upload resume"
+                                />
+                            </div>
                         ) : (
                             <div className="space-y-1.5">
                                 {resumes.map((r) => (
@@ -396,7 +468,21 @@ function ApplyDialog({
                                         </div>
                                     </label>
                                 ))}
+                                {resumes.length < MAX_RESUMES && (
+                                    <UploadResumeButton
+                                        uploading={uploading}
+                                        onClick={() =>
+                                            fileInputRef.current?.click()
+                                        }
+                                        label="Upload another"
+                                    />
+                                )}
                             </div>
+                        )}
+                        {uploadError && (
+                            <p className="text-[11.5px] text-destructive">
+                                {uploadError}
+                            </p>
                         )}
                     </section>
                 </div>
@@ -437,5 +523,32 @@ function ApplyDialog({
             />
         </>,
         document.body,
+    );
+}
+
+function UploadResumeButton({
+    uploading,
+    onClick,
+    label,
+}: {
+    uploading: boolean;
+    onClick: () => void;
+    label: string;
+}) {
+    return (
+        <button
+            type="button"
+            onClick={onClick}
+            disabled={uploading}
+            className={cn(
+                "inline-flex items-center gap-1.5 h-9 px-3 rounded-md",
+                "border border-border bg-background text-[12.5px] font-medium",
+                "hover:bg-secondary/40 transition-colors cursor-pointer",
+                "disabled:opacity-60 disabled:cursor-not-allowed",
+            )}
+        >
+            <Upload className="h-3.5 w-3.5" />
+            {uploading ? "Uploading…" : label}
+        </button>
     );
 }

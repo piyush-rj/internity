@@ -18,6 +18,7 @@ import { useIsApplied } from "@/src/store/useAppliedStore";
 import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { formatDuration } from "@/src/lib/format/duration";
+import { formatListingTitle } from "@/src/lib/listingTitle";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
@@ -94,7 +95,7 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                     <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
                             <h3 className="text-[15px] font-semibold text-foreground truncate">
-                                {listing.title}
+                                {formatListingTitle(listing.title)}
                             </h3>
                             <div className="mt-1 flex items-center gap-2 flex-wrap text-[12.5px] text-muted-foreground">
                                 <span className="font-medium text-foreground/90 truncate">
@@ -322,8 +323,8 @@ function RowCheckbox({ listing }: { listing: ListingWithCompany }) {
             onClick={(e) => e.stopPropagation()}
             aria-label={
                 checked
-                    ? `Unselect ${listing.title}`
-                    : `Select ${listing.title} for bulk apply`
+                    ? `Unselect ${formatListingTitle(listing.title)}`
+                    : `Select ${formatListingTitle(listing.title)} for bulk apply`
             }
             title="Add to bulk apply"
             className="h-4 w-4 rounded border-border accent-orange-500 cursor-pointer"

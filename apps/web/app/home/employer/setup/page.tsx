@@ -470,7 +470,7 @@ export default function EmployerSetupPage() {
                                     </Field>
                                     <Field
                                         label="Public URL"
-                                        hint="spiderskill.in/company/<slug>"
+                                        hint="spiderskill.com/company/<slug>"
                                         required
                                     >
                                         <input

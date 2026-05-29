@@ -20,7 +20,7 @@ export function FeaturePillars() {
                 <SectionHeader
                     title="Everything you need to land your next role"
                     description="Smart applications, AI resume coaching, and 200+ partner companies — all in one place."
-                    cta={{ label: "Explore features", href: "#" }}
+                    cta={{ label: "Explore internships", href: "/home/internships" }}
                 />
                 <motion.div
                     initial="hidden"
