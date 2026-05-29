@@ -58,11 +58,11 @@ export function RoleGate() {
     if (!session?.user || loading || !me) return null;
 
     if (me.isAdmin) {
-        const isDashboardEntry =
-            pathname === "/home" || pathname === "/home/dashboard";
-        if (isDashboardEntry) {
-            router.replace("/admin");
-        }
+        // Admins live in /admin, not the student/employer /home shell. Bounce
+        // them there from any /home route — e.g. after signing in while
+        // applying from a public listing or the internships browse page, where
+        // they'd otherwise be stranded in the student dashboard chrome.
+        router.replace("/admin");
         return null;
     }
 

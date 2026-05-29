@@ -60,11 +60,11 @@ export function NavBar({
         setMobileOpen(false);
     }
 
-    const items = [
-        "Internships",
-        "Courses",
-        "Placement Guarantee",
-        "For employers",
+    const items: { label: string; href: string }[] = [
+        { label: "Internships", href: "/home/internships" },
+        { label: "Interview questions", href: "/interview-questions" },
+        { label: "Student FAQ's", href: "/faq" },
+        { label: "For Employers", href: "/for-employers" },
     ];
     return (
         <header
@@ -108,11 +108,11 @@ export function NavBar({
                 <nav className="hidden md:flex items-center gap-7">
                     {items.map((item) => (
                         <Link
-                            key={item}
-                            href="#"
+                            key={item.label}
+                            href={item.href}
                             className="text-[13px] text-neutral-700 hover:text-black transition-colors duration-200"
                         >
-                            {item}
+                            {item.label}
                         </Link>
                     ))}
                 </nav>
@@ -172,15 +172,15 @@ export function NavBar({
                     >
                         {items.map((item) => (
                             <Link
-                                key={item}
-                                href="#"
+                                key={item.label}
+                                href={item.href}
                                 onClick={() => setMobileOpen(false)}
                                 className={cn(
                                     "block rounded-md px-3 py-2.5 text-[14px] font-medium",
                                     "text-foreground hover:bg-secondary transition-colors",
                                 )}
                             >
-                                {item}
+                                {item.label}
                             </Link>
                         ))}
                     </nav>

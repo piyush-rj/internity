@@ -6,29 +6,26 @@ type FooterLink = { label: string; href: string };
 export function Footer() {
     const cols: Record<string, FooterLink[]> = {
         "For students": [
-            { label: "Internships", href: "#" },
-            { label: "Online trainings", href: "#" },
-            { label: "Placement Guarantee", href: "#" },
-            { label: "Resume builder", href: "#" },
-            { label: "Career advice blog", href: "#" },
+            { label: "Internships", href: "/home/internships" },
+            { label: "Interview questions", href: "/interview-questions" },
+            { label: "Student FAQ's", href: "/faq" },
         ],
         "For employers": [
-            { label: "Post an internship", href: "#" },
-            { label: "Search candidates", href: "#" },
-            { label: "Pricing", href: "/pricing" },
-            { label: "Branding solutions", href: "#" },
-            { label: "Hiring guide", href: "#" },
+            // Posting requires an account — middleware sends signed-out
+            // visitors through the sign-in flow.
+            { label: "Post an internship", href: "/home/manage-listings/new" },
+            { label: "Hire interns for your company", href: "/for-employers" },
+            { label: "Employer FAQ's", href: "/faq/employers" },
         ],
         Company: [
-            { label: "About us", href: "#" },
-            { label: "Team", href: "#" },
-            { label: "Contact", href: "#" },
+            { label: "About us", href: "/about" },
+            { label: "Contact", href: "/contact" },
+            { label: "Collaborate with us", href: "/collaborate" },
         ],
         Help: [
-            { label: "FAQs", href: "/faq" },
-            { label: "Trust & safety", href: "#" },
-            { label: "Report a problem", href: "#" },
-            { label: "Sitemap", href: "#" },
+            { label: "Privacy and policy", href: "/privacy" },
+            { label: "Terms and conditions", href: "/terms" },
+            { label: "Report a problem", href: "/contact" },
         ],
     };
     return (

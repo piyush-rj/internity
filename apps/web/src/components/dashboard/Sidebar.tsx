@@ -2,6 +2,7 @@
 import { memo, useCallback, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import {
     ChevronRightIcon,
@@ -412,11 +413,19 @@ const NavItem = memo(function NavItem({
 // of company destinations. The Dashboard link is owner-only (founder /
 // co-founder) — everyone else sees the other three. Company role + id come
 // from the caller's first membership, mirroring /home/company.
+// Reference offer-letter template — lives in a Google Doc, opened in a new
+// tab rather than an in-app route.
+const OFFER_LETTER_TEMPLATE_URL =
+    "https://docs.google.com/document/d/10f7rp7IKgqtXVNagux3H5nVVmMnVJ22wPn03mcF2sZE/edit?tab=t.0";
+
 const COMPANY_LINKS: ReadonlyArray<{
     sub: string;
     label: string;
     icon: IconComp;
     adminOnly?: boolean;
+    // When set, the item opens this external URL in a new tab instead of
+    // navigating to /home/company/:sub.
+    externalHref?: string;
 }> = [
     {
         sub: "dashboard",
@@ -427,6 +436,12 @@ const COMPANY_LINKS: ReadonlyArray<{
     { sub: "profile", label: "Profile", icon: PiBuildingsFill },
     { sub: "listings", label: "Listings", icon: PiBriefcaseFill },
     { sub: "members", label: "Members", icon: PiUsersFill },
+    {
+        sub: "offer-letter",
+        label: "Offer Letter template",
+        icon: PiFileTextFill,
+        externalHref: OFFER_LETTER_TEMPLATE_URL,
+    },
 ];
 
 function CompanySection({
@@ -464,6 +479,26 @@ function CompanySection({
                 {links.map((l) => {
                     const Icon = l.icon;
                     const active = activeSub === l.sub;
+
+                    // External reference links (e.g. the offer-letter Google
+                    // Doc) open in a new tab and never highlight as active.
+                    if (l.externalHref) {
+                        return (
+                            <a
+                                key={l.sub}
+                                href={l.externalHref}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={() => onNavigate?.()}
+                                className="flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium text-muted-foreground hover:text-foreground/80 transition-colors"
+                            >
+                                <Icon className="h-4 w-4 shrink-0 text-neutral-500" />
+                                <span className="flex-1">{l.label}</span>
+                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                            </a>
+                        );
+                    }
+
                     return (
                         <Link
                             key={l.sub}

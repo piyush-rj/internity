@@ -13,6 +13,7 @@ const SHOW_DELAY_MS = 2500;
 
 export function ProfileCompletionBanner() {
     const role = useMeStore((s) => s.me?.role);
+    const roleConfirmed = useMeStore((s) => s.me?.roleConfirmed ?? false);
     const initialized = useMeStore((s) => s.initialized);
     const { profile, loading } = useMyProfile();
 
@@ -29,6 +30,9 @@ export function ProfileCompletionBanner() {
     const eligible =
         initialized &&
         role === "STUDENT" &&
+        // Skip brand-new users who haven't confirmed their role yet — the
+        // RoleGate welcome modal owns that moment, not this nudge.
+        roleConfirmed &&
         !loading &&
         pct < 100 &&
         !dismissed;
