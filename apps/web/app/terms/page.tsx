@@ -891,8 +891,8 @@ export default function TermsPage() {
                                 &ldquo;Site&rdquo; or
                                 &ldquo;SpiderSkill&rdquo;), a platform operated
                                 by 1on1 Teaching Friend Technologies Pvt. Ltd.
-                                (hereinafter referred to
-                                as &ldquo;SpiderSkill&rdquo;, &ldquo;we&rdquo;,
+                                (hereinafter referred to as
+                                &ldquo;SpiderSkill&rdquo;, &ldquo;we&rdquo;,
                                 &ldquo;us&rdquo;, or &ldquo;our&rdquo;). These
                                 Terms &amp; Conditions (&ldquo;Terms&rdquo;)
                                 constitute a legally binding agreement between

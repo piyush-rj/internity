@@ -31,7 +31,10 @@ export function RoleGate() {
         pathname.startsWith(p),
     );
     const studentOnEmployerRoute =
-        !!me && me.role === "STUDENT" && me.roleConfirmed && onEmployerOnlyRoute;
+        !!me &&
+        me.role === "STUDENT" &&
+        me.roleConfirmed &&
+        onEmployerOnlyRoute;
 
     useEffect(() => {
         if (!studentOnEmployerRoute) return;

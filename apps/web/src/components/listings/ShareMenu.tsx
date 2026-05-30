@@ -63,7 +63,7 @@ export function ShareMenu({
                 Share
             </button>
             {open && (
-                <div className="absolute right-0 mt-1.5 z-30 w-56 rounded-md border border-border bg-popover shadow-lg p-1">
+                <div className="absolute left-0 sm:left-auto sm:right-0 mt-1.5 z-30 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-popover shadow-lg p-1">
                     <button
                         type="button"
                         onClick={copyLink}

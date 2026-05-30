@@ -64,7 +64,7 @@ export function NotificationPanel() {
             {open && (
                 <div
                     className={cn(
-                        "absolute right-2 top-[calc(100%+3px)] z-40 w-80",
+                        "absolute right-2 top-[calc(100%+3px)] z-40 w-80 max-w-[calc(100vw-1rem)]",
                         "rounded-lg border border-border bg-card shadow-lg overflow-hidden",
                     )}
                 >

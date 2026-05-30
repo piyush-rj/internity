@@ -387,7 +387,12 @@ const FOUNDER_GROUPS: FaqGroup[] = [
 
 const AUDIENCE_META: Record<
     Audience,
-    { title: string; description: string; otherLabel: string; otherHref: string }
+    {
+        title: string;
+        description: string;
+        otherLabel: string;
+        otherHref: string;
+    }
 > = {
     students: {
         title: "Student FAQs",

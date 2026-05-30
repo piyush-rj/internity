@@ -40,7 +40,9 @@ function TakedownBannerInner() {
                 <ul className="space-y-0.5 text-[11.5px] text-red-900/90 leading-snug">
                     {takenDown.slice(0, 3).map((l) => (
                         <li key={l.id} className="truncate">
-                            <span className="font-medium">{formatListingTitle(l.title)}</span>
+                            <span className="font-medium">
+                                {formatListingTitle(l.title)}
+                            </span>
                             {l.takedownReason ? ` — ${l.takedownReason}` : ""}
                         </li>
                     ))}

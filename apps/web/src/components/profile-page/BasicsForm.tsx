@@ -240,7 +240,7 @@ export function BasicsForm({
                         }
                         className={cn(inputCls(), "pr-8 appearance-none")}
                     >
-                        <option value="">Prefer not to say</option>
+                        <option value="">Select gender</option>
                         <option value="MALE">Male</option>
                         <option value="FEMALE">Female</option>
                         <option value="OTHER">Other</option>
