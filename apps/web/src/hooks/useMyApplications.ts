@@ -18,6 +18,7 @@ export type MyApplicationsState = {
     error: ApiClientError | Error | null;
     refetch: () => Promise<void>;
     withdraw: (id: string) => Promise<void>;
+    restore: (id: string) => Promise<void>;
 };
 
 export function useMyApplications(
@@ -46,9 +47,33 @@ export function useMyApplications(
         }
     }, [enabled]);
 
+    // Withdrawing keeps the row (now WITHDRAWN) so it surfaces under
+    // "Recently Deleted" and can be restored, rather than vanishing.
     const withdraw = useCallback(async (id: string) => {
         await applicationApi.withdraw(id);
-        setItems((prev) => prev.filter((a) => a.id !== id));
+        const at = new Date().toISOString();
+        setItems((prev) =>
+            prev.map((a) =>
+                a.id === id
+                    ? { ...a, status: "WITHDRAWN", statusUpdatedAt: at }
+                    : a,
+            ),
+        );
+    }, []);
+
+    const restore = useCallback(async (id: string) => {
+        const { application } = await applicationApi.restore(id);
+        setItems((prev) =>
+            prev.map((a) =>
+                a.id === id
+                    ? {
+                          ...a,
+                          status: application.status,
+                          statusUpdatedAt: application.statusUpdatedAt,
+                      }
+                    : a,
+            ),
+        );
     }, []);
 
     useEffect(() => {
@@ -56,5 +81,12 @@ export function useMyApplications(
         fetchApplications();
     }, [fetchApplications]);
 
-    return { items, loading, error, refetch: fetchApplications, withdraw };
+    return {
+        items,
+        loading,
+        error,
+        refetch: fetchApplications,
+        withdraw,
+        restore,
+    };
 }

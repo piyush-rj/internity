@@ -14,6 +14,15 @@ export type ServerMessageCreated = {
 };
 
 /**
+ * Broadcast to every participant when a message is edited by its sender.
+ * Carries the full, updated message (including the new `editedAt`).
+ */
+export type ServerMessageUpdated = {
+    type: MESSAGE_TYPE.MESSAGE_UPDATED;
+    message: ChatMessage;
+};
+
+/**
  * Broadcast to every participant when one of them marks the conversation
  * as read. Sender's UI uses this to flip outbound ticks from sent → read.
  */
@@ -50,6 +59,7 @@ export type ServerPong = { type: MESSAGE_TYPE.PONG };
 export type ServerMessage =
     | ServerConnected
     | ServerMessageCreated
+    | ServerMessageUpdated
     | ServerConversationRead
     | ServerUserPresence
     | ServerError

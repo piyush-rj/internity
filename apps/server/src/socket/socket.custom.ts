@@ -32,8 +32,41 @@ export class AuthFailed extends Error {
 
 export class CustomWS {
     private _user: WSUser | null = null;
+    private _isAlive = true;
 
     constructor(private readonly ws: WebSocket) {}
+
+    // Liveness for the server-driven heartbeat. The browser answers a ws
+    // ping frame with an automatic pong; we flip this back to true on pong.
+    // A socket that misses a full heartbeat cycle is presumed dead and gets
+    // terminated, which fires 'close' and marks the user offline. Without
+    // this, an unclean drop (sleep, network loss, killed tab) would leave
+    // the user stuck "online" until the next server restart.
+    startHeartbeat(): void {
+        this.ws.on("pong", () => {
+            this._isAlive = true;
+        });
+    }
+
+    get isAlive(): boolean {
+        return this._isAlive;
+    }
+
+    // Sends a ping and optimistically marks the socket not-alive; the next
+    // pong restores it. Call once per heartbeat tick.
+    pingLiveness(): void {
+        this._isAlive = false;
+        try {
+            this.ws.ping();
+        } catch {}
+    }
+
+    // Forcibly drops a dead socket. Triggers the 'close' handler.
+    terminate(): void {
+        try {
+            this.ws.terminate();
+        } catch {}
+    }
 
     get user(): WSUser {
         if (this._user === null) {

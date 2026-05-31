@@ -43,6 +43,11 @@ export function ConversationView({
     const [loadedConvId, setLoadedConvId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [draft, setDraft] = useState("");
+    // Non-null while the user is editing one of their own sent messages.
+    const [editing, setEditing] = useState<{
+        id: string;
+        originalBody: string;
+    } | null>(null);
     const [peerReadAt, setPeerReadAt] = useState<string | null>(peerLastReadAt);
     const [peerReadSync, setPeerReadSync] = useState({
         conversationId,
@@ -56,6 +61,16 @@ export function ConversationView({
     ) {
         setPeerReadSync({ conversationId, peerLastReadAt });
         setPeerReadAt(peerLastReadAt);
+    }
+
+    // Switching threads abandons any in-progress edit so a draft never leaks
+    // across conversations. Adjusted during render (not in an effect) to match
+    // the peer-read sync above and avoid a cascading re-render.
+    const [editConvId, setEditConvId] = useState(conversationId);
+    if (editConvId !== conversationId) {
+        setEditConvId(conversationId);
+        setEditing(null);
+        setDraft("");
     }
 
     const loading = loadedConvId !== conversationId;
@@ -95,6 +110,13 @@ export function ConversationView({
                     clearUnread(conversationId);
                     chatApi.mark_read(conversationId).catch(() => {});
                 }
+            } else if (msg.type === MESSAGE_TYPE.MESSAGE_UPDATED) {
+                if (msg.message.conversationId !== conversationId) return;
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === msg.message.id ? { ...m, ...msg.message } : m,
+                    ),
+                );
             } else if (msg.type === MESSAGE_TYPE.CONVERSATION_READ) {
                 if (msg.conversationId !== conversationId) return;
                 if (meId && msg.readerId === meId) return;
@@ -119,6 +141,32 @@ export function ConversationView({
 
     function handleSend() {
         if (!canSend || !meId) return;
+        if (editing) {
+            // Skip the round-trip if nothing actually changed.
+            if (trimmedDraft !== editing.originalBody.trim()) {
+                const editedId = editing.id;
+                socket.send({
+                    type: MESSAGE_TYPE.EDIT_MESSAGE,
+                    conversationId,
+                    messageId: editedId,
+                    body: trimmedDraft,
+                });
+                setMessages((prev) =>
+                    prev.map((m) =>
+                        m.id === editedId
+                            ? {
+                                  ...m,
+                                  body: trimmedDraft,
+                                  editedAt: new Date().toISOString(),
+                              }
+                            : m,
+                    ),
+                );
+            }
+            setEditing(null);
+            setDraft("");
+            return;
+        }
         const clientId = makeClientId();
         const optimistic: Bubble = {
             id: clientId,
@@ -127,6 +175,7 @@ export function ConversationView({
             senderId: meId,
             body: trimmedDraft,
             createdAt: new Date().toISOString(),
+            editedAt: null,
         };
         setMessages((prev) => [...prev, optimistic]);
         setDraft("");
@@ -136,6 +185,18 @@ export function ConversationView({
             conversationId,
             body: trimmedDraft,
         });
+    }
+
+    // Only own, server-acknowledged (non-optimistic) messages are editable.
+    function handleStartEdit(message: Bubble) {
+        if (message.clientId || message.senderId !== meId) return;
+        setEditing({ id: message.id, originalBody: message.body });
+        setDraft(message.body);
+    }
+
+    function handleCancelEdit() {
+        setEditing(null);
+        setDraft("");
     }
 
     const groups = useMemo(() => groupByDay(messages), [messages]);
@@ -191,6 +252,11 @@ export function ConversationView({
                                     message={m}
                                     ownId={meId}
                                     peerReadDate={peerReadDate}
+                                    onStartEdit={
+                                        peerDeleted
+                                            ? undefined
+                                            : handleStartEdit
+                                    }
                                 />
                             ))}
                         </section>
@@ -214,6 +280,8 @@ export function ConversationView({
                 disabledReason={
                     peerDeleted ? "This person deleted their account" : null
                 }
+                editing={!!editing}
+                onCancelEdit={handleCancelEdit}
             />
         </div>
     );

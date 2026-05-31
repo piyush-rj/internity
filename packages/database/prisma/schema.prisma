@@ -501,7 +501,9 @@ model Message {
 
   body String @db.Text
 
-  createdAt DateTime @default(now())
+  createdAt DateTime  @default(now())
+  // Set the first time the sender edits this message; null = never edited.
+  editedAt  DateTime?
 
   @@index([conversationId, createdAt])
   @@index([senderId])

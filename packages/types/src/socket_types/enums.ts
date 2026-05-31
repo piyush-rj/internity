@@ -3,11 +3,13 @@ export enum MESSAGE_TYPE {
     // client -> server
     AUTH = "auth",
     SEND_MESSAGE = "send_message",
+    EDIT_MESSAGE = "edit_message",
     MARK_READ = "mark_read",
     PING = "ping",
     // server -> client
     CONNECTED = "connected",
     MESSAGE_CREATED = "message_created",
+    MESSAGE_UPDATED = "message_updated",
     CONVERSATION_READ = "conversation_read",
     USER_PRESENCE = "user_presence",
     ERROR = "error",

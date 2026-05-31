@@ -5,6 +5,9 @@ export type ApplicationCardItem = {
     id: string;
     status: ApplicationStatus;
     appliedAt: string;
+    // When the status last changed — used to show when a withdrawn
+    // application was "deleted" in the Recently Deleted view.
+    statusUpdatedAt?: string;
     seenAt: string | null;
     listing: ListingWithCompany;
 };

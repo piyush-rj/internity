@@ -53,6 +53,7 @@ export default async function listMessages(
                 senderId: m.senderId,
                 body: m.body,
                 createdAt: m.createdAt.toISOString(),
+                editedAt: m.editedAt?.toISOString() ?? null,
             })),
         );
     } catch (err) {

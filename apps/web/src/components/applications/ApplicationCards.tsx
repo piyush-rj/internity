@@ -1,7 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { RotateCcw, Trash2 } from "lucide-react";
 import {
     PiBriefcase,
     PiCalendar,
@@ -15,6 +17,7 @@ import {
     type ApplicationCardItem,
 } from "@/src/components/applications/ApplicationCard";
 import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
@@ -25,13 +28,57 @@ export function ApplicationCards({
     error,
     emptyText = "You haven’t applied anywhere yet.",
     onWithdraw,
+    onRestore,
 }: {
     items: ApplicationCardItem[];
     loading: boolean;
     error: ApiClientError | Error | null;
     emptyText?: string;
-    onWithdraw?: (id: string) => void;
+    onWithdraw?: (id: string) => void | Promise<void>;
+    onRestore?: (id: string) => void | Promise<void>;
 }) {
+    // Id pending withdraw confirmation, and id of the row with an in-flight
+    // withdraw/restore request (used to disable its buttons).
+    const [confirmId, setConfirmId] = useState<string | null>(null);
+    const [busyId, setBusyId] = useState<string | null>(null);
+
+    async function doWithdraw(id: string) {
+        if (!onWithdraw) return;
+        setBusyId(id);
+        try {
+            await onWithdraw(id);
+            toast.success(
+                "Application withdrawn. You can restore it from Recently Deleted.",
+            );
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn’t withdraw the application. Try again.",
+            );
+        } finally {
+            setBusyId(null);
+            setConfirmId(null);
+        }
+    }
+
+    async function doRestore(id: string) {
+        if (!onRestore) return;
+        setBusyId(id);
+        try {
+            await onRestore(id);
+            toast.success("Application restored.");
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn’t restore the application. Try again.",
+            );
+        } finally {
+            setBusyId(null);
+        }
+    }
+
     if (error) {
         return (
             <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-[12.5px] text-destructive">
@@ -61,26 +108,51 @@ export function ApplicationCards({
                 <ApplicationItemCard
                     key={app.id}
                     application={app}
-                    onWithdraw={onWithdraw}
+                    busy={busyId === app.id}
+                    onWithdrawClick={
+                        onWithdraw ? () => setConfirmId(app.id) : undefined
+                    }
+                    onRestoreClick={
+                        onRestore ? () => doRestore(app.id) : undefined
+                    }
                 />
             ))}
+            <ConfirmDialog
+                open={confirmId !== null}
+                title="Withdraw this application?"
+                description="The company will see your application as withdrawn. You can restore it later from Recently Deleted while the internship is still open."
+                confirmLabel="Withdraw"
+                cancelLabel="Keep application"
+                variant="destructive"
+                busy={busyId !== null}
+                onCancel={() => setConfirmId(null)}
+                onConfirm={() => {
+                    if (confirmId) void doWithdraw(confirmId);
+                }}
+            />
         </div>
     );
 }
 
 function ApplicationItemCard({
     application,
-    onWithdraw,
+    busy,
+    onWithdrawClick,
+    onRestoreClick,
 }: {
     application: ApplicationCardItem;
-    onWithdraw?: (id: string) => void;
+    busy: boolean;
+    onWithdrawClick?: () => void;
+    onRestoreClick?: () => void;
 }) {
-    const { listing, status, appliedAt, seenAt } = application;
+    const { listing, status, appliedAt, seenAt, statusUpdatedAt } = application;
+    const isWithdrawn = status === "WITHDRAWN";
     const canWithdraw =
-        !!onWithdraw &&
+        !!onWithdrawClick &&
         status !== "WITHDRAWN" &&
         status !== "REJECTED" &&
         status !== "HIRED";
+    const canRestore = isWithdrawn && !!onRestoreClick;
     const stipend = formatStipend(listing.stipendMin, listing.stipendMax);
     const location =
         listing.mode === "REMOTE" ? "Work from home" : listing.city;
@@ -167,17 +239,38 @@ function ApplicationItemCard({
                     <div className="mt-3 flex items-center justify-between gap-3">
                         <span className="inline-flex items-center gap-1.5 text-[11.5px] text-muted-foreground">
                             <PiCalendar className="h-3.5 w-3.5" />
-                            Applied {formatDate(appliedAt)}
+                            {isWithdrawn && statusUpdatedAt
+                                ? `Withdrawn ${formatDate(statusUpdatedAt)}`
+                                : `Applied ${formatDate(appliedAt)}`}
                         </span>
+                        {canRestore && (
+                            <button
+                                type="button"
+                                onClick={onRestoreClick}
+                                disabled={busy}
+                                className={cn(
+                                    "inline-flex items-center gap-1.5 h-8 px-3 rounded-lg shrink-0",
+                                    "text-[12px] font-medium border border-border bg-background",
+                                    "text-foreground hover:bg-secondary transition-colors cursor-pointer",
+                                    "disabled:opacity-60 disabled:cursor-not-allowed",
+                                )}
+                            >
+                                <RotateCcw className="h-3.5 w-3.5" />
+                                {busy ? "Restoring…" : "Restore"}
+                            </button>
+                        )}
                         {canWithdraw && (
                             <button
                                 type="button"
-                                onClick={() => onWithdraw!(application.id)}
+                                onClick={onWithdrawClick}
+                                disabled={busy}
                                 aria-label="Withdraw application"
+                                title="Withdraw application"
                                 className={cn(
                                     "h-8 w-8 inline-flex items-center justify-center rounded-lg shrink-0",
                                     "text-muted-foreground hover:text-destructive hover:bg-destructive/10",
-                                    "transition-colors",
+                                    "transition-colors cursor-pointer",
+                                    "disabled:opacity-60 disabled:cursor-not-allowed",
                                 )}
                             >
                                 <Trash2 className="h-3.5 w-3.5" />

@@ -38,6 +38,29 @@ export class SocketDbService {
         });
     }
 
+    // Minimal shape for authorising an edit: who sent it and where it lives.
+    static getMessageForEdit(messageId: string): Promise<{
+        id: string;
+        conversationId: string;
+        senderId: string;
+    } | null> {
+        return prisma.message.findUnique({
+            where: { id: messageId },
+            select: { id: true, conversationId: true, senderId: true },
+        });
+    }
+
+    static updateMessageBody(
+        messageId: string,
+        body: string,
+        editedAt: Date,
+    ): Promise<Message> {
+        return prisma.message.update({
+            where: { id: messageId },
+            data: { body, editedAt },
+        });
+    }
+
     static touchConversationLastMessageAt(
         conversationId: string,
         at: Date,

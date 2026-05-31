@@ -8,6 +8,8 @@ export const ChatMessage = z.object({
     body: z.string(),
     /** ISO-8601 timestamp from the server. */
     createdAt: z.string(),
+    /** ISO-8601 of the last edit, or null if the message was never edited. */
+    editedAt: z.string().nullable(),
 });
 export type ChatMessage = z.infer<typeof ChatMessage>;
 

@@ -20,13 +20,14 @@ const SORT_OPTIONS: { value: ApplicationsSortKey; label: string }[] = [
     { value: "company_asc", label: "Company (A–Z)" },
 ];
 
+// Withdrawn is intentionally absent — withdrawn applications live in the
+// dedicated "Recently Deleted" tab, not behind a status checkbox here.
 const STATUS_OPTIONS: { value: ApplicationStatus; label: string }[] = [
     { value: "APPLIED", label: "Applied" },
     { value: "SHORTLISTED", label: "Shortlisted" },
     { value: "INTERVIEW", label: "Interview" },
     { value: "HIRED", label: "Hired" },
     { value: "REJECTED", label: "Rejected" },
-    { value: "WITHDRAWN", label: "Withdrawn" },
 ];
 
 export type ApplicationsFilters = {

@@ -16,6 +16,14 @@ export const ClientSendMessage = z.object({
 });
 export type ClientSendMessage = z.infer<typeof ClientSendMessage>;
 
+export const ClientEditMessage = z.object({
+    type: z.literal(MESSAGE_TYPE.EDIT_MESSAGE),
+    conversationId: z.string().min(1),
+    messageId: z.string().min(1),
+    body: z.string().min(1).max(4000),
+});
+export type ClientEditMessage = z.infer<typeof ClientEditMessage>;
+
 export const ClientMarkRead = z.object({
     type: z.literal(MESSAGE_TYPE.MARK_READ),
     conversationId: z.string().min(1),
@@ -28,6 +36,7 @@ export type ClientPing = z.infer<typeof ClientPing>;
 export const ClientMessage = z.discriminatedUnion("type", [
     ClientAuth,
     ClientSendMessage,
+    ClientEditMessage,
     ClientMarkRead,
     ClientPing,
 ]);

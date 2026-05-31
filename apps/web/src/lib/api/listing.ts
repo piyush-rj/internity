@@ -227,6 +227,8 @@ export const applicationApi = {
     get: (id: string) =>
         api.get<{ application: unknown }>(`/application/${id}`),
     withdraw: (id: string) => api.delete<{ ok: true }>(`/application/${id}`),
+    restore: (id: string) =>
+        api.post<{ application: Application }>(`/application/${id}/restore`),
     update_status: (
         id: string,
         status: Exclude<ApplicationStatus, "WITHDRAWN">,
