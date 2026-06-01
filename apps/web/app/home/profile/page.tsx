@@ -70,19 +70,21 @@ function StudentProfile() {
                                 profile={profile}
                                 onSaved={refetch}
                             />
-                            <ExperienceSection
-                                profile={profile}
-                                onSaved={refetch}
-                            />
                             <ProjectsSection
                                 profile={profile}
                                 onSaved={refetch}
                             />
-                            <CertificationsSection
+                            <LanguagesSection
                                 profile={profile}
                                 onSaved={refetch}
                             />
-                            <LanguagesSection
+                            {/* Optional sections last — they don't count
+                                toward profile completion. */}
+                            <ExperienceSection
+                                profile={profile}
+                                onSaved={refetch}
+                            />
+                            <CertificationsSection
                                 profile={profile}
                                 onSaved={refetch}
                             />

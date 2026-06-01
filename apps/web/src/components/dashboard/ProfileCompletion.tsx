@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { CheckIcon, ChevronRightIcon } from "@/src/components/dashboard/icons";
 import {
+    completionSteps,
     computeCompletion,
     stepsConfig,
     type StepKey,
@@ -9,13 +10,15 @@ import {
 import { useMyProfile } from "@/src/hooks/useMyProfile";
 import { cn } from "@/src/lib/utils";
 
-const editableSteps = stepsConfig.filter((s) => s.key !== "summary");
+// Only the steps that count toward completion are tracked here; experience
+// and certifications are optional and intentionally excluded.
+const trackedSteps = stepsConfig.filter((s) => completionSteps.includes(s.key));
 
 export function ProfileCompletion() {
     const { profile, loading } = useMyProfile();
     const { done, pct } = computeCompletion(profile);
-    const completed = editableSteps.filter((s) => done[s.key]).length;
-    const total = editableSteps.length;
+    const completed = trackedSteps.filter((s) => done[s.key]).length;
+    const total = trackedSteps.length;
 
     return (
         <section className="rounded-md border border-border bg-card/90 backdrop-blur-sm shadow-xs p-5 transition-shadow duration-200 hover:shadow-sm">
@@ -50,7 +53,7 @@ export function ProfileCompletion() {
             </div>
 
             <ul className="mt-4 space-y-1">
-                {editableSteps.map((step) => (
+                {trackedSteps.map((step) => (
                     <StepRow
                         key={step.key}
                         stepKey={step.key}

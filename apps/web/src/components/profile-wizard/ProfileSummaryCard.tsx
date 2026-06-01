@@ -11,6 +11,7 @@ import {
     PiUser,
 } from "react-icons/pi";
 import {
+    completionSteps,
     computeCompletion,
     stepsConfig,
     type StepKey,
@@ -31,9 +32,12 @@ export function ProfileSummaryCard({
 }) {
     const session = useUserSessionStore((s) => s.session);
     const { done, count, pct } = computeCompletion(profile);
-    const missingCount = stepsConfig.length - count;
-    const firstMissingStep = stepsConfig.find((s) => !done[s.key])?.key;
-    const firstMissingLabel = stepsConfig.find((s) => !done[s.key])?.label;
+    // Only counted (non-optional) steps drive the "missing details" nudge.
+    const missingCount = completionSteps.length - count;
+    const firstMissingStep = completionSteps.find((k) => !done[k]);
+    const firstMissingLabel = stepsConfig.find(
+        (s) => s.key === firstMissingStep,
+    )?.label;
 
     const firstName = profile?.firstName ?? "";
     const lastName = profile?.lastName ?? "";
@@ -247,7 +251,7 @@ function MissingDetailsCard({
                 </div>
                 <span className="inline-flex items-center gap-0.5 text-[11px] text-emerald-600 font-medium tabular-nums">
                     <ArrowUp className="h-3 w-3" />
-                    {Math.round(100 / 7)}%
+                    {Math.round(100 / completionSteps.length)}%
                 </span>
             </div>
             <button

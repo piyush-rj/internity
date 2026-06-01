@@ -146,8 +146,8 @@ export function ApplicantCard({
                 <div className="flex items-start gap-4">
                     <Avatar name={displayName} image={student.image ?? null} />
                     <div className="flex-1 min-w-0 space-y-1.5">
-                        <div className="flex items-center gap-3 flex-wrap">
-                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                            <div className="flex items-center gap-x-2 gap-y-1 min-w-0 flex-1 flex-wrap">
                                 {isDeleted ? (
                                     <span className="text-[14px] font-semibold truncate text-muted-foreground italic">
                                         {displayName}
@@ -182,7 +182,7 @@ export function ApplicantCard({
                             {isWithdrawn ? (
                                 <StatusPill status={applicant.status} />
                             ) : (
-                                <label className="ml-auto shrink-0 flex items-center gap-2">
+                                <label className="sm:ml-auto shrink-0 flex items-center gap-2">
                                     <span className="text-[11px] text-muted-foreground">
                                         Change status:
                                     </span>

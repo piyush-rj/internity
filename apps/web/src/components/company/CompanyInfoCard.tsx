@@ -166,7 +166,6 @@ function EditForm({
 
     function validate(): string | null {
         if (!form.name.trim()) return "Please add a company name.";
-        if (!form.linkedinUrl.trim()) return "LinkedIn URL is required.";
         if (form.linkedinUrl.trim() && !isValidUrl(form.linkedinUrl.trim())) {
             return "LinkedIn URL doesn’t look right. Include https:// at the start.";
         }
@@ -196,7 +195,7 @@ function EditForm({
             const input: CompanyUpdateInput = {
                 name: form.name.trim(),
                 website: form.website.trim() || undefined,
-                linkedinUrl: form.linkedinUrl.trim(),
+                linkedinUrl: form.linkedinUrl.trim() || undefined,
                 foundingYear: Number(form.foundingYear),
                 about: form.about.trim(),
                 industry: form.industry.trim() || undefined,
@@ -239,7 +238,7 @@ function EditForm({
                 </div>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                <Field label="Company LinkedIn" required>
+                <Field label="Company LinkedIn">
                     <input
                         type="url"
                         value={form.linkedinUrl}
@@ -301,7 +300,11 @@ function EditForm({
                     />
                 </Field>
             </div>
-            <Field label="About" required>
+            <Field
+                label="About"
+                required
+                hint="Add as much detail as possible — a richer, more detailed description attracts more candidates."
+            >
                 <textarea
                     value={form.about}
                     onChange={(e) => set("about", e.target.value)}

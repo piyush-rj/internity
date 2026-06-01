@@ -8,6 +8,7 @@ import {
     PiBuildings,
     PiClock,
     PiCurrencyInr,
+    PiLinkedinLogo,
     PiLockKey,
     PiMapPin,
     PiUsers,
@@ -228,6 +229,17 @@ function Hero({ company }: { company: CompanyDetail }) {
                             >
                                 {prettyUrl(company.website)}
                                 <PiArrowSquareOut className="h-3 w-3" />
+                            </a>
+                        )}
+                        {company.linkedinUrl && (
+                            <a
+                                href={company.linkedinUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-brand hover:underline"
+                            >
+                                <PiLinkedinLogo className="h-3.5 w-3.5" />
+                                LinkedIn
                             </a>
                         )}
                     </dl>

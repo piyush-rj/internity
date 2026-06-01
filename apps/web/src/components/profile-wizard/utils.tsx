@@ -43,6 +43,8 @@ export type StepConfig = {
     iconFilled: IconComp;
 };
 
+// Experience and certifications sit at the end: they're optional (see
+// COUNTED_STEPS below) and the form lists them after everything required.
 export const stepsConfig: StepConfig[] = [
     {
         key: "summary",
@@ -58,12 +60,6 @@ export const stepsConfig: StepConfig[] = [
         iconFilled: PiGraduationCapFill,
     },
     {
-        key: "experience",
-        label: "Experience",
-        icon: PiBriefcase,
-        iconFilled: PiBriefcaseFill,
-    },
-    {
         key: "projects",
         label: "Projects",
         icon: PiFolder,
@@ -76,22 +72,35 @@ export const stepsConfig: StepConfig[] = [
         iconFilled: PiSparkleFill,
     },
     {
-        key: "certifications",
-        label: "Certifications",
-        icon: PiSealCheck,
-        iconFilled: PiSealCheckFill,
-    },
-    {
         key: "languages",
         label: "Languages",
         icon: PiGlobeHemisphereWest,
         iconFilled: PiGlobeHemisphereWestFill,
+    },
+    {
+        key: "experience",
+        label: "Experience",
+        icon: PiBriefcase,
+        iconFilled: PiBriefcaseFill,
+    },
+    {
+        key: "certifications",
+        label: "Certifications",
+        icon: PiSealCheck,
+        iconFilled: PiSealCheckFill,
     },
 ];
 
 const editableSteps: StepKey[] = stepsConfig
     .filter((s) => s.key !== "summary")
     .map((s) => s.key);
+
+// Experience and certifications are optional — a student can hit 100% without
+// them — so they're excluded from the completion percentage and its checklist.
+const OPTIONAL_STEPS: StepKey[] = ["experience", "certifications"];
+export const completionSteps: StepKey[] = editableSteps.filter(
+    (k) => !OPTIONAL_STEPS.includes(k),
+);
 
 export function nextStep(current: StepKey): StepKey | null {
     const i = editableSteps.indexOf(current);
@@ -116,8 +125,8 @@ export function computeCompletion(profile: StudentProfile | null) {
         certifications: (profile?.certifications.length ?? 0) > 0,
         languages: (profile?.languages.length ?? 0) > 0,
     };
-    const count = editableSteps.filter((k) => done[k]).length;
-    const pct = Math.round((count / editableSteps.length) * 100);
+    const count = completionSteps.filter((k) => done[k]).length;
+    const pct = Math.round((count / completionSteps.length) * 100);
     return { done, count, pct };
 }
 

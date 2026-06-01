@@ -17,7 +17,10 @@ import {
     XAxis,
     YAxis,
 } from "recharts";
-import { computeCompletion } from "@/src/components/profile-wizard/utils";
+import {
+    completionSteps,
+    computeCompletion,
+} from "@/src/components/profile-wizard/utils";
 import { useMyApplications } from "@/src/hooks/useMyApplications";
 import { useMyProfile } from "@/src/hooks/useMyProfile";
 import { useSavedStore } from "@/src/store/useSavedStore";
@@ -215,7 +218,7 @@ export function StatsChartRow() {
                 caption={
                     profileLoading
                         ? "Loading"
-                        : `${completion.count} of 7 sections`
+                        : `${completion.count} of ${completionSteps.length} sections`
                 }
                 href="/home/profile"
             >
@@ -256,7 +259,7 @@ export function StatsChartRow() {
                             <div className="mt-1.5 text-[11.5px] text-muted-foreground">
                                 {completion.pct === 100
                                     ? "Recruiter-ready"
-                                    : `${7 - completion.count} sections left`}
+                                    : `${completionSteps.length - completion.count} sections left`}
                             </div>
                         </div>
                     </div>
