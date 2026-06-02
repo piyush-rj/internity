@@ -7,6 +7,7 @@ import { ApplicationsMock } from "@/src/components/base/FeaturedPillarsComponent
 import { IntegrationsMock } from "@/src/components/base/FeaturedPillarsComponent/IntegrationsMock";
 import { InterestsCard } from "@/src/components/base/FeaturedPillarsComponent/InterestsCard";
 import { PillarCard } from "@/src/components/base/FeaturedPillarsComponent/PillarCard";
+import { UpdatedInterestsCard } from "./FeaturedPillarsComponent/UpdatedInterestedCard";
 
 const containerVariants: Variants = {
     hidden: {},
@@ -32,14 +33,15 @@ export function FeaturePillars() {
                     variants={containerVariants}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5"
                 >
+                    <UpdatedInterestsCard />
                     <InterestsCard />
-                    <PillarCard
+                    {/* <PillarCard
                         className="bg-[#fcc03d] text-neutral-900"
                         primary="Smart applications"
                         secondary="that recruiters actually open."
                     >
                         <ApplicationsMock />
-                    </PillarCard>
+                    </PillarCard> */}
                     <PillarCard
                         className="bg-[#628FFA] text-white"
                         primary="200+ companies"
