@@ -7,7 +7,10 @@ import { ApplicationsMock } from "@/src/components/base/FeaturedPillarsComponent
 import { IntegrationsMock } from "@/src/components/base/FeaturedPillarsComponent/IntegrationsMock";
 import { InterestsCard } from "@/src/components/base/FeaturedPillarsComponent/InterestsCard";
 import { PillarCard } from "@/src/components/base/FeaturedPillarsComponent/PillarCard";
-import { UpdatedInterestsCard } from "./FeaturedPillarsComponent/UpdatedInterestedCard";
+import { UpdatedInterestsCard } from "./FeaturedPillarsComponent/update/UpdatedInterestedCard";
+import UpdatedPillarCard from "./FeaturedPillarsComponent/update/UpdatedPillarCard";
+import { UpdatedIntegrationsMock } from "./FeaturedPillarsComponent/update/UpdatedIntegrationsMock";
+import { UpdatedApplicationsMock } from "./FeaturedPillarsComponent/update/UpdatedApplicationsMock";
 
 const containerVariants: Variants = {
     hidden: {},
@@ -33,8 +36,21 @@ export function FeaturePillars() {
                     variants={containerVariants}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5"
                 >
-                    <UpdatedInterestsCard />
-                    <InterestsCard />
+                    <UpdatedPillarCard heading="Interest" >
+                        <UpdatedInterestsCard />
+                    </UpdatedPillarCard>
+                    <UpdatedPillarCard
+                        heading="Apply"
+                    >
+                        <UpdatedApplicationsMock />
+                    </UpdatedPillarCard>
+                    <UpdatedPillarCard
+                        heading="Offer"
+                    >
+                        <UpdatedIntegrationsMock />
+                    </UpdatedPillarCard>
+
+                    {/* <InterestsCard /> */}
                     {/* <PillarCard
                         className="bg-[#fcc03d] text-neutral-900"
                         primary="Smart applications"
@@ -42,13 +58,13 @@ export function FeaturePillars() {
                     >
                         <ApplicationsMock />
                     </PillarCard> */}
-                    <PillarCard
+                    {/* <PillarCard
                         className="bg-[#628FFA] text-white"
                         primary="200+ companies"
                         secondary="actively hiring on spiderskill."
                     >
                         <IntegrationsMock />
-                    </PillarCard>
+                    </PillarCard> */}
                 </motion.div>
             </SectionFrame>
         </section>
