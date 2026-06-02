@@ -2,7 +2,14 @@
 
 import { cn } from "@/src/lib/utils";
 import { ArrowUpRight } from "../icons";
-import { BarChart3, Bot, Code2, Megaphone, Palette, Target } from "lucide-react";
+import {
+    BarChart3,
+    Bot,
+    Code2,
+    Megaphone,
+    Palette,
+    Target,
+} from "lucide-react";
 import { animate, motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 
@@ -39,9 +46,7 @@ export function UpdatedInterestsCard() {
     }, []);
 
     return (
-
         <div className="h-full grid grid-cols-3 flex-1 min-h-0 gap-0.75 mt-0.75">
-
             <div className="col-span-1 relative rounded-xs overflow-hidden">
                 <div
                     className="absolute inset-0 bg-neutral-900"
@@ -60,7 +65,10 @@ export function UpdatedInterestsCard() {
                     className="absolute bottom-0 left-0 right-0 bg-[#DD6E49]"
                     initial={{ height: "0%" }}
                     animate={{ height: `${PROGRESS}%` }}
-                    transition={{ duration: (PROGRESS / 100) * 6, ease: "linear" }}
+                    transition={{
+                        duration: (PROGRESS / 100) * 6,
+                        ease: "linear",
+                    }}
                 />
             </div>
 
@@ -74,7 +82,7 @@ export function UpdatedInterestsCard() {
                             className={cn(
                                 "w-full flex justify-start items-center gap-x-2",
                                 "px-3 py-2",
-                                "bg-white rounded-xs"
+                                "bg-white rounded-xs",
                             )}
                         >
                             <Icon className="h-3.5 w-3.5" />
@@ -82,7 +90,9 @@ export function UpdatedInterestsCard() {
                         </div>
                     );
                 })}
-                <div className="h-full w-full flex justify-center items-center text-6xl font-black text-white leading-none">{count}%</div>
+                <div className="h-full w-full flex justify-center items-center text-6xl font-black text-white leading-none">
+                    {count}%
+                </div>
             </div>
         </div>
     );

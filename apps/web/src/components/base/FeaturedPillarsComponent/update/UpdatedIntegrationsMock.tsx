@@ -87,8 +87,16 @@ export function UpdatedIntegrationsMock() {
                                     className="flex items-center justify-center"
                                 >
                                     <motion.div
-                                        initial={{ opacity: 0, scale: 0.7, y: 8 }}
-                                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                                        initial={{
+                                            opacity: 0,
+                                            scale: 0.7,
+                                            y: 8,
+                                        }}
+                                        whileInView={{
+                                            opacity: 1,
+                                            scale: 1,
+                                            y: 0,
+                                        }}
                                         viewport={{ once: true }}
                                         transition={{
                                             duration: 0.55,

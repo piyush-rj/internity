@@ -261,7 +261,9 @@ function Header({
                         />
                         {(listing.stipendMin || listing.stipendMax) && (
                             <Meta
-                                icon={<PiCurrencyCircleDollar className="h-3.5 w-3.5" />}
+                                icon={
+                                    <PiCurrencyCircleDollar className="h-3.5 w-3.5" />
+                                }
                                 text={`${formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)}/mo`}
                             />
                         )}
@@ -469,7 +471,6 @@ function ModeBadge({ mode }: { mode: ListingDetailType["mode"] }) {
         </span>
     );
 }
-
 
 function formatDate(iso: string): string {
     try {

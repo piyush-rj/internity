@@ -3,7 +3,6 @@ import { motion, Variants } from "framer-motion";
 import { ArrowUpRight } from "../icons";
 import { ReactNode } from "react";
 
-
 const cardVariants: Variants = {
     hidden: { opacity: 0, y: 28 },
     show: {
@@ -13,10 +12,16 @@ const cardVariants: Variants = {
     },
 };
 
-
-export default function UpdatedPillarCard({ heading, children, className }: { heading: string, children: ReactNode, className?: string }) {
+export default function UpdatedPillarCard({
+    heading,
+    children,
+    className,
+}: {
+    heading: string;
+    children: ReactNode;
+    className?: string;
+}) {
     return (
-
         <motion.article
             variants={cardVariants}
             className={cn(
@@ -35,16 +40,16 @@ export default function UpdatedPillarCard({ heading, children, className }: { he
                     </span>
                 </div>
                 <div className="col-span-1 aspect-square bg-blue-200 rounded-xs flex justify-center items-center">
-                    <a href="/home/internships" aria-label="Pick your interests">
+                    <a
+                        href="/home/internships"
+                        aria-label="Pick your interests"
+                    >
                         <ArrowUpRight className="w-6 h-6" />
                     </a>
                 </div>
             </div>
 
-            <div className="relative flex-1 min-h-0">
-            {children}
-            </div>
-
+            <div className="relative flex-1 min-h-0">{children}</div>
         </motion.article>
-    )
+    );
 }

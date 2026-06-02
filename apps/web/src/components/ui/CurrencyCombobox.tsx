@@ -12,49 +12,45 @@ type Props = {
 };
 
 export function CurrencyCombobox({ value, onChange, disabled }: Props) {
-    const [query, setQuery] = useState<string>(() => {
-        const sym = getCurrencySymbol(value);
-        return value ? `${sym} ${value}` : "";
-    });
+    const [searchQuery, setSearchQuery] = useState("");
     const [open, setOpen] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const containerRef = useRef<HTMLDivElement>(null);
 
-    useEffect(() => {
-        if (!open) {
-            const sym = getCurrencySymbol(value);
-            setQuery(value ? `${sym} ${value}` : "");
+    const displayValue = open
+        ? searchQuery
+        : value
+          ? `${getCurrencySymbol(value)} ${value}`
+          : "";
+
+    function onDown(e: MouseEvent) {
+        if (
+            containerRef.current &&
+            !containerRef.current.contains(e.target as Node)
+        ) {
+            setOpen(false);
         }
-    }, [value, open]);
+    }
 
     useEffect(() => {
         if (!open) return;
-        function onDown(e: MouseEvent) {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(e.target as Node)
-            ) {
-                setOpen(false);
-            }
-        }
         document.addEventListener("mousedown", onDown);
         return () => document.removeEventListener("mousedown", onDown);
     }, [open]);
 
     const matches = useMemo(() => {
-        const q = query.trim().toLowerCase();
+        const q = searchQuery.trim().toLowerCase();
         if (!q) return CURRENCIES.slice();
         return CURRENCIES.filter(
             (c) =>
                 c.code.toLowerCase().includes(q) ||
                 c.name.toLowerCase().includes(q),
         );
-    }, [query]);
+    }, [searchQuery]);
 
     function pick(code: string) {
         onChange(code);
-        const sym = getCurrencySymbol(code);
-        setQuery(`${sym} ${code}`);
+        setSearchQuery("");
         setOpen(false);
     }
 
@@ -82,21 +78,19 @@ export function CurrencyCombobox({ value, onChange, disabled }: Props) {
         <div className="relative" ref={containerRef}>
             <input
                 type="text"
-                value={query}
+                value={displayValue}
                 onChange={(e) => {
-                    setQuery(e.target.value);
+                    setSearchQuery(e.target.value);
                     setOpen(true);
                     setHighlightedIndex(-1);
                 }}
                 onFocus={() => {
-                    setQuery("");
+                    setSearchQuery("");
                     setOpen(true);
                 }}
                 onBlur={() => {
                     setTimeout(() => {
-                        if (!open) return;
-                        const sym = getCurrencySymbol(value);
-                        setQuery(value ? `${sym} ${value}` : "");
+                        setOpen(false);
                     }, 150);
                 }}
                 onKeyDown={handleKeyDown}

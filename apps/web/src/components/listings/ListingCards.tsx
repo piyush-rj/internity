@@ -79,7 +79,11 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
     const closed = !!listing.closedAt;
     const stipend =
         listing.stipendMin || listing.stipendMax
-            ? formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)
+            ? formatStipend(
+                  listing.stipendMin,
+                  listing.stipendMax,
+                  listing.currency,
+              )
             : null;
     const location =
         listing.mode === "REMOTE" ? "Work from home" : listing.city;
@@ -355,7 +359,6 @@ function CardSkeleton() {
         </div>
     );
 }
-
 
 function timeAgo(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();

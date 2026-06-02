@@ -36,17 +36,13 @@ export function FeaturePillars() {
                     variants={containerVariants}
                     className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5"
                 >
-                    <UpdatedPillarCard heading="Interest" >
+                    <UpdatedPillarCard heading="Interest">
                         <UpdatedInterestsCard />
                     </UpdatedPillarCard>
-                    <UpdatedPillarCard
-                        heading="Apply"
-                    >
+                    <UpdatedPillarCard heading="Apply">
                         <UpdatedApplicationsMock />
                     </UpdatedPillarCard>
-                    <UpdatedPillarCard
-                        heading="Offer"
-                    >
+                    <UpdatedPillarCard heading="Offer">
                         <UpdatedIntegrationsMock />
                     </UpdatedPillarCard>
 

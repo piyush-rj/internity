@@ -231,7 +231,11 @@ function ListingRow({
             <Td compact={compact} className="tabular-nums">
                 {listing.stipendMin || listing.stipendMax ? (
                     <span className="text-foreground font-medium">
-                        {formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)}
+                        {formatStipend(
+                            listing.stipendMin,
+                            listing.stipendMax,
+                            listing.currency,
+                        )}
                         <span className="text-muted-foreground font-normal">
                             {" "}
                             /mo
@@ -479,7 +483,6 @@ function ErrorRow({ message }: { message: string }) {
         </div>
     );
 }
-
 
 function timeAgo(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();

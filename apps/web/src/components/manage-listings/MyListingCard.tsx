@@ -436,7 +436,6 @@ function ModeBadge({ mode }: { mode: MyListing["mode"] }) {
     );
 }
 
-
 function timeAgo(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();
     const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));

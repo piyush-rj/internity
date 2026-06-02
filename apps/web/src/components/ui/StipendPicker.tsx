@@ -168,7 +168,8 @@ function ComboNumber({
                                 value === s && "bg-secondary",
                             )}
                         >
-                            {currencySymbol}{s.toLocaleString("en-US")}
+                            {currencySymbol}
+                            {s.toLocaleString("en-US")}
                             {!isStandardStep(s, steps) && " (custom)"}
                         </button>
                     ))}

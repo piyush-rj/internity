@@ -404,7 +404,6 @@ function NotFound({ message }: { message: string | null }) {
     );
 }
 
-
 function prettyUrl(url: string): string {
     try {
         return new URL(url).host.replace(/^www\./, "");
