@@ -7,8 +7,8 @@ import {
     PiBriefcase,
     PiBuildings,
     PiClock,
-    PiCurrencyInr,
     PiLinkedinLogo,
+    PiCurrencyCircleDollar,
     PiLockKey,
     PiMapPin,
     PiUsers,
@@ -21,6 +21,7 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { cn } from "@/src/lib/utils";
+import { formatStipend } from "@/src/lib/catalog/currencies";
 
 type CompanyDetail = Company & { listings: Listing[] };
 
@@ -281,10 +282,11 @@ function PublicListingRow({
                 <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-muted-foreground">
                     {(listing.stipendMin || listing.stipendMax) && (
                         <span className="inline-flex items-center gap-1 text-foreground font-medium">
-                            <PiCurrencyInr className="h-3 w-3" />
+                            <PiCurrencyCircleDollar className="h-3 w-3" />
                             {formatStipend(
                                 listing.stipendMin,
                                 listing.stipendMax,
+                                listing.currency,
                             )}
                             <span className="text-muted-foreground font-normal">
                                 /mo
@@ -402,17 +404,6 @@ function NotFound({ message }: { message: string | null }) {
     );
 }
 
-function formatStipend(min: number | null, max: number | null): string {
-    if (min && max && min !== max)
-        return `₹${formatNum(min)}–${formatNum(max)}`;
-    const v = max ?? min;
-    return v ? `₹${formatNum(v)}` : "—";
-}
-
-function formatNum(n: number): string {
-    if (n >= 1000) return `${(n / 1000).toFixed(0)}k`;
-    return String(n);
-}
 
 function prettyUrl(url: string): string {
     try {

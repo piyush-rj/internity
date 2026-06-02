@@ -39,6 +39,7 @@ const Body = z
         preferences: z.array(z.string()).default([]),
         skillTagsRaw: z.array(z.string()).default([]),
         screeningQuestions: ScreeningQuestionsSchema.default([]),
+        currency: z.string().optional(),
         // Stipend is compulsory on create. Pass 0 explicitly for unpaid roles.
         stipendMin: z.number().int().min(0, "Stipend is required."),
         stipendMax: z.number().int().min(0).nullable().optional(),
@@ -112,6 +113,7 @@ export default async function createListing(
             skillTagsRaw: normalize(body.skillTagsRaw),
             screeningQuestions:
                 body.screeningQuestions as Prisma.InputJsonValue,
+            currency: body.currency ?? "INR",
             stipendMin: body.stipendMin ?? null,
             stipendMax: body.stipendMax ?? null,
             durationMonths: body.durationMonths ?? null,

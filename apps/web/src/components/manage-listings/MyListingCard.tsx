@@ -7,7 +7,7 @@ import { AlertTriangle, ChevronRight, Pencil, Trash2 } from "lucide-react";
 import {
     PiBriefcase,
     PiClock,
-    PiCurrencyInr,
+    PiCurrencyCircleDollar,
     PiMapPin,
     PiUsers,
 } from "react-icons/pi";
@@ -19,6 +19,7 @@ import { useConfirm } from "@/src/hooks/useConfirm";
 import { formatDuration } from "@/src/lib/format/duration";
 import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
+import { formatStipend } from "@/src/lib/catalog/currencies";
 
 type BusyKind =
     | "close"
@@ -141,11 +142,12 @@ export function MyListingCard({
                         </li>
                         {(listing.stipendMin || listing.stipendMax) && (
                             <li className="inline-flex items-center gap-1.5 tabular-nums">
-                                <PiCurrencyInr className="h-3.5 w-3.5 text-muted-foreground" />
+                                <PiCurrencyCircleDollar className="h-3.5 w-3.5 text-muted-foreground" />
                                 <span>
                                     {formatStipend(
                                         listing.stipendMin,
                                         listing.stipendMax,
+                                        listing.currency,
                                     )}{" "}
                                     /mo
                                 </span>
@@ -434,17 +436,6 @@ function ModeBadge({ mode }: { mode: MyListing["mode"] }) {
     );
 }
 
-function formatStipend(min: number | null, max: number | null): string {
-    if (min && max && min !== max)
-        return `₹${formatNum(min)}–${formatNum(max)}`;
-    const v = max ?? min;
-    return v ? `₹${formatNum(v)}` : "—";
-}
-
-function formatNum(n: number): string {
-    if (n >= 1000) return `${(n / 1000).toFixed(0)}k`;
-    return String(n);
-}
 
 function timeAgo(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();

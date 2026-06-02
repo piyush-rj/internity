@@ -8,7 +8,7 @@ import {
     PiBriefcase,
     PiBuildings,
     PiClock,
-    PiCurrencyInr,
+    PiCurrencyCircleDollar,
     PiCalendar,
     PiMapPin,
     PiPulse,
@@ -22,6 +22,7 @@ import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { formatDuration } from "@/src/lib/format/duration";
 import { formatListingTitle } from "@/src/lib/listingTitle";
 import { cn } from "@/src/lib/utils";
+import { formatStipend } from "@/src/lib/catalog/currencies";
 
 export function ListingList({
     items,
@@ -90,7 +91,7 @@ export function ListingList({
                                 </ColHeader>
                                 <ColHeader
                                     icon={
-                                        <PiCurrencyInr className="h-3.5 w-3.5" />
+                                        <PiCurrencyCircleDollar className="h-3.5 w-3.5" />
                                     }
                                     compact={compact}
                                 >
@@ -230,7 +231,7 @@ function ListingRow({
             <Td compact={compact} className="tabular-nums">
                 {listing.stipendMin || listing.stipendMax ? (
                     <span className="text-foreground font-medium">
-                        {formatStipend(listing.stipendMin, listing.stipendMax)}
+                        {formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)}
                         <span className="text-muted-foreground font-normal">
                             {" "}
                             /mo
@@ -479,18 +480,6 @@ function ErrorRow({ message }: { message: string }) {
     );
 }
 
-function formatStipend(min: number | null, max: number | null): string {
-    if (min && max && min !== max)
-        return `₹${formatNum(min)}–${formatNum(max)}`;
-    const v = max ?? min;
-    return v ? `₹${formatNum(v)}` : "—";
-}
-
-function formatNum(n: number): string {
-    if (n >= 100000) return `${(n / 1000).toFixed(0)}k`;
-    if (n >= 1000) return `${(n / 1000).toFixed(0)}k`;
-    return String(n);
-}
 
 function timeAgo(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();

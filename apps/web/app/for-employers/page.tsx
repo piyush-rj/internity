@@ -282,7 +282,8 @@ export default function ForEmployersPage() {
             <main className="flex-1 pt-14">
                 <PolicyLayout
                     eyebrow="For Employers"
-                    title="Find Talented Students and Early-Career Professionals"
+                    title="Hire India's Top Interns in 15 Days"
+                    subTitle="Connect with motivated students and early-career talent ready to contribute."
                     intro={
                         <>
                             <P>

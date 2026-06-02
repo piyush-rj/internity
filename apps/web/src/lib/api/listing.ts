@@ -91,6 +91,7 @@ export type ListingInput = {
     preferences?: string[];
     skillTagsRaw?: string[];
     screeningQuestions?: ScreeningQuestion[];
+    currency?: string;
     // Compulsory on create. Pass 0 explicitly for unpaid roles.
     stipendMin: number;
     stipendMax?: number;

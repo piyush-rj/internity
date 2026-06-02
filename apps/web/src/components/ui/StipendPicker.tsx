@@ -33,6 +33,7 @@ export function StipendPicker({
     onMax,
     placeholderMin = "Min",
     placeholderMax = "Max",
+    currencySymbol = "₹",
 }: {
     min: number | null;
     max: number | null;
@@ -40,6 +41,7 @@ export function StipendPicker({
     onMax: (v: number | null) => void;
     placeholderMin?: string;
     placeholderMax?: string;
+    currencySymbol?: string;
 }) {
     const maxSteps = useMemo(() => maxStepsFor(min ?? 1000), [min]);
     return (
@@ -53,6 +55,7 @@ export function StipendPicker({
                 steps={MIN_STEPS}
                 placeholder={placeholderMin}
                 ariaLabel="Stipend min"
+                currencySymbol={currencySymbol}
             />
             <ComboNumber
                 value={max}
@@ -60,6 +63,7 @@ export function StipendPicker({
                 steps={maxSteps}
                 placeholder={placeholderMax}
                 ariaLabel="Stipend max"
+                currencySymbol={currencySymbol}
             />
         </div>
     );
@@ -71,12 +75,14 @@ function ComboNumber({
     steps,
     placeholder,
     ariaLabel,
+    currencySymbol = "₹",
 }: {
     value: number | null;
     onChange: (v: number | null) => void;
     steps: readonly number[];
     placeholder: string;
     ariaLabel: string;
+    currencySymbol?: string;
 }) {
     const [text, setText] = useState<string>(
         value !== null ? String(value) : "",
@@ -112,7 +118,7 @@ function ComboNumber({
         <div className="relative">
             <div className="flex items-center rounded-md border border-border bg-background focus-within:border-foreground/40 focus-within:ring-3 focus-within:ring-foreground/5">
                 <span className="pl-3 pr-2 text-muted-foreground text-[13px]">
-                    ₹
+                    {currencySymbol}
                 </span>
                 <input
                     ref={inputRef}
@@ -162,7 +168,7 @@ function ComboNumber({
                                 value === s && "bg-secondary",
                             )}
                         >
-                            ₹{s.toLocaleString("en-IN")}
+                            {currencySymbol}{s.toLocaleString("en-US")}
                             {!isStandardStep(s, steps) && " (custom)"}
                         </button>
                     ))}

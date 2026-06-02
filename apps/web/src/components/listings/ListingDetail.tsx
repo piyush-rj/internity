@@ -9,7 +9,7 @@ import {
     PiBuildings,
     PiCalendarBlank,
     PiClock,
-    PiCurrencyInr,
+    PiCurrencyCircleDollar,
     PiLinkedinLogoFill,
     PiMapPin,
     PiUsers,
@@ -22,6 +22,7 @@ import { VerifiedBadge } from "@/src/components/listings/VerifiedBadge";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { formatDuration } from "@/src/lib/format/duration";
 import { formatListingTitle } from "@/src/lib/listingTitle";
+import { formatStipend } from "@/src/lib/catalog/currencies";
 import { cn } from "@/src/lib/utils";
 
 export function ListingDetail({
@@ -260,8 +261,8 @@ function Header({
                         />
                         {(listing.stipendMin || listing.stipendMax) && (
                             <Meta
-                                icon={<PiCurrencyInr className="h-3.5 w-3.5" />}
-                                text={`${formatStipend(listing.stipendMin, listing.stipendMax)}/mo`}
+                                icon={<PiCurrencyCircleDollar className="h-3.5 w-3.5" />}
+                                text={`${formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)}/mo`}
                             />
                         )}
                         {durationLabel && (
@@ -337,9 +338,9 @@ function KeyDetails({ listing }: { listing: ListingDetailType }) {
             )}
             {(listing.stipendMin || listing.stipendMax) && (
                 <Row
-                    icon={<PiCurrencyInr className="h-3.5 w-3.5" />}
+                    icon={<PiCurrencyCircleDollar className="h-3.5 w-3.5" />}
                     label="Stipend"
-                    value={`${formatStipend(listing.stipendMin, listing.stipendMax)}/mo`}
+                    value={`${formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)}/mo`}
                 />
             )}
             {listing.openings && (
@@ -469,17 +470,6 @@ function ModeBadge({ mode }: { mode: ListingDetailType["mode"] }) {
     );
 }
 
-function formatStipend(min: number | null, max: number | null): string {
-    if (min && max && min !== max)
-        return `₹${formatNum(min)}–${formatNum(max)}`;
-    const v = max ?? min;
-    return v ? `₹${formatNum(v)}` : "—";
-}
-
-function formatNum(n: number): string {
-    if (n >= 1000) return `${(n / 1000).toFixed(0)}k`;
-    return String(n);
-}
 
 function formatDate(iso: string): string {
     try {

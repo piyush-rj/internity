@@ -39,6 +39,7 @@ const Body = z.object({
     preferences: z.array(z.string()).optional(),
     skillTagsRaw: z.array(z.string()).optional(),
     screeningQuestions: ScreeningQuestionsSchema.optional(),
+    currency: z.string().optional(),
     // Stipend stays compulsory on update — `optional` lets callers omit
     // the field entirely (no change), but if it IS sent it must be a
     // non-negative number, not null.
@@ -117,6 +118,7 @@ export default async function updateListing(
                 screeningQuestions:
                     body.screeningQuestions as Prisma.InputJsonValue,
             }),
+            ...(body.currency !== undefined && { currency: body.currency }),
             ...(body.stipendMin !== undefined && {
                 stipendMin: body.stipendMin,
             }),

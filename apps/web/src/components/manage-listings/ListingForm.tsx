@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { CityCombobox } from "@/src/components/ui/CityCombobox";
+import { CurrencyCombobox } from "@/src/components/ui/CurrencyCombobox";
+import { getCurrencySymbol } from "@/src/lib/catalog/currencies";
 import { TagsInput } from "@/src/components/ui/TagsInput";
 import { StipendPicker } from "@/src/components/ui/StipendPicker";
 import { DurationPicker } from "@/src/components/ui/DurationPicker";
@@ -52,6 +54,7 @@ type FormState = {
     preferences: string[];
     skillTags: string[];
     screeningQuestions: ScreeningQuestion[];
+    currency: string;
     stipendMin: number | null;
     stipendMax: number | null;
     durationMonths: number | null;
@@ -77,6 +80,7 @@ const empty: FormState = {
     preferences: [],
     skillTags: [],
     screeningQuestions: [],
+    currency: "INR",
     stipendMin: null,
     stipendMax: null,
     durationMonths: null,
@@ -125,6 +129,7 @@ function fromListing(l: Listing): FormState {
         preferences: l.preferences ?? [],
         skillTags: l.skillTagsRaw ?? [],
         screeningQuestions: l.screeningQuestions ?? [],
+        currency: l.currency ?? "INR",
         stipendMin: l.stipendMin,
         stipendMax: l.stipendMax,
         durationMonths: l.durationMonths,
@@ -356,6 +361,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 form.skillTags.length > 0 ? form.skillTags : undefined,
             screeningQuestions:
                 cleanedQuestions.length > 0 ? cleanedQuestions : undefined,
+            currency: form.currency,
             stipendMin: form.stipendMin,
             stipendMax: form.stipendMax ?? undefined,
             durationMonths: form.durationMonths ?? undefined,
@@ -578,8 +584,16 @@ export const ListingForm = forwardRef(function ListingForm(
             </Section>
 
             <Section title="Compensation & logistics">
+                <Field label="Currency" required>
+                    <div className="max-w-xs">
+                        <CurrencyCombobox
+                            value={form.currency}
+                            onChange={(v) => set("currency", v)}
+                        />
+                    </div>
+                </Field>
                 <Field
-                    label="Stipend (₹/month)"
+                    label="Stipend (per month)"
                     hint="Pick a preset or type your own amount. Enter 0 if the role is unpaid."
                     required
                 >
@@ -588,6 +602,7 @@ export const ListingForm = forwardRef(function ListingForm(
                         max={form.stipendMax}
                         onMin={(v) => set("stipendMin", v)}
                         onMax={(v) => set("stipendMax", v)}
+                        currencySymbol={getCurrencySymbol(form.currency)}
                     />
                 </Field>
                 <Field

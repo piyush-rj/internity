@@ -68,7 +68,7 @@ export default function NewListingPage() {
                         </div>
                     )}
                 </div>
-                <div className="lg:sticky lg:top-20 lg:self-start">
+                <div className="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden scrollbar-none">
                     <PostListingInstructions />
                 </div>
             </section>

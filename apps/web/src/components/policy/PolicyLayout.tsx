@@ -12,6 +12,7 @@ export type PolicySection = {
 export type PolicyLayoutProps = {
     eyebrow?: string;
     title: string;
+    subTitle?: string;
     updated?: string;
     intro?: React.ReactNode;
     sections: PolicySection[];
@@ -21,6 +22,7 @@ export type PolicyLayoutProps = {
 export function PolicyLayout({
     eyebrow,
     title,
+    subTitle,
     updated,
     intro,
     sections,
@@ -87,6 +89,9 @@ export function PolicyLayout({
                 <h1 className="mt-3 text-[32px] sm:text-[36px] font-semibold tracking-tight leading-tight">
                     {title}
                 </h1>
+                <h3 className="text-[16px] tracking-tight leading-tight">
+                    {subTitle}
+                </h3>
                 {updated && (
                     <p className="mt-2 text-[12.5px] text-muted-foreground">
                         Last updated: {updated}

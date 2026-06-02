@@ -8,7 +8,7 @@ import {
     PiBriefcase,
     PiCheckCircleFill,
     PiClock,
-    PiCurrencyInr,
+    PiCurrencyCircleDollar,
     PiLightning,
     PiMapPin,
 } from "react-icons/pi";
@@ -19,6 +19,7 @@ import { useMe } from "@/src/hooks/useMe";
 import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
 import { formatDuration } from "@/src/lib/format/duration";
 import { formatListingTitle } from "@/src/lib/listingTitle";
+import { formatStipend } from "@/src/lib/catalog/currencies";
 import { useIsSaved, useSavedStore } from "@/src/store/useSavedStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
@@ -76,7 +77,10 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
     const isFresh =
         now - new Date(listing.createdAt).getTime() < 7 * 24 * 60 * 60 * 1000;
     const closed = !!listing.closedAt;
-    const stipend = formatStipend(listing.stipendMin, listing.stipendMax);
+    const stipend =
+        listing.stipendMin || listing.stipendMax
+            ? formatStipend(listing.stipendMin, listing.stipendMax, listing.currency)
+            : null;
     const location =
         listing.mode === "REMOTE" ? "Work from home" : listing.city;
     return (
@@ -132,7 +136,7 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                         )}
                         {stipend && (
                             <li className="inline-flex items-center gap-1.5 tabular-nums">
-                                <PiCurrencyInr className="h-3.5 w-3.5 text-muted-foreground" />
+                                <PiCurrencyCircleDollar className="h-3.5 w-3.5 text-muted-foreground" />
                                 <span>{stipend} /mo</span>
                             </li>
                         )}
@@ -352,18 +356,6 @@ function CardSkeleton() {
     );
 }
 
-function formatStipend(min: number | null, max: number | null): string | null {
-    if (!min && !max) return null;
-    if (min && max && min !== max)
-        return `₹${formatNum(min)}–${formatNum(max)}`;
-    const v = max ?? min;
-    return v ? `₹${formatNum(v)}` : null;
-}
-
-function formatNum(n: number): string {
-    if (n >= 1000) return `${Math.round(n / 1000)}k`;
-    return String(n);
-}
 
 function timeAgo(iso: string): string {
     const diffMs = Date.now() - new Date(iso).getTime();
