@@ -1,7 +1,10 @@
+import { Dashboard } from "@/src/components/base/Dashboard";
 import { FeaturePillars } from "@/src/components/base/FeaturePillars";
 import { FinalCTA } from "@/src/components/base/FinalCTA";
 import { Footer } from "@/src/components/base/Footer";
 import { Hero } from "@/src/components/base/Hero";
+import { Announcement } from "@/src/components/base/HeroComponents/Announcement";
+import { HeroSearch } from "@/src/components/base/HeroComponents/HeroSearch";
 import { InternshipsSection } from "@/src/components/base/InternshipsSection";
 import { SocialProofGallery } from "@/src/components/base/SocialProofGallery";
 import { NavBar } from "@/src/components/navbar/NavBar";
@@ -17,7 +20,7 @@ export default function Home() {
                     <Hero />
                 </SectionWrap>
                 <SectionWrap>
-                    <SocialProofGallery />
+                    <Dashboard />
                 </SectionWrap>
                 <SectionWrap>
                     <FeaturePillars />
