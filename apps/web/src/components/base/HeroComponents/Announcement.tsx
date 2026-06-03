@@ -11,7 +11,6 @@ export function Announcement() {
                 "rounded-full border border-black/10 bg-card",
                 "pl-3 pr-1 py-0.75 sm:pl-4 sm:pr-0.75",
                 "sm:text-[12px] font-medium text-[11px]",
-                "hover:bg-secondary/60 transition-colors transform duration-250",
                 "whitespace-nowrap",
             )}
         >
@@ -28,14 +27,13 @@ export function Announcement() {
             <span
                 className={cn(
                     "inline-flex items-center gap-1 shrink-0",
-                    "rounded-full border border-border bg-background",
+                    "rounded-full border border-border bg-neutral-800",
                     "px-2 py-0.5 sm:px-2.5 sm:py-1",
-                    "sm:text-[12px] text-muted-foreground text-[10px]",
-                    "group-hover:text-foreground transition-colors transform duration-200",
+                    "sm:text-[12px] text-neutral-200 group-hover:text-neutral-100 text-[10px] group",
                 )}
             >
                 <span className="hidden sm:inline">Read more</span>
-                <ArrowUpRight className="h-3 w-3" />
+                <ArrowUpRight className="h-3 w-3 group-hover:-translate-y-px group-hover:translate-x-px transition-all transform duration-200" />
             </span>
         </a>
     );

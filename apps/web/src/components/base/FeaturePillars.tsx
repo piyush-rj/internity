@@ -7,10 +7,6 @@ import { ApplicationsMock } from "@/src/components/base/FeaturedPillarsComponent
 import { IntegrationsMock } from "@/src/components/base/FeaturedPillarsComponent/IntegrationsMock";
 import { InterestsCard } from "@/src/components/base/FeaturedPillarsComponent/InterestsCard";
 import { PillarCard } from "@/src/components/base/FeaturedPillarsComponent/PillarCard";
-import { UpdatedInterestsCard } from "./FeaturedPillarsComponent/update/UpdatedInterestedCard";
-import UpdatedPillarCard from "./FeaturedPillarsComponent/update/UpdatedPillarCard";
-import { UpdatedIntegrationsMock } from "./FeaturedPillarsComponent/update/UpdatedIntegrationsMock";
-import { UpdatedApplicationsMock } from "./FeaturedPillarsComponent/update/UpdatedApplicationsMock";
 
 const containerVariants: Variants = {
     hidden: {},

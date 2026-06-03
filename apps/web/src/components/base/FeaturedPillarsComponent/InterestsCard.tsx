@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { ArrowUpRight } from "@/src/components/base/FeaturedPillarsComponent/icons";
 import { cn } from "@/src/lib/utils";
+import Image from "next/image";
 
 const cardVariants: Variants = {
     hidden: { opacity: 0, y: 28 },
@@ -43,14 +44,20 @@ export function InterestsCard() {
             )}
         >
             <div aria-hidden className="absolute inset-0 bg-[#DD6E49]" />
-            <div className="pointer-events-none absolute inset-x-0 top-28 bottom-28 z-0">
-                {/* <Image
-                    src="/platform-images/image7.png"
+            <div className="pointer-events-none absolute inset-0 z-0">
+                <Image
+                    src="/platform-images/image4.png"
                     alt="Student picking their interests on SpiderSkill"
-                    className="object-contain object-center p-8"
+                    className="object-cover"
                     fill
                     unoptimized
-                /> */}
+                />
+                {/* Scrim so the overlaid title and chips stay legible over the
+                    full-bleed photo. */}
+                <div
+                    aria-hidden
+                    className="absolute inset-0 bg-linear-to-b from-black/55 via-black/10 to-black/55"
+                />
             </div>
 
             <header className="relative z-10 flex items-start justify-between gap-3 p-6 sm:p-8">
@@ -82,7 +89,7 @@ export function InterestsCard() {
 
             <div className="relative z-10 mt-auto p-5 sm:p-6">
                 <div className="flex flex-wrap gap-1.5">
-                    {INTERESTS.map((it, i) => {
+                    {INTERESTS.map((it) => {
                         const Icon = it.Icon;
                         return (
                             <span

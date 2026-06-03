@@ -1,7 +1,5 @@
 "use client";
-
 import { cn } from "@/src/lib/utils";
-import { ArrowUpRight } from "../icons";
 import {
     BarChart3,
     Bot,
@@ -13,14 +11,14 @@ import {
 import { animate, motion, Variants } from "framer-motion";
 import { useEffect, useState } from "react";
 
-const cardVariants: Variants = {
-    hidden: { opacity: 0, y: 28 },
-    show: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
-    },
-};
+// const cardVariants: Variants = {
+//     hidden: { opacity: 0, y: 28 },
+//     show: {
+//         opacity: 1,
+//         y: 0,
+//         transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+//     },
+// };
 
 const INTERESTS = [
     { label: "Frontend", Icon: Code2 },

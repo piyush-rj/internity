@@ -1,7 +1,9 @@
 import "dotenv/config";
 import { z } from "zod";
 
-if (process.env.PORT && !process.env.SERVER_PORT) {
+// On hosts like Render the platform assigns the port via PORT and scans it for
+// the health check, so PORT must win over any (possibly stale) SERVER_PORT.
+if (process.env.PORT) {
     process.env.SERVER_PORT = process.env.PORT;
 }
 

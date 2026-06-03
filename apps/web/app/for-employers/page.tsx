@@ -284,6 +284,10 @@ export default function ForEmployersPage() {
                     eyebrow="For Employers"
                     title="Hire India's Top Interns in 15 Days"
                     subTitle="Connect with motivated students and early-career talent ready to contribute."
+                    heroImage={{
+                        src: "/platform-images/image8.jpg",
+                        alt: "Two professionals shaking hands after a successful hire",
+                    }}
                     intro={
                         <>
                             <P>

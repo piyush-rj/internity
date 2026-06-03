@@ -1,7 +1,8 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { cn } from "@/src/lib/utils";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 
 type CTA = {
     label: string;
@@ -60,14 +61,24 @@ export function SectionHeader({
                         isCenter && "flex justify-center",
                     )}
                 >
-                    <Button
-                        variant={"exec-dark"}
-                        className={cn(
-                            "inline-flex items-center gap-2 h-10 px-5",
-                        )}
-                    >
-                        {cta.label}
-                    </Button>
+                    {cta.href ? (
+                        <Link
+                            href={cta.href}
+                            className={cn(
+                                buttonVariants({ variant: "exec-dark" }),
+                                "inline-flex items-center gap-2 h-10 px-5",
+                            )}
+                        >
+                            {cta.label}
+                        </Link>
+                    ) : (
+                        <Button
+                            variant="exec-dark"
+                            className="inline-flex items-center gap-2 h-10 px-5"
+                        >
+                            {cta.label}
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

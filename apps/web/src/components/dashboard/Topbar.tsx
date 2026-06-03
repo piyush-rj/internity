@@ -194,110 +194,118 @@ export function Topbar() {
                     </ol>
                 </nav>
 
-                <div
-                    ref={wrapperRef}
-                    className="hidden md:block relative max-w-md w-full mr-2"
-                >
-                    <form onSubmit={handleSearch}>
-                        <div
-                            className={cn(
-                                "flex w-full items-center gap-2 h-9 px-3",
-                                "rounded-full border border-input bg-card",
-                                "text-[13px]",
-                                "bg-neutral-50",
-                            )}
-                        >
-                            <SearchIcon className="text-muted-foreground h-4 w-4" />
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={search}
-                                onChange={(e) => {
-                                    setSearch(e.target.value);
-                                    setOpen(true);
-                                }}
-                                onFocus={() => setOpen(true)}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Escape") {
-                                        setOpen(false);
-                                        inputRef.current?.blur();
-                                    }
-                                }}
-                                placeholder="Search role, company, or skill…"
-                                className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-                            />
-                            <kbd
-                                aria-hidden
+                {/* The role/company/skill search is a student concern — hide
+                    it for employers, who manage listings instead. */}
+                {role !== "EMPLOYER" && (
+                    <div
+                        ref={wrapperRef}
+                        className="hidden md:block relative max-w-md w-full mr-2"
+                    >
+                        <form onSubmit={handleSearch}>
+                            <div
                                 className={cn(
-                                    "inline-flex items-center gap-1 h-5 px-1.5 rounded",
-                                    "border border-border bg-secondary/60",
-                                    "text-[10px] font-medium text-muted-foreground",
-                                    "select-none",
+                                    "flex w-full items-center gap-2 h-9 px-3",
+                                    "rounded-full border border-input bg-card",
+                                    "text-[13px]",
+                                    "bg-neutral-50",
                                 )}
                             >
-                                <span className="text-[13px]">
-                                    {isMac ? "⌘" : "Ctrl"}
-                                </span>
-                                +<span>K</span>
-                            </kbd>
-                        </div>
-                    </form>
+                                <SearchIcon className="text-muted-foreground h-4 w-4" />
+                                <input
+                                    ref={inputRef}
+                                    type="text"
+                                    value={search}
+                                    onChange={(e) => {
+                                        setSearch(e.target.value);
+                                        setOpen(true);
+                                    }}
+                                    onFocus={() => setOpen(true)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Escape") {
+                                            setOpen(false);
+                                            inputRef.current?.blur();
+                                        }
+                                    }}
+                                    placeholder="Search role, company, or skill…"
+                                    className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+                                />
+                                <kbd
+                                    aria-hidden
+                                    className={cn(
+                                        "inline-flex items-center gap-1 h-5 px-1.5 rounded",
+                                        "border border-border bg-secondary/60",
+                                        "text-[10px] font-medium text-muted-foreground",
+                                        "select-none",
+                                    )}
+                                >
+                                    <span className="text-[13px]">
+                                        {isMac ? "⌘" : "Ctrl"}
+                                    </span>
+                                    +<span>K</span>
+                                </kbd>
+                            </div>
+                        </form>
 
-                    {showDropdown && (
-                        <div
-                            className={cn(
-                                "absolute left-0 right-0 top-[calc(100%+6px)] z-40",
-                                "rounded-lg border border-border bg-card shadow-lg overflow-hidden",
-                            )}
-                        >
-                            {searching && suggestions.length === 0 ? (
-                                <div className="px-4 py-3 text-[12px] text-muted-foreground">
-                                    Searching…
-                                </div>
-                            ) : (
-                                <ul className="max-h-80 overflow-y-auto divide-y divide-border">
-                                    {suggestions.map((s) => (
-                                        <li key={s.id}>
-                                            <Link
-                                                href={`/home/listings/${s.id}`}
-                                                onClick={() => setOpen(false)}
-                                                className="flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 transition-colors"
-                                            >
-                                                <SuggestionAvatar
-                                                    name={s.company.name}
-                                                    logoUrl={s.company.logoUrl}
-                                                />
-                                                <div className="min-w-0 flex-1">
-                                                    <div className="text-[13px] font-medium text-foreground truncate">
-                                                        {s.title}
-                                                    </div>
-                                                    <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
-                                                        {s.company.name}
-                                                        {s.city
-                                                            ? ` · ${s.city}`
-                                                            : ""}
-                                                    </div>
-                                                </div>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            )}
-                            <button
-                                type="button"
-                                onMouseDown={(e) => e.preventDefault()}
-                                onClick={(e) => handleSearch(e)}
+                        {showDropdown && (
+                            <div
                                 className={cn(
-                                    "w-full px-3 py-2 text-left text-[12px] font-medium text-foreground",
-                                    "border-t border-border bg-secondary/40 hover:bg-secondary",
-                                    "transition-colors cursor-pointer",
+                                    "absolute left-0 right-0 top-[calc(100%+6px)] z-40",
+                                    "rounded-lg border border-border bg-card shadow-lg overflow-hidden",
                                 )}
                             >
-                                See all results for “{search.trim()}”
-                            </button>
-                        </div>
-                    )}
-                </div>
+                                {searching && suggestions.length === 0 ? (
+                                    <div className="px-4 py-3 text-[12px] text-muted-foreground">
+                                        Searching…
+                                    </div>
+                                ) : (
+                                    <ul className="max-h-80 overflow-y-auto divide-y divide-border">
+                                        {suggestions.map((s) => (
+                                            <li key={s.id}>
+                                                <Link
+                                                    href={`/home/listings/${s.id}`}
+                                                    onClick={() =>
+                                                        setOpen(false)
+                                                    }
+                                                    className="flex items-center gap-3 px-3 py-2.5 hover:bg-secondary/60 transition-colors"
+                                                >
+                                                    <SuggestionAvatar
+                                                        name={s.company.name}
+                                                        logoUrl={
+                                                            s.company.logoUrl
+                                                        }
+                                                    />
+                                                    <div className="min-w-0 flex-1">
+                                                        <div className="text-[13px] font-medium text-foreground truncate">
+                                                            {s.title}
+                                                        </div>
+                                                        <div className="mt-0.5 text-[11.5px] text-muted-foreground truncate">
+                                                            {s.company.name}
+                                                            {s.city
+                                                                ? ` · ${s.city}`
+                                                                : ""}
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                )}
+                                <button
+                                    type="button"
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={(e) => handleSearch(e)}
+                                    className={cn(
+                                        "w-full px-3 py-2 text-left text-[12px] font-medium text-foreground",
+                                        "border-t border-border bg-secondary/40 hover:bg-secondary",
+                                        "transition-colors cursor-pointer",
+                                    )}
+                                >
+                                    See all results for “{search.trim()}”
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
                 {loggedOut ? (
                     <div className="flex items-center gap-1.5">
                         <button

@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/src/lib/utils";
 
@@ -17,6 +18,8 @@ export type PolicyLayoutProps = {
     intro?: React.ReactNode;
     sections: PolicySection[];
     sidebarHeader?: React.ReactNode;
+    // Optional hero image shown beside the header text on the first screen.
+    heroImage?: { src: string; alt: string };
 };
 
 export function PolicyLayout({
@@ -27,6 +30,7 @@ export function PolicyLayout({
     intro,
     sections,
     sidebarHeader,
+    heroImage,
 }: PolicyLayoutProps) {
     const [activeId, setActiveId] = useState<string>(sections[0]?.id ?? "");
     const clickLockRef = useRef<string | null>(null);
@@ -81,27 +85,48 @@ export function PolicyLayout({
     return (
         <div className="mx-auto max-w-6xl px-6 py-12">
             <header className="mb-10 border-b border-black/20 pb-10">
-                {eyebrow && (
-                    <span className="inline-flex items-center rounded-full bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-0.5 text-[11.5px] font-medium">
-                        {eyebrow}
-                    </span>
-                )}
-                <h1 className="mt-3 text-[32px] sm:text-[36px] font-semibold tracking-tight leading-tight">
-                    {title}
-                </h1>
-                <h3 className="text-[16px] tracking-tight leading-tight">
-                    {subTitle}
-                </h3>
-                {updated && (
-                    <p className="mt-2 text-[12.5px] text-muted-foreground">
-                        Last updated: {updated}
-                    </p>
-                )}
-                {intro && (
-                    <div className="mt-5 max-w-3xl text-[14px] leading-relaxed text-foreground/90 space-y-3">
-                        {intro}
+                <div
+                    className={cn(
+                        heroImage &&
+                            "grid gap-8 lg:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-center",
+                    )}
+                >
+                    <div>
+                        {eyebrow && (
+                            <span className="inline-flex items-center rounded-full bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-0.5 text-[11.5px] font-medium">
+                                {eyebrow}
+                            </span>
+                        )}
+                        <h1 className="mt-3 text-[32px] sm:text-[36px] font-semibold tracking-tight leading-tight">
+                            {title}
+                        </h1>
+                        <h3 className="text-[16px] tracking-tight leading-tight">
+                            {subTitle}
+                        </h3>
+                        {updated && (
+                            <p className="mt-2 text-[12.5px] text-muted-foreground">
+                                Last updated: {updated}
+                            </p>
+                        )}
+                        {intro && (
+                            <div className="mt-5 max-w-3xl text-[14px] leading-relaxed text-foreground/90 space-y-3">
+                                {intro}
+                            </div>
+                        )}
                     </div>
-                )}
+                    {heroImage && (
+                        <div className="relative w-full aspect-3/2 overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-sm">
+                            <Image
+                                src={heroImage.src}
+                                alt={heroImage.alt}
+                                fill
+                                priority
+                                sizes="(min-width: 1024px) 420px, 100vw"
+                                className="object-cover"
+                            />
+                        </div>
+                    )}
+                </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-12">

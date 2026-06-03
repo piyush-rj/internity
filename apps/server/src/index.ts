@@ -46,6 +46,6 @@ prisma.user
     })
     .catch((err) => console.error("startup presence reset failed:", err));
 
-server.listen(config.SERVER_PORT, () => {
-    console.log(`server listening on ${config.SERVER_PORT}`);
+server.listen(config.SERVER_PORT, "0.0.0.0", () => {
+    console.log(`server listening on 0.0.0.0:${config.SERVER_PORT}`);
 });

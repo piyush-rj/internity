@@ -3,10 +3,7 @@ import { FeaturePillars } from "@/src/components/base/FeaturePillars";
 import { FinalCTA } from "@/src/components/base/FinalCTA";
 import { Footer } from "@/src/components/base/Footer";
 import { Hero } from "@/src/components/base/Hero";
-import { Announcement } from "@/src/components/base/HeroComponents/Announcement";
-import { HeroSearch } from "@/src/components/base/HeroComponents/HeroSearch";
 import { InternshipsSection } from "@/src/components/base/InternshipsSection";
-import { SocialProofGallery } from "@/src/components/base/SocialProofGallery";
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { cn } from "@/src/lib/utils";
 
@@ -16,14 +13,14 @@ export default function Home() {
             <PageRails />
             <NavBar floatOnScroll />
             <main className="relative flex flex-col flex-1 w-full pt-14">
-                <SectionWrap first>
+                <SectionWrap hideMarks first>
                     <Hero />
                 </SectionWrap>
                 <SectionWrap>
-                    <Dashboard />
-                </SectionWrap>
-                <SectionWrap>
                     <FeaturePillars />
+                </SectionWrap>
+                <SectionWrap hideMarks>
+                    <Dashboard />
                 </SectionWrap>
                 {/* <SectionWrap>
                     <JobsSection />
