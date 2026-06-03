@@ -1,7 +1,8 @@
 import Image from "next/image";
-import { ArrowDown, ArrowUp, Bell, Search } from "lucide-react";
+import { ArrowRight, Bell, Search } from "lucide-react";
 import { GiTie } from "react-icons/gi";
 import {
+    PiBookOpenFill,
     PiBookmarkSimpleFill,
     PiBriefcaseFill,
     PiCalendarCheckFill,
@@ -21,7 +22,7 @@ import { cn } from "@/src/lib/utils";
 // Static, marketing-only replica of the student dashboard at
 // /home/dashboard. Self-contained — no data hooks — so it can render
 // inside the landing page hero without auth context. Mirrors the full
-// home layout: sidebar + topbar + main content.
+// home layout: sidebar + topbar + charts + recommendations + profile.
 export function DashboardMock() {
     return (
         <div
@@ -55,7 +56,7 @@ export function DashboardMock() {
                     <DashboardTopbar />
                     <div className="px-3 py-3 sm:px-5 sm:py-5 space-y-3 sm:space-y-4">
                         <Greeting />
-                        <StatsRow />
+                        <ChartsRow />
 
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
                             <div className="lg:col-span-2 min-w-0 space-y-3">
@@ -83,7 +84,7 @@ type NavItem = {
 const WORKSPACE: NavItem[] = [
     { label: "Dashboard", Icon: PiHouseFill, active: true },
     { label: "Internships", Icon: PiBriefcaseFill },
-    { label: "Applications", Icon: PiFileTextFill },
+    { label: "My Applications", Icon: PiFileTextFill },
     { label: "Saved", Icon: PiBookmarkSimpleFill },
     { label: "Messages", Icon: PiChatCircleFill },
     { label: "Schedules", Icon: PiCalendarCheckFill },
@@ -92,6 +93,7 @@ const WORKSPACE: NavItem[] = [
 const PROFILE_NAV: NavItem[] = [
     { label: "Resume", Icon: PiFileTextFill },
     { label: "Profile", Icon: PiUserFill },
+    { label: "Instructions", Icon: PiBookOpenFill },
     { label: "Settings", Icon: PiGearFill },
 ];
 
@@ -214,13 +216,7 @@ function DashboardTopbar() {
                     </span>
                 </div>
             </div>
-            <div className="ml-auto flex items-center gap-2">
-                <span className="hidden sm:inline-flex items-center gap-1 h-6 px-2 rounded-md bg-orange-500 text-white text-[10px] font-medium">
-                    Complete profile
-                    <span className="bg-white/25 rounded-full px-1 text-[9px]">
-                        86
-                    </span>
-                </span>
+            <div className="ml-auto flex items-center gap-2.5">
                 <Bell className="hidden sm:block h-3.5 w-3.5 text-muted-foreground" />
                 <span className="hidden sm:block h-6 w-6 rounded-full bg-secondary ring-1 ring-border" />
             </div>
@@ -237,110 +233,272 @@ function Greeting() {
                 Good afternoon, Piyush
             </h2>
             <span className="text-[11px] sm:text-[12px] text-muted-foreground">
-                Thursday, 28 May
+                Wednesday, 3 June
             </span>
         </div>
     );
 }
 
-/* ------------------------------- Stats --------------------------------- */
+/* ------------------------------- Charts -------------------------------- */
 
-type Stat = {
-    label: string;
-    value: string;
-    caption: string;
-    direction: "up" | "down" | "flat";
-    Icon: React.ComponentType<{ className?: string }>;
+const COLORS = {
+    applied: "#3b82f6",
+    shortlisted: "#f59e0b",
+    interview: "#8b5cf6",
+    hired: "#10b981",
+    saved: "#f59e0b",
+    profile: "#10b981",
 };
 
-const STATS: Stat[] = [
-    {
-        label: "Applications",
-        value: "1",
-        caption: "1 sent in the last 7 days",
-        direction: "up",
-        Icon: PiFileTextFill,
-    },
-    {
-        label: "Saved",
-        value: "0",
-        caption: "Bookmark roles to revisit",
-        direction: "flat",
-        Icon: PiBookmarkSimpleFill,
-    },
-    {
-        label: "Interviews",
-        value: "0",
-        caption: "None scheduled",
-        direction: "flat",
-        Icon: PiBriefcaseFill,
-    },
-    {
-        label: "Profile",
-        value: "86%",
-        caption: "6/7 sections filled",
-        direction: "down",
-        Icon: PiUserFill,
-    },
-];
-
-function StatsRow() {
+function ChartsRow() {
     return (
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3">
-            {STATS.map((s) => (
-                <StatCard key={s.label} stat={s} />
-            ))}
+        <section className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-4">
+            <ApplicationStatusCard />
+            <Last7DaysCard />
+            <ProfileRingCard />
         </section>
     );
 }
 
-function StatCard({ stat }: { stat: Stat }) {
-    const Icon = stat.Icon;
+function ChartCard({
+    title,
+    subtitle,
+    children,
+}: {
+    title: string;
+    subtitle: string;
+    children: React.ReactNode;
+}) {
     return (
-        <div
-            className={cn(
-                "rounded-lg border border-border bg-card/90 px-2.5 py-2 sm:px-3.5 sm:py-3",
-                "shadow-xs",
-            )}
-        >
-            <div className="flex items-center gap-2 sm:gap-2.5">
-                <span className="relative shrink-0">
-                    <span className="flex h-7 w-7 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-secondary text-foreground/70 ring-1 ring-border">
-                        <Icon className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </span>
-                    <span
-                        className={cn(
-                            "absolute -top-0.5 -right-0.5 flex h-3 w-3 sm:h-3.5 sm:w-3.5 items-center justify-center rounded-full ring-2 ring-card",
-                            stat.direction === "up"
-                                ? "bg-orange-500 text-white"
-                                : stat.direction === "down"
-                                  ? "bg-rose-500 text-white"
-                                  : "bg-zinc-400 text-white",
-                        )}
-                    >
-                        {stat.direction === "up" && (
-                            <ArrowUp className="h-2 w-2" />
-                        )}
-                        {stat.direction === "down" && (
-                            <ArrowDown className="h-2 w-2" />
-                        )}
-                    </span>
+        <div className="rounded-lg border border-border bg-card px-3 py-2.5 sm:px-4 sm:py-3.5 shadow-xs min-w-0">
+            <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                    <div className="text-[11.5px] sm:text-[13px] font-semibold truncate">
+                        {title}
+                    </div>
+                    <div className="text-[9px] sm:text-[10.5px] text-muted-foreground truncate">
+                        {subtitle}
+                    </div>
+                </div>
+                <span className="inline-flex items-center gap-0.5 text-[9px] sm:text-[10.5px] font-medium text-orange-600 shrink-0">
+                    Open
+                    <ArrowRight className="h-2.5 w-2.5" />
                 </span>
-                <div className="min-w-0 flex-1">
-                    <div className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        {stat.label}
+            </div>
+            {children}
+        </div>
+    );
+}
+
+type Segment = { value: number; color: string };
+
+function Donut({
+    segments,
+    className,
+    gap = 5,
+    children,
+}: {
+    segments: Segment[];
+    className?: string;
+    gap?: number;
+    children?: React.ReactNode;
+}) {
+    const size = 100;
+    const stroke = 15;
+    const r = (size - stroke) / 2;
+    const c = 2 * Math.PI * r;
+    const total = segments.reduce((a, s) => a + s.value, 0) || 1;
+    const single = segments.length === 1;
+    // Arc length of each segment and its start offset along the ring, both
+    // derived without mutation so the render stays pure.
+    const segLens = segments.map((s) => (s.value / total) * c);
+    const offsets = segLens.map((_, i) =>
+        segLens.slice(0, i).reduce((a, b) => a + b, 0),
+    );
+
+    return (
+        <div className={cn("relative", className)}>
+            <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full">
+                <g transform={`rotate(-90 ${size / 2} ${size / 2})`}>
+                    <circle
+                        cx={size / 2}
+                        cy={size / 2}
+                        r={r}
+                        fill="none"
+                        stroke="#f1f5f9"
+                        strokeWidth={stroke}
+                    />
+                    {segments.map((s, i) => {
+                        const len = single
+                            ? c
+                            : Math.max(segLens[i]! - gap, 0.1);
+                        return (
+                            <circle
+                                key={i}
+                                cx={size / 2}
+                                cy={size / 2}
+                                r={r}
+                                fill="none"
+                                stroke={s.color}
+                                strokeWidth={stroke}
+                                strokeLinecap={single ? "butt" : "round"}
+                                strokeDasharray={`${len} ${c - len}`}
+                                strokeDashoffset={-offsets[i]!}
+                            />
+                        );
+                    })}
+                </g>
+            </svg>
+            {children && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                    {children}
+                </div>
+            )}
+        </div>
+    );
+}
+
+function LegendDot({
+    color,
+    label,
+    value,
+}: {
+    color: string;
+    label: string;
+    value: number;
+}) {
+    return (
+        <span className="inline-flex items-center gap-1 text-[8.5px] sm:text-[10px] text-muted-foreground">
+            <span
+                className="h-1.5 w-1.5 rounded-full shrink-0"
+                style={{ backgroundColor: color }}
+            />
+            {label}
+            <b className="text-foreground tabular-nums">{value}</b>
+        </span>
+    );
+}
+
+function ApplicationStatusCard() {
+    const segments: Segment[] = [
+        { value: 2, color: COLORS.applied },
+        { value: 1, color: COLORS.shortlisted },
+        { value: 1, color: COLORS.interview },
+        { value: 1, color: COLORS.hired },
+    ];
+    return (
+        <ChartCard title="Application status" subtitle="5 total">
+            <div className="mt-2 flex justify-center">
+                <Donut
+                    segments={segments}
+                    className="h-20 w-20 sm:h-24 sm:w-24"
+                />
+            </div>
+            <div className="mt-2.5 flex flex-wrap justify-center gap-x-2.5 gap-y-1">
+                <LegendDot color={COLORS.applied} label="Applied" value={2} />
+                <LegendDot
+                    color={COLORS.shortlisted}
+                    label="Shortlisted"
+                    value={1}
+                />
+                <LegendDot
+                    color={COLORS.interview}
+                    label="Interview"
+                    value={1}
+                />
+                <LegendDot color={COLORS.hired} label="Hired" value={1} />
+            </div>
+        </ChartCard>
+    );
+}
+
+const WEEK = [
+    { day: "Thu", applied: 3, saved: 0 },
+    { day: "Fri", applied: 2, saved: 1 },
+    { day: "Sat", applied: 0, saved: 0 },
+    { day: "Sun", applied: 0, saved: 0 },
+    { day: "Mon", applied: 0, saved: 0 },
+    { day: "Tue", applied: 0, saved: 0 },
+    { day: "Wed", applied: 0, saved: 0 },
+];
+const WEEK_MAX = 4;
+
+function Last7DaysCard() {
+    return (
+        <ChartCard title="Last 7 days" subtitle="Applied vs saved">
+            <div className="mt-2 flex gap-1.5">
+                {/* Y axis */}
+                <div className="flex flex-col justify-between h-20 sm:h-24 text-[7px] sm:text-[8px] text-muted-foreground tabular-nums leading-none">
+                    {[4, 3, 2, 1, 0].map((n) => (
+                        <span key={n}>{n}</span>
+                    ))}
+                </div>
+                {/* Plot */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-end gap-1 sm:gap-1.5 h-20 sm:h-24 border-b border-l border-border/70 pl-1">
+                        {WEEK.map((d) => (
+                            <div
+                                key={d.day}
+                                className="flex-1 flex items-end justify-center gap-0.5 h-full"
+                            >
+                                {d.applied > 0 && (
+                                    <span
+                                        className="w-1 sm:w-1.5 rounded-t-[2px]"
+                                        style={{
+                                            height: `${(d.applied / WEEK_MAX) * 100}%`,
+                                            backgroundColor: COLORS.applied,
+                                        }}
+                                    />
+                                )}
+                                {d.saved > 0 && (
+                                    <span
+                                        className="w-1 sm:w-1.5 rounded-t-[2px]"
+                                        style={{
+                                            height: `${(d.saved / WEEK_MAX) * 100}%`,
+                                            backgroundColor: COLORS.saved,
+                                        }}
+                                    />
+                                )}
+                            </div>
+                        ))}
                     </div>
-                    <div className="mt-0.5 text-[13px] sm:text-[18px] font-semibold tracking-tight leading-none tabular-nums">
-                        {stat.value}
-                    </div>
-                    {/* Captions are extra context that just adds noise on
-                        small screens — hide them below sm. */}
-                    <div className="hidden sm:block mt-1 text-[11px] text-muted-foreground truncate">
-                        {stat.caption}
+                    <div className="flex gap-1 sm:gap-1.5 mt-1 pl-1">
+                        {WEEK.map((d) => (
+                            <span
+                                key={d.day}
+                                className="flex-1 text-center text-[7px] sm:text-[8px] text-muted-foreground"
+                            >
+                                {d.day}
+                            </span>
+                        ))}
                     </div>
                 </div>
             </div>
-        </div>
+            <div className="mt-2 flex justify-center gap-3">
+                <LegendDot color={COLORS.applied} label="Applied" value={5} />
+                <LegendDot color={COLORS.saved} label="Saved" value={1} />
+            </div>
+        </ChartCard>
+    );
+}
+
+function ProfileRingCard() {
+    return (
+        <ChartCard title="Profile completion" subtitle="5 of 5 sections">
+            <div className="mt-2 flex justify-center">
+                <Donut
+                    segments={[{ value: 1, color: COLORS.profile }]}
+                    className="h-20 w-20 sm:h-24 sm:w-24"
+                >
+                    <span className="text-[15px] sm:text-[19px] font-semibold tracking-tight leading-none">
+                        100%
+                    </span>
+                    <span className="mt-0.5 text-[7.5px] sm:text-[9px] text-muted-foreground">
+                        ready
+                    </span>
+                </Donut>
+            </div>
+        </ChartCard>
     );
 }
 
@@ -512,10 +670,8 @@ function ListingItem({
 const PROFILE_STEPS = [
     { label: "Basics", done: true },
     { label: "Education", done: true },
-    { label: "Experience", done: true },
     { label: "Projects", done: true },
     { label: "Skills", done: true },
-    { label: "Certifications", done: false },
     { label: "Languages", done: true },
 ];
 
@@ -546,9 +702,11 @@ function ProfileCompletion() {
                     <span className="text-muted-foreground">
                         {pct}% complete
                     </span>
-                    <span className="text-orange-600 font-medium">
-                        {total - done} left
-                    </span>
+                    {done < total && (
+                        <span className="text-orange-600 font-medium">
+                            {total - done} left
+                        </span>
+                    )}
                 </div>
             </div>
 

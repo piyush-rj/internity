@@ -16,10 +16,10 @@ export default function Home() {
                 <SectionWrap hideMarks first>
                     <Hero />
                 </SectionWrap>
-                <SectionWrap>
+                <SectionWrap hideMarks>
                     <FeaturePillars />
                 </SectionWrap>
-                <SectionWrap hideMarks>
+                <SectionWrap >
                     <Dashboard />
                 </SectionWrap>
                 {/* <SectionWrap>
