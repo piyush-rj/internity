@@ -19,7 +19,7 @@ export default function Home() {
                 <SectionWrap hideMarks>
                     <FeaturePillars />
                 </SectionWrap>
-                <SectionWrap >
+                <SectionWrap>
                     <Dashboard />
                 </SectionWrap>
                 {/* <SectionWrap>
