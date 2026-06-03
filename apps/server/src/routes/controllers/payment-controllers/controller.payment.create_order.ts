@@ -39,12 +39,21 @@ export default async function createOrder(
             key_secret: config.SERVER_RAZORPAY_SECRET,
         });
         const receipt = `r_${userId.slice(-8)}_${Date.now().toString(16)}`;
-        const order = await client.orders.create({
-            amount: plan.amount,
-            currency: plan.currency,
-            receipt,
-            notes: { userId, planCode: plan.code },
-        });
+        let order;
+        try {
+            order = await client.orders.create({
+                amount: plan.amount,
+                currency: plan.currency,
+                receipt,
+                notes: { userId, planCode: plan.code },
+            });
+        } catch (razorpayErr) {
+            console.error(
+                "Razorpay order creation failed:",
+                JSON.stringify(razorpayErr, null, 2),
+            );
+            throw razorpayErr;
+        }
 
         await prisma.payment.create({
             data: {

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { toast } from "sonner";
 import {
     PiBriefcase,
     PiCalendarBlank,
@@ -8,9 +10,12 @@ import {
 } from "react-icons/pi";
 import { NavBar } from "@/src/components/navbar/NavBar";
 import { cn } from "@/src/lib/utils";
+import { openCheckout } from "@/src/lib/razorpay";
+import { useMe } from "@/src/hooks/useMe";
+import type { PlanCode } from "@/src/lib/api/payment";
 
 type Plan = {
-    code: "PER_POST" | "MONTHLY" | "YEARLY";
+    code: PlanCode;
     name: string;
     price: string;
     cadence: string;
@@ -68,6 +73,7 @@ const PLANS: Plan[] = [
 ];
 
 export default function PricingPage() {
+    const { me } = useMe();
     return (
         <div className="flex flex-col min-h-screen">
             <NavBar />
@@ -88,27 +94,56 @@ export default function PricingPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                         {PLANS.map((p) => (
-                            <PlanCard key={p.code} plan={p} />
+                            <PlanCard
+                                key={p.code}
+                                plan={p}
+                                prefill={{
+                                    name: me?.name ?? undefined,
+                                    email: me?.email ?? undefined,
+                                }}
+                            />
                         ))}
                     </div>
-
-                    {/* <div className="mt-14 text-center text-[12.5px] text-muted-foreground">
-                        Checkout is rolling out soon — for now,{" "}
-                        <Link
-                            href="/home/manage-listings/new"
-                            className="text-orange-600 hover:underline font-medium"
-                        >
-                            post your first listing free
-                        </Link>{" "}
-                        while we finish payments.
-                    </div> */}
                 </div>
             </main>
         </div>
     );
 }
 
-function PlanCard({ plan }: { plan: Plan }) {
+function PlanCard({
+    plan,
+    prefill,
+}: {
+    plan: Plan;
+    prefill: { name?: string; email?: string };
+}) {
+    const [loading, setLoading] = useState(false);
+
+    async function handlePay() {
+        setLoading(true);
+        try {
+            await openCheckout({
+                planCode: plan.code,
+                prefill,
+                onSuccess: () => {
+                    toast.success(
+                        `Payment successful! Welcome to ${plan.name}.`,
+                    );
+                },
+                onDismiss: () => setLoading(false),
+                onFailure: (msg) => {
+                    toast.error(msg);
+                    setLoading(false);
+                },
+            });
+        } catch (err) {
+            toast.error(
+                err instanceof Error ? err.message : "Could not start payment.",
+            );
+            setLoading(false);
+        }
+    }
+
     return (
         <section
             className={cn(
@@ -151,16 +186,17 @@ function PlanCard({ plan }: { plan: Plan }) {
             <div className="mt-6">
                 <button
                     type="button"
-                    disabled
-                    title="Checkout coming soon"
+                    onClick={handlePay}
+                    disabled={loading}
                     className={cn(
-                        "w-full h-10 rounded-md text-[13px] font-medium cursor-not-allowed",
+                        "w-full h-10 rounded-md text-[13px] font-medium transition-colors",
                         plan.highlight
-                            ? "bg-orange-500/60 text-white"
-                            : "border border-border bg-background text-foreground/60",
+                            ? "bg-orange-500 text-white hover:bg-orange-600 disabled:bg-orange-500/60"
+                            : "border border-border bg-background text-foreground hover:bg-secondary disabled:opacity-50",
+                        loading && "cursor-not-allowed",
                     )}
                 >
-                    Coming soon
+                    {loading ? "Opening…" : `Get ${plan.name}`}
                 </button>
             </div>
         </section>

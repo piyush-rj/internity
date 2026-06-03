@@ -1,4 +1,4 @@
-// plan catalogue for paid upgrades, amounts in smallest currency unit
+// plan catalogue for paid upgrades, amounts in smallest currency unit (paise)
 export type Plan = {
     code: string;
     name: string;
@@ -8,12 +8,25 @@ export type Plan = {
 };
 
 export const PLANS: Record<string, Plan> = {
-    PRO: {
-        code: "PRO",
-        name: "SpiderSkill Pro",
-        description:
-            "Unlimited applications, priority support, mentor sessions",
-        amount: 49900,
+    PER_POST: {
+        code: "PER_POST",
+        name: "Per Post",
+        description: "1 active listing for 30 days",
+        amount: 99900,
+        currency: "INR",
+    },
+    MONTHLY: {
+        code: "MONTHLY",
+        name: "Monthly",
+        description: "Up to 10 active listings, priority placement",
+        amount: 249900,
+        currency: "INR",
+    },
+    YEARLY: {
+        code: "YEARLY",
+        name: "Yearly",
+        description: "Unlimited listings, all features, best value",
+        amount: 999900,
         currency: "INR",
     },
 };

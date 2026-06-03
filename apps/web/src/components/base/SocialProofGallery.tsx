@@ -44,7 +44,7 @@ export function SocialProofGallery() {
                                 Built for the way startups hire today
                             </span>
                             <h2 className="mt-3 text-[26px] sm:text-[36px] lg:text-[44px] leading-[1.05] font-semibold tracking-[-0.02em]">
-                                Get your first paid internship.
+                                Get your paid internship in 15 days
                             </h2>
                             <p className="mt-2 sm:mt-3 text-[13.5px] sm:text-[15px] text-white/90 leading-relaxed max-w-md">
                                 SpiderSkill is where motivated students meet
