@@ -1,24 +1,24 @@
 import type { JobTitle } from "@/src/lib/api";
 
-// Single source of truth for the predefined job-title list shown in the
-// post-listing dropdown and (mirrored) in the student-side filter. CUSTOM
-// is the only branch that surfaces a free-text input next to the picker.
 export const JOB_TITLES: ReadonlyArray<{
     value: Exclude<JobTitle, "CUSTOM">;
     label: string;
 }> = [
-    { value: "AI", label: "AI / ML Engineer" },
-    { value: "BACKEND", label: "Backend Developer" },
-    { value: "WEB", label: "Web Developer" },
-    { value: "MOBILE", label: "Mobile Developer" },
-    { value: "QA", label: "QA / Testing" },
-    { value: "DESIGN", label: "Design (UI / UX / Graphic)" },
-    { value: "PRODUCT", label: "Product Manager" },
-    { value: "MARKETING", label: "Marketing" },
-    { value: "CONTENT", label: "Content / Writing" },
-    { value: "SALES", label: "Sales / BD" },
-    { value: "DATA", label: "Data Analyst / Scientist" },
-    { value: "HR", label: "HR / People Ops" },
+    { value: "AI", label: "AI Developer Internship" },
+    { value: "BACKEND", label: "Backend Developer Internship" },
+    { value: "WEB", label: "Web App Developer Internship" },
+    { value: "MOBILE", label: "Mobile App Developer Internship" },
+    { value: "DESIGN", label: "UI/UX Designer Internship" },
+    { value: "QA", label: "QA Engineer Internship" },
+    { value: "PRODUCT", label: "Product Manager Internship" },
+    { value: "RESEARCHER", label: "Product Researcher Internship" },
+    { value: "MARKETING", label: "Marketing Specialist Internship" },
+    { value: "CONTENT", label: "Content Writer Internship" },
+    { value: "VIDEO", label: "Video Editor Internship" },
+    { value: "SALES", label: "Sales / Business Development Internship" },
+    { value: "SOCIAL", label: "Social Media Manager Internship" },
+    { value: "DATA", label: "Data Analyst Internship" },
+    { value: "HR", label: "Human Resources Internship" },
 ];
 
 const LABEL_BY_VALUE: Record<JobTitle, string> = {

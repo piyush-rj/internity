@@ -410,7 +410,7 @@ export const ListingForm = forwardRef(function ListingForm(
 
     return (
         <div className="space-y-7">
-            <Section title="Basics">
+            <Section title="Basics" number={1}>
                 <Field label="Job title" required>
                     <div className="flex items-center gap-2 flex-wrap">
                         <select
@@ -491,7 +491,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 </div>
             </Section>
 
-            <Section title="What the role is about">
+            <Section title="What the role is about" number={2}>
                 <Field label="Description" required>
                     <textarea
                         value={form.description}
@@ -576,6 +576,7 @@ export const ListingForm = forwardRef(function ListingForm(
 
             <Section
                 title={`Screening questions (up to ${MAX_SCREENING_QUESTIONS})`}
+                number={3}
             >
                 <ScreeningQuestionsEditor
                     questions={form.screeningQuestions}
@@ -583,7 +584,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 />
             </Section>
 
-            <Section title="Compensation & logistics">
+            <Section title="Compensation & logistics" number={4}>
                 <Field label="Currency" required>
                     <div className="max-w-xs">
                         <CurrencyCombobox
@@ -684,14 +685,19 @@ export const ListingForm = forwardRef(function ListingForm(
 
 function Section({
     title,
+    number,
     children,
 }: {
     title: string;
+    number: number;
     children: React.ReactNode;
 }) {
     return (
         <section className="rounded-lg border border-border bg-card p-6 space-y-5">
-            <h3 className="text-[14px] font-semibold text-foreground border-b border-border pb-4">
+            <h3 className="text-[14px] font-semibold text-blue-600 border-b border-border pb-4 flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold shrink-0">
+                    {number}
+                </span>
                 {title}
             </h3>
             <div className="space-y-5">{children}</div>

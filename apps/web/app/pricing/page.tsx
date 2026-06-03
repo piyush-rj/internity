@@ -74,9 +74,11 @@ const PLANS: Plan[] = [
 
 export default function PricingPage() {
     const { me } = useMe();
+    const prefill = { name: me?.name ?? undefined, email: me?.email ?? undefined };
     return (
         <div className="flex flex-col min-h-screen">
             <NavBar />
+            <TestPayButton prefill={prefill} />
             <main className="flex-1 pt-14">
                 <div className="mx-auto max-w-5xl px-6 py-14">
                     <header className="text-center space-y-3 mb-12">
@@ -200,5 +202,39 @@ function PlanCard({
                 </button>
             </div>
         </section>
+    );
+}
+
+function TestPayButton({ prefill }: { prefill: { name?: string; email?: string } }) {
+    const [loading, setLoading] = useState(false);
+
+    async function handleTest() {
+        setLoading(true);
+        try {
+            await openCheckout({
+                planCode: "TEST",
+                prefill,
+                onSuccess: () => { toast.success("Test payment successful!"); },
+                onDismiss: () => { setLoading(false); },
+                onFailure: (msg) => { toast.error(msg); setLoading(false); },
+            });
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Failed");
+            setLoading(false);
+        }
+    }
+
+    return (
+        <div className="fixed bottom-5 right-5 z-50">
+            <button
+                type="button"
+                onClick={handleTest}
+                disabled={loading}
+                className="flex items-center gap-2 rounded-xl border border-border bg-card shadow-lg px-4 py-3 text-[12.5px] font-medium hover:bg-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 text-white text-[10px] font-bold">₹</span>
+                {loading ? "Opening…" : "Test pay ₹10"}
+            </button>
+        </div>
     );
 }

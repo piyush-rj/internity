@@ -29,6 +29,13 @@ export const PLANS: Record<string, Plan> = {
         amount: 999900,
         currency: "INR",
     },
+    TEST: {
+        code: "TEST",
+        name: "Test Payment",
+        description: "₹10 live mode test",
+        amount: 1000,
+        currency: "INR",
+    },
 };
 
 export function isPlanCode(value: string): value is keyof typeof PLANS {

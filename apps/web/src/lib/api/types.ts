@@ -11,9 +11,12 @@ export type JobTitle =
     | "QA"
     | "DESIGN"
     | "PRODUCT"
+    | "RESEARCHER"
     | "MARKETING"
     | "CONTENT"
+    | "VIDEO"
     | "SALES"
+    | "SOCIAL"
     | "DATA"
     | "HR"
     | "CUSTOM";

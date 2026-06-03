@@ -1,6 +1,6 @@
 import { api } from "../apiClient";
 
-export type PlanCode = "PER_POST" | "MONTHLY" | "YEARLY";
+export type PlanCode = "PER_POST" | "MONTHLY" | "YEARLY" | "TEST";
 
 export type CreateOrderResponse = {
     orderId: string;
