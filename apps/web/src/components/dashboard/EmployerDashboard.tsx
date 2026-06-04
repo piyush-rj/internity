@@ -9,7 +9,7 @@ import { MyListingsWidget } from "@/src/components/dashboard/MyListingsWidget";
 export function EmployerDashboard() {
     return (
         <div className="relative isolate">
-            <div className="relative mx-auto max-w-6xl px-0 py-6 space-y-6">
+            <div className="relative mx-auto max-w-6xl px-4 sm:px-6 py-6 sm:py-8 space-y-5 sm:space-y-6">
                 <Greeting />
                 <ListingLifecycleBanner />
                 <EmployerChartRow />
