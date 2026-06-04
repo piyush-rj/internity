@@ -2,6 +2,26 @@ import { api } from "../apiClient";
 
 export type PlanCode = "PER_POST" | "MONTHLY" | "YEARLY";
 
+export type CancellationReason =
+    | "TOO_EXPENSIVE"
+    | "LOW_APPLICANT_QUALITY"
+    | "ALREADY_HIRED"
+    | "FOUND_BETTER_PLATFORM"
+    | "TECHNICAL_ISSUES"
+    | "OTHER";
+
+export type CancellationRequestStatus = "PENDING" | "APPROVED" | "REJECTED";
+
+export type MyCancellationRequest = {
+    id: string;
+    paymentId: string;
+    reason: CancellationReason;
+    otherText: string | null;
+    status: CancellationRequestStatus;
+    listingsUsedAtRequest: number;
+    createdAt: string;
+};
+
 export type CreateOrderResponse = {
     orderId: string;
     amount: number;
@@ -29,6 +49,9 @@ export type MyPayment = {
     razorpayOrderId: string;
     createdAt: string;
     validUntil: string | null;
+    listingsPosted: number;
+    listingLimit: number | null;
+    cancellationRequest: MyCancellationRequest | null;
 };
 
 export type MyPlansResponse = {
@@ -44,10 +67,18 @@ export type MyPlansResponse = {
     };
     usage: {
         listingsUsed: number;
-        // null = unlimited (Yearly) or no active plan.
         listingLimit: number | null;
     };
     payments: MyPayment[];
+    listingActivity: {
+        id: string;
+        title: string;
+        city: string | null;
+        mode: string;
+        jobTitle: string | null;
+        closedAt: string | null;
+        createdAt: string;
+    }[];
 };
 
 export const paymentApi = {
@@ -56,4 +87,13 @@ export const paymentApi = {
         api.post<CreateOrderResponse>("/payment/order", { planCode }),
     verify: (input: VerifyInput) =>
         api.post<{ ok: true; planCode: PlanCode }>("/payment/verify", input),
+    cancel_request: (input: {
+        paymentId: string;
+        reason: CancellationReason;
+        otherText?: string;
+    }) =>
+        api.post<{ request: { id: string; status: CancellationRequestStatus } }>(
+            "/payment/cancel-request",
+            input,
+        ),
 };

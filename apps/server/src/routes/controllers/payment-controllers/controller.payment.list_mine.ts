@@ -12,7 +12,7 @@ export default async function listMyPayments(
         const userId = req.user!.id;
         const now = new Date();
 
-        const [user, payments, listingsUsed] = await Promise.all([
+        const [user, payments, listingsUsed, allListings] = await Promise.all([
             prisma.user.findUnique({
                 where: { id: userId },
                 select: {
@@ -25,6 +25,19 @@ export default async function listMyPayments(
             prisma.payment.findMany({
                 where: { userId, status: PaymentStatus.SUCCESS },
                 orderBy: { createdAt: "desc" },
+                include: {
+                    cancellationRequest: {
+                        select: {
+                            id: true,
+                            paymentId: true,
+                            reason: true,
+                            otherText: true,
+                            status: true,
+                            listingsUsedAtRequest: true,
+                            createdAt: true,
+                        },
+                    },
+                },
             }),
             // Listings the user currently has occupying a slot: live or paused,
             // i.e. not closed, not taken down, and not past expiry. This is what
@@ -36,6 +49,21 @@ export default async function listMyPayments(
                     takenDownAt: null,
                     OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
                 },
+            }),
+            // All listings ever posted by this user — used for the posting
+            // activity chart and per-day listing cards.
+            prisma.listing.findMany({
+                where: { postedById: userId },
+                select: {
+                    id: true,
+                    title: true,
+                    city: true,
+                    mode: true,
+                    jobTitle: true,
+                    closedAt: true,
+                    createdAt: true,
+                },
+                orderBy: { createdAt: "asc" },
             }),
         ]);
 
@@ -71,23 +99,55 @@ export default async function listMyPayments(
                 listingsUsed,
                 listingLimit: plan?.listingLimit ?? null,
             },
-            payments: payments.map((p) => ({
-                id: p.id,
-                planCode: p.planCode,
-                planName: PLANS[p.planCode]?.name ?? p.planCode,
-                amount: p.amount,
-                currency: p.currency,
-                status: p.status,
-                razorpayPaymentId: p.razorpayPaymentId,
-                razorpayOrderId: p.razorpayOrderId,
-                createdAt: p.createdAt.toISOString(),
-                validUntil: (() => {
-                    const plan = PLANS[p.planCode];
-                    if (!plan) return null;
-                    const d = new Date(p.createdAt);
-                    d.setDate(d.getDate() + plan.durationDays);
-                    return d.toISOString();
-                })(),
+            payments: payments.map((p) => {
+                const planDef = PLANS[p.planCode];
+                const start = p.createdAt;
+                const end = planDef
+                    ? new Date(
+                          start.getTime() +
+                              planDef.durationDays * 24 * 60 * 60 * 1000,
+                      )
+                    : null;
+                const listingsPosted = allListings.filter(
+                    (l) =>
+                        l.createdAt >= start && (!end || l.createdAt <= end),
+                ).length;
+                return {
+                    id: p.id,
+                    planCode: p.planCode,
+                    planName: planDef?.name ?? p.planCode,
+                    amount: p.amount,
+                    currency: p.currency,
+                    status: p.status,
+                    razorpayPaymentId: p.razorpayPaymentId,
+                    razorpayOrderId: p.razorpayOrderId,
+                    createdAt: start.toISOString(),
+                    validUntil: end?.toISOString() ?? null,
+                    listingsPosted,
+                    listingLimit: planDef?.listingLimit ?? null,
+                    cancellationRequest: p.cancellationRequest
+                        ? {
+                              id: p.cancellationRequest.id,
+                              paymentId: p.cancellationRequest.paymentId,
+                              reason: p.cancellationRequest.reason,
+                              otherText: p.cancellationRequest.otherText,
+                              status: p.cancellationRequest.status,
+                              listingsUsedAtRequest:
+                                  p.cancellationRequest.listingsUsedAtRequest,
+                              createdAt:
+                                  p.cancellationRequest.createdAt.toISOString(),
+                          }
+                        : null,
+                };
+            }),
+            listingActivity: allListings.map((l) => ({
+                id: l.id,
+                title: l.title,
+                city: l.city,
+                mode: l.mode,
+                jobTitle: l.jobTitle,
+                closedAt: l.closedAt?.toISOString() ?? null,
+                createdAt: l.createdAt.toISOString(),
             })),
         });
     } catch (err) {

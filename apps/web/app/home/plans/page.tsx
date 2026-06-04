@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
     PiArrowRight,
@@ -17,6 +17,9 @@ import {
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import {
+    Bar,
+    BarChart,
+    CartesianGrid,
     Cell,
     Pie,
     PieChart,
@@ -24,11 +27,15 @@ import {
     RadialBar,
     RadialBarChart,
     ResponsiveContainer,
+    Tooltip,
+    XAxis,
+    YAxis,
 } from "recharts";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { useBreadcrumbLabel } from "@/src/components/dashboard/BreadcrumbContext";
 import {
     paymentApi,
+    type CancellationReason,
     type MyPayment,
     type MyPlansResponse,
 } from "@/src/lib/api/payment";
@@ -42,12 +49,31 @@ export default function MyPlansPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [selected, setSelected] = useState<MyPayment | null>(null);
+    const [cancelTarget, setCancelTarget] = useState<MyPayment | null>(null);
 
     useBreadcrumbLabel("My Plans");
 
+    async function load(silent = false) {
+        if (!silent) setLoading(true);
+        setError(null);
+        try {
+            const res = await paymentApi.list_mine();
+            setData(res);
+        } catch (err) {
+            if (!silent)
+                setError(
+                    err instanceof ApiClientError
+                        ? err.message
+                        : "Couldn't load your plans.",
+                );
+        } finally {
+            if (!silent) setLoading(false);
+        }
+    }
+
     useEffect(() => {
         let cancelled = false;
-        async function load() {
+        async function init() {
             try {
                 const res = await paymentApi.list_mine();
                 if (!cancelled) setData(res);
@@ -62,11 +88,17 @@ export default function MyPlansPage() {
                 if (!cancelled) setLoading(false);
             }
         }
-        void load();
+        void init();
         return () => {
             cancelled = true;
         };
     }, []);
+
+    // The payment that matches the currently active plan (for cancel button)
+    const activePayment = data?.currentPlan.isActive
+        ? (data.payments.find((p) => p.planCode === data.currentPlan.code) ??
+          null)
+        : null;
 
     return (
         <EmptySection
@@ -89,7 +121,17 @@ export default function MyPlansPage() {
                             usage={data!.usage}
                         />
                     )}
-                    <CurrentPlanCard plan={data!.currentPlan} />
+                    <CurrentPlanCard
+                        plan={data!.currentPlan}
+                        activePayment={activePayment}
+                        onCancel={() => activePayment && setCancelTarget(activePayment)}
+                    />
+                    {data!.listingActivity.length > 0 && (
+                        <PostingActivitySection
+                            listingActivity={data!.listingActivity}
+                            payments={data!.payments}
+                        />
+                    )}
                     <TransactionHistory
                         payments={data!.payments}
                         onSelect={setSelected}
@@ -101,6 +143,17 @@ export default function MyPlansPage() {
                     payment={selected}
                     user={{ name: me?.name ?? null, email: me?.email ?? null }}
                     onClose={() => setSelected(null)}
+                />
+            )}
+            {cancelTarget && (
+                <CancellationPanel
+                    payment={cancelTarget}
+                    listingsUsed={data!.usage.listingsUsed}
+                    onClose={() => setCancelTarget(null)}
+                    onSuccess={() => {
+                        setCancelTarget(null);
+                        void load(true);
+                    }}
                 />
             )}
         </EmptySection>
@@ -410,7 +463,15 @@ function UpsellHero() {
     );
 }
 
-function CurrentPlanCard({ plan }: { plan: MyPlansResponse["currentPlan"] }) {
+function CurrentPlanCard({
+    plan,
+    activePayment,
+    onCancel,
+}: {
+    plan: MyPlansResponse["currentPlan"];
+    activePayment?: MyPayment | null;
+    onCancel?: () => void;
+}) {
     if (!plan.isPremium || !plan.isActive) {
         return (
             <section className="rounded-xl border border-border bg-card p-5">
@@ -523,6 +584,42 @@ function CurrentPlanCard({ plan }: { plan: MyPlansResponse["currentPlan"] }) {
                     value={plan.name ?? "—"}
                 />
             </div>
+
+            {/* Cancel subscription row */}
+            {activePayment && onCancel && (
+                <div className="pt-1 flex items-center justify-between border-t border-orange-200/60">
+                    {activePayment.cancellationRequest ? (
+                        <p className="text-[12px] text-muted-foreground">
+                            Cancellation request{" "}
+                            <span
+                                className={cn(
+                                    "font-medium",
+                                    activePayment.cancellationRequest.status === "PENDING"
+                                        ? "text-amber-600"
+                                        : activePayment.cancellationRequest.status === "APPROVED"
+                                          ? "text-emerald-600"
+                                          : "text-rose-500",
+                                )}
+                            >
+                                {activePayment.cancellationRequest.status.toLowerCase()}
+                            </span>
+                        </p>
+                    ) : (
+                        <p className="text-[12px] text-muted-foreground">
+                            Want to cancel?
+                        </p>
+                    )}
+                    {!activePayment.cancellationRequest && (
+                        <button
+                            type="button"
+                            onClick={onCancel}
+                            className="text-[12px] text-rose-500 hover:text-rose-600 font-medium hover:underline transition-colors"
+                        >
+                            Cancel subscription
+                        </button>
+                    )}
+                </div>
+            )}
         </section>
     );
 }
@@ -805,6 +902,427 @@ function PageSkeleton() {
         </div>
     );
 }
+
+type DayRange = 30 | 90 | "all";
+type ActivityItem = MyPlansResponse["listingActivity"][number];
+
+const RANGE_OPTS: { key: DayRange; label: string }[] = [
+    { key: 30, label: "30D" },
+    { key: 90, label: "90D" },
+    { key: "all", label: "All" },
+];
+
+// Returns a YYYY-MM-DD key using LOCAL date components so the bar position
+// matches what the user sees on the axis label (avoids UTC off-by-one in IST).
+function localDateKey(d: Date): string {
+    return [
+        d.getFullYear(),
+        String(d.getMonth() + 1).padStart(2, "0"),
+        String(d.getDate()).padStart(2, "0"),
+    ].join("-");
+}
+
+const MODE_LABEL: Record<string, string> = {
+    REMOTE: "Remote",
+    HYBRID: "Hybrid",
+    ONSITE: "On-site",
+};
+
+function PostingActivitySection({
+    listingActivity,
+    payments,
+}: {
+    listingActivity: ActivityItem[];
+    payments: MyPayment[];
+}) {
+    const [range, setRange] = useState<DayRange>(90);
+
+    const totalSpent = payments.reduce((s, p) => s + p.amount, 0) / 100;
+
+    const listingsByDate = useMemo(() => {
+        const map: Record<string, ActivityItem[]> = {};
+        for (const item of listingActivity) {
+            const key = localDateKey(new Date(item.createdAt));
+            (map[key] ??= []).push(item);
+        }
+        return map;
+    }, [listingActivity]);
+
+    const chartData = useMemo(() => {
+        const now = new Date();
+        now.setHours(23, 59, 59, 999);
+
+        const firstPost = new Date(
+            Math.min(...listingActivity.map((l) => new Date(l.createdAt).getTime())),
+        );
+        firstPost.setHours(0, 0, 0, 0);
+
+        let windowStart: Date;
+        if (range === "all") {
+            windowStart = firstPost;
+        } else {
+            const cutoff = new Date(now);
+            cutoff.setDate(cutoff.getDate() - range + 1);
+            cutoff.setHours(0, 0, 0, 0);
+            windowStart = cutoff > firstPost ? cutoff : firstPost;
+        }
+
+        const result: { date: string; label: string; count: number }[] = [];
+        const cursor = new Date(windowStart);
+        while (cursor <= now) {
+            const key = localDateKey(cursor);
+            result.push({
+                date: key,
+                label: cursor.toLocaleDateString("en-IN", {
+                    day: "numeric",
+                    month: "short",
+                }),
+                count: listingsByDate[key]?.length ?? 0,
+            });
+            cursor.setDate(cursor.getDate() + 1);
+        }
+        return result;
+    }, [listingActivity, range, listingsByDate]);
+
+    const tickInterval = Math.max(0, Math.floor(chartData.length / 8) - 1);
+
+    return (
+        <section className="rounded-xl border border-border bg-card overflow-hidden">
+            <header className="flex items-center gap-2 px-5 py-4 border-b border-border">
+                <PiRocketLaunchFill className="h-4 w-4 text-orange-500" />
+                <h2 className="text-[13.5px] font-semibold">Posting activity</h2>
+                <div className="ml-auto flex items-center gap-0.5 rounded-md border border-border bg-secondary/50 p-0.5">
+                    {RANGE_OPTS.map((o) => (
+                        <button
+                            key={String(o.key)}
+                            type="button"
+                            onClick={() => setRange(o.key)}
+                            className={cn(
+                                "h-6 px-2.5 rounded text-[11px] font-medium transition-colors",
+                                range === o.key
+                                    ? "bg-card text-foreground shadow-xs ring-1 ring-border"
+                                    : "text-muted-foreground hover:text-foreground",
+                            )}
+                        >
+                            {o.label}
+                        </button>
+                    ))}
+                </div>
+            </header>
+
+            <div className="grid grid-cols-3 gap-px border-b border-border bg-border">
+                <StatChip
+                    label="Total invested"
+                    value={`₹${totalSpent.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                />
+                <StatChip label="Plans purchased" value={String(payments.length)} />
+                <StatChip label="Listings posted" value={String(listingActivity.length)} />
+            </div>
+
+            <div className="px-4 pt-4 pb-3">
+                <ResponsiveContainer width="100%" height={180}>
+                    <BarChart
+                        data={chartData}
+                        barCategoryGap="30%"
+                        margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
+                    >
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
+                        <XAxis
+                            dataKey="label"
+                            interval={tickInterval}
+                            tick={{ fontSize: 10, fill: "#a1a1aa" }}
+                            tickLine={false}
+                            axisLine={false}
+                        />
+                        <YAxis
+                            allowDecimals={false}
+                            tick={{ fontSize: 10, fill: "#a1a1aa" }}
+                            tickLine={false}
+                            axisLine={false}
+                        />
+                        <Tooltip
+                            cursor={{ fill: "rgba(0,0,0,0.04)" }}
+                            content={({ active, payload }) => {
+                                if (!active || !payload?.length) return null;
+                                const d = payload[0]?.payload as (typeof chartData)[0];
+                                const listings = listingsByDate[d.date] ?? [];
+                                return (
+                                    <div className="rounded-xl border border-border bg-background shadow-xl text-[12px] w-60 overflow-hidden">
+                                        <div className="px-3.5 py-2.5 border-b border-border bg-secondary/30">
+                                            <p className="font-semibold text-[12.5px]">{d.label}</p>
+                                            <p className="text-[11px] text-muted-foreground">
+                                                {d.count} {d.count === 1 ? "listing" : "listings"} posted
+                                            </p>
+                                        </div>
+                                        {listings.length > 0 && (
+                                            <div className="divide-y divide-border max-h-52 overflow-y-auto">
+                                                {listings.map((l) => (
+                                                    <div key={l.id} className="px-3.5 py-2.5">
+                                                        <p className="font-medium leading-snug line-clamp-2">
+                                                            {l.title}
+                                                        </p>
+                                                        <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 text-[10.5px] text-muted-foreground">
+                                                            {l.city && (
+                                                                <>
+                                                                    <span>{l.city}</span>
+                                                                    <span>·</span>
+                                                                </>
+                                                            )}
+                                                            <span>{MODE_LABEL[l.mode] ?? l.mode}</span>
+                                                            <span>·</span>
+                                                            <span className={!l.closedAt ? "text-emerald-600" : "text-rose-500"}>
+                                                                {!l.closedAt ? "Active" : "Closed"}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                );
+                            }}
+                        />
+                        <Bar
+                            dataKey="count"
+                            fill="#fb923c"
+                            radius={[3, 3, 0, 0]}
+                            maxBarSize={32}
+                        />
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+        </section>
+    );
+}
+
+function StatChip({ label, value }: { label: string; value: string }) {
+    return (
+        <div className="bg-card px-4 py-3">
+            <p className="text-[11px] text-muted-foreground">{label}</p>
+            <p className="mt-0.5 text-[15px] font-semibold tabular-nums">
+                {value}
+            </p>
+        </div>
+    );
+}
+
+/* ─────────────────── Cancellation Panel ─────────────────── */
+
+const CANCEL_REASONS: { value: CancellationReason; label: string }[] = [
+    { value: "TOO_EXPENSIVE", label: "Too expensive for my budget" },
+    {
+        value: "LOW_APPLICANT_QUALITY",
+        label: "Applicant quality didn't meet expectations",
+    },
+    { value: "ALREADY_HIRED", label: "Already found the right candidate" },
+    { value: "FOUND_BETTER_PLATFORM", label: "Found a better platform" },
+    { value: "TECHNICAL_ISSUES", label: "Experienced technical issues" },
+    { value: "OTHER", label: "Other" },
+];
+
+function CancellationPanel({
+    payment,
+    listingsUsed,
+    onClose,
+    onSuccess,
+}: {
+    payment: MyPayment;
+    listingsUsed: number;
+    onClose: () => void;
+    onSuccess: () => void;
+}) {
+    const [visible, setVisible] = useState(false);
+    const [reason, setReason] = useState<CancellationReason | null>(null);
+    const [otherText, setOtherText] = useState("");
+    const [confirmed, setConfirmed] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
+
+    useEffect(() => {
+        requestAnimationFrame(() => setVisible(true));
+    }, []);
+
+    function dismiss() {
+        setVisible(false);
+        setTimeout(onClose, 250);
+    }
+
+    const canSubmit =
+        reason !== null &&
+        (reason !== "OTHER" || otherText.trim().length > 0) &&
+        confirmed &&
+        !submitting;
+
+    async function handleSubmit() {
+        if (!canSubmit || reason === null) return;
+        setSubmitting(true);
+        setSubmitError(null);
+        try {
+            await paymentApi.cancel_request({
+                paymentId: payment.id,
+                reason,
+                otherText: reason === "OTHER" ? otherText.trim() : undefined,
+            });
+            onSuccess();
+        } catch (err) {
+            setSubmitError(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Something went wrong. Please try again.",
+            );
+            setSubmitting(false);
+        }
+    }
+
+    const sym = payment.currency === "INR" ? "₹" : payment.currency + " ";
+    const amountStr = `${sym}${(payment.amount / 100).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    return createPortal(
+        <>
+            <div
+                className={cn(
+                    "fixed inset-0 z-40 bg-black/30 transition-opacity duration-250",
+                    visible ? "opacity-100" : "opacity-0",
+                )}
+                onClick={dismiss}
+                aria-hidden
+            />
+            <div
+                className={cn(
+                    "fixed right-0 top-0 bottom-0 z-50 w-full max-w-sm bg-background border-l border-border shadow-2xl flex flex-col",
+                    "transition-transform duration-250 ease-out",
+                    visible ? "translate-x-0" : "translate-x-full",
+                )}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4 border-b border-border shrink-0">
+                    <div>
+                        <p className="text-[13.5px] font-semibold">
+                            Cancel subscription
+                        </p>
+                        <p className="text-[11.5px] text-muted-foreground">
+                            {payment.planName} · {amountStr}
+                        </p>
+                    </div>
+                    <button
+                        type="button"
+                        onClick={dismiss}
+                        className="h-8 w-8 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                    >
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div className="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+                    {/* Usage block — blocks refund if quota consumed */}
+                    {listingsUsed > 0 ? (
+                        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-4 space-y-1.5">
+                            <p className="text-[13px] font-semibold text-destructive">
+                                Refund not available
+                            </p>
+                            <p className="text-[12.5px] text-destructive/80 leading-relaxed">
+                                You&apos;ve posted{" "}
+                                <span className="font-semibold">
+                                    {listingsUsed} active listing
+                                    {listingsUsed === 1 ? "" : "s"}
+                                </span>{" "}
+                                using this subscription. Refunds aren&apos;t
+                                available after usage.
+                            </p>
+                            <p className="text-[11.5px] text-muted-foreground">
+                                Close or remove your listings first, then
+                                request a cancellation.
+                            </p>
+                        </div>
+                    ) : (
+                        <>
+                            {/* Reason picker */}
+                            <div className="space-y-3">
+                                <p className="text-[12.5px] font-medium">
+                                    Why do you want to cancel?
+                                </p>
+                                <div className="space-y-2">
+                                    {CANCEL_REASONS.map((r) => (
+                                        <label
+                                            key={r.value}
+                                            className="flex items-start gap-2.5 cursor-pointer group"
+                                        >
+                                            <input
+                                                type="radio"
+                                                name="cancel-reason"
+                                                value={r.value}
+                                                checked={reason === r.value}
+                                                onChange={() =>
+                                                    setReason(r.value)
+                                                }
+                                                className="mt-0.5 accent-foreground shrink-0"
+                                            />
+                                            <span className="text-[12.5px] text-foreground/80 group-hover:text-foreground transition-colors">
+                                                {r.label}
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+
+                                {reason === "OTHER" && (
+                                    <textarea
+                                        value={otherText}
+                                        onChange={(e) =>
+                                            setOtherText(e.target.value)
+                                        }
+                                        placeholder="Please describe your reason…"
+                                        rows={3}
+                                        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-[12.5px] placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring resize-none"
+                                    />
+                                )}
+                            </div>
+
+                            {/* Confirmation checkbox */}
+                            <label className="flex items-start gap-2.5 cursor-pointer rounded-lg border border-border bg-secondary/30 px-3 py-3">
+                                <input
+                                    type="checkbox"
+                                    checked={confirmed}
+                                    onChange={(e) =>
+                                        setConfirmed(e.target.checked)
+                                    }
+                                    className="mt-0.5 accent-foreground shrink-0"
+                                />
+                                <span className="text-[12px] text-muted-foreground leading-relaxed">
+                                    I understand this will cancel my{" "}
+                                    <span className="font-medium text-foreground">
+                                        {payment.planName}
+                                    </span>{" "}
+                                    subscription if the request is approved by
+                                    the team.
+                                </span>
+                            </label>
+
+                            {submitError && (
+                                <p className="text-[12px] text-destructive">
+                                    {submitError}
+                                </p>
+                            )}
+
+                            <button
+                                type="button"
+                                disabled={!canSubmit}
+                                onClick={handleSubmit}
+                                className="w-full h-10 rounded-lg bg-rose-500 text-white text-[13px] font-medium hover:bg-rose-600 transition-colors disabled:opacity-40 disabled:pointer-events-none"
+                            >
+                                {submitting
+                                    ? "Submitting…"
+                                    : "Submit cancellation request"}
+                            </button>
+                        </>
+                    )}
+                </div>
+            </div>
+        </>,
+        document.body,
+    );
+}
+
+/* ─────────────────────────────────────────────────────────── */
 
 function formatDate(iso: string): string {
     try {
