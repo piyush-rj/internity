@@ -15,6 +15,7 @@ import {
     PiBuildingsFill,
     PiCalendarCheckFill,
     PiChatCircleFill,
+    PiCreditCardFill,
     PiFileTextFill,
     PiGearFill,
     PiHouseFill,
@@ -150,6 +151,12 @@ const employerNav: NavSet = {
             label: "Profile",
             icon: PiUserFill,
             href: "/home/profile",
+        },
+        {
+            key: "plans",
+            label: "My Plans",
+            icon: PiCreditCardFill,
+            href: "/home/plans",
         },
         {
             key: "instructions",
