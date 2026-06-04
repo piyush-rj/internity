@@ -39,6 +39,7 @@ type IconComp = ComponentType<{ className?: string }>;
 export type StepConfig = {
     key: StepKey;
     label: string;
+    description: string;
     icon: IconComp;
     iconFilled: IconComp;
 };
@@ -49,43 +50,64 @@ export const stepsConfig: StepConfig[] = [
     {
         key: "summary",
         label: "Summary",
+        description:
+            "Your public profile card — name, location, bio, and profile photo. This is the first thing recruiters see.",
         icon: PiIdentificationCard,
         iconFilled: PiIdentificationCardFill,
     },
-    { key: "basics", label: "Basics", icon: PiUser, iconFilled: PiUserFill },
+    {
+        key: "basics",
+        label: "Basics",
+        description:
+            "Essential contact details: phone number, date of birth, gender, city, LinkedIn, and portfolio URL.",
+        icon: PiUser,
+        iconFilled: PiUserFill,
+    },
     {
         key: "education",
         label: "Education",
+        description:
+            "Add your college, degree, field of study, and graduation year. At least one entry is required.",
         icon: PiGraduationCap,
         iconFilled: PiGraduationCapFill,
     },
     {
         key: "projects",
         label: "Projects",
+        description:
+            "Showcase personal or academic projects. Include a live link or repo to stand out.",
         icon: PiFolder,
         iconFilled: PiFolderFill,
     },
     {
         key: "skills",
         label: "Skills",
+        description:
+            "Languages, frameworks, and tools you know. Be specific — 'React' beats 'Web Development'.",
         icon: PiSparkle,
         iconFilled: PiSparkleFill,
     },
     {
         key: "languages",
         label: "Languages",
+        description:
+            "Spoken languages and your proficiency level. Helpful for roles that require communication skills.",
         icon: PiGlobeHemisphereWest,
         iconFilled: PiGlobeHemisphereWestFill,
     },
     {
         key: "experience",
         label: "Experience",
+        description:
+            "Past internships or jobs. Optional — but adds strong credibility if you have any.",
         icon: PiBriefcase,
         iconFilled: PiBriefcaseFill,
     },
     {
         key: "certifications",
         label: "Certifications",
+        description:
+            "Courses, certificates, or badges you've earned. Optional — great for showing initiative.",
         icon: PiSealCheck,
         iconFilled: PiSealCheckFill,
     },
