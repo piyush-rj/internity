@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { AppliedBootstrap } from "@/src/components/dashboard/AppliedBootstrap";
 import { BreadcrumbProvider } from "@/src/components/dashboard/BreadcrumbContext";
 import { MeBootstrap } from "@/src/components/dashboard/MeBootstrap";
@@ -26,7 +27,9 @@ export default function DashboardLayout({
                 <WebSocketProvider>
                     <UnreadChatsBootstrap />
                     <BreadcrumbProvider>
-                        <Topbar />
+                        <Suspense fallback={null}>
+                            <Topbar />
+                        </Suspense>
                         <main className="flex-1 bg-neutral-50">
                             <div className="mx-auto max-w-6xl px-6 pt-4 empty:hidden">
                                 <TakedownBanner />

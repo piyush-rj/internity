@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
     PiArrowRight,
@@ -28,26 +28,28 @@ export default function MyPlansPage() {
     const [error, setError] = useState<string | null>(null);
     const [selected, setSelected] = useState<MyPayment | null>(null);
 
-    const load = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await paymentApi.list_mine();
-            setData(res);
-        } catch (err) {
-            setError(
-                err instanceof ApiClientError
-                    ? err.message
-                    : "Couldn't load your plans.",
-            );
-        } finally {
-            setLoading(false);
-        }
-    }, []);
-
     useEffect(() => {
-        load();
-    }, [load]);
+        let cancelled = false;
+        async function load() {
+            try {
+                const res = await paymentApi.list_mine();
+                if (!cancelled) setData(res);
+            } catch (err) {
+                if (!cancelled)
+                    setError(
+                        err instanceof ApiClientError
+                            ? err.message
+                            : "Couldn't load your plans.",
+                    );
+            } finally {
+                if (!cancelled) setLoading(false);
+            }
+        }
+        void load();
+        return () => {
+            cancelled = true;
+        };
+    }, []);
 
     return (
         <EmptySection

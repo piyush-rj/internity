@@ -8,7 +8,7 @@ import {
     Palette,
     Target,
 } from "lucide-react";
-import { animate, motion, Variants } from "framer-motion";
+import { animate, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 
 // const cardVariants: Variants = {
