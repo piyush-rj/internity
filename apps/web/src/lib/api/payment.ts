@@ -1,6 +1,6 @@
 import { api } from "../apiClient";
 
-export type PlanCode = "PER_POST" | "MONTHLY" | "YEARLY" | "TEST";
+export type PlanCode = "PER_POST" | "MONTHLY" | "YEARLY";
 
 export type CreateOrderResponse = {
     orderId: string;
@@ -18,7 +18,35 @@ export type VerifyInput = {
     razorpay_signature: string;
 };
 
+export type MyPayment = {
+    id: string;
+    planCode: string;
+    planName: string;
+    amount: number;
+    currency: string;
+    status: string;
+    razorpayPaymentId: string | null;
+    razorpayOrderId: string;
+    createdAt: string;
+    validUntil: string | null;
+};
+
+export type MyPlansResponse = {
+    currentPlan: {
+        isPremium: boolean;
+        isActive: boolean;
+        code: string | null;
+        name: string | null;
+        since: string | null;
+        until: string | null;
+        daysRemaining: number;
+        totalDays: number | null;
+    };
+    payments: MyPayment[];
+};
+
 export const paymentApi = {
+    list_mine: () => api.get<MyPlansResponse>("/payment/mine"),
     create_order: (planCode: PlanCode) =>
         api.post<CreateOrderResponse>("/payment/order", { planCode }),
     verify: (input: VerifyInput) =>

@@ -5,6 +5,7 @@ export type Plan = {
     description: string;
     amount: number;
     currency: string;
+    durationDays: number;
 };
 
 export const PLANS: Record<string, Plan> = {
@@ -14,6 +15,7 @@ export const PLANS: Record<string, Plan> = {
         description: "1 active listing for 30 days",
         amount: 99900,
         currency: "INR",
+        durationDays: 30,
     },
     MONTHLY: {
         code: "MONTHLY",
@@ -21,6 +23,7 @@ export const PLANS: Record<string, Plan> = {
         description: "Up to 10 active listings, priority placement",
         amount: 249900,
         currency: "INR",
+        durationDays: 30,
     },
     YEARLY: {
         code: "YEARLY",
@@ -28,13 +31,7 @@ export const PLANS: Record<string, Plan> = {
         description: "Unlimited listings, all features, best value",
         amount: 999900,
         currency: "INR",
-    },
-    TEST: {
-        code: "TEST",
-        name: "Test Payment",
-        description: "₹10 live mode test",
-        amount: 1000,
-        currency: "INR",
+        durationDays: 365,
     },
 };
 
