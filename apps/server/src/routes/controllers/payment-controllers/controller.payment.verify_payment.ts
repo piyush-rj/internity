@@ -60,6 +60,9 @@ export default async function verifyPayment(
         }
 
         const plan = PLANS[body.planCode]!;
+        const now = new Date();
+        const premiumUntil = new Date(now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000);
+
         await prisma.$transaction([
             prisma.payment.updateMany({
                 where: { razorpayOrderId: body.razorpay_order_id, userId },
@@ -71,9 +74,16 @@ export default async function verifyPayment(
             }),
             prisma.user.update({
                 where: { id: userId },
-                data: { isPremium: true, premiumSince: new Date() },
+                data: {
+                    isPremium: true,
+                    premiumSince: now,
+                    premiumUntil,
+                    activePlanCode: plan.code,
+                },
             }),
         ]);
+
+        console.log(`[payment] ✅ Payment verified — user=${userId} plan=${plan.code} amount=₹${plan.amount / 100} validUntil=${premiumUntil.toISOString()}`);
 
         await notify({
             userId,

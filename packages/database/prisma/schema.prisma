@@ -24,8 +24,10 @@ model User {
   banReason     String?   @db.Text
   bannedAt      DateTime?
 
-  isPremium    Boolean   @default(false)
-  premiumSince DateTime?
+  isPremium      Boolean   @default(false)
+  premiumSince   DateTime?
+  premiumUntil   DateTime?
+  activePlanCode String?
 
   isOnline   Boolean   @default(false)
   lastSeenAt DateTime?
