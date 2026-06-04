@@ -11,10 +11,12 @@ export function ShareMenu({
     url,
     title,
     company,
+    onlyLogo = false,
 }: {
     url: string;
     title: string;
     company: string;
+    onlyLogo?: boolean;
 }) {
     const [open, setOpen] = useState(false);
     const [copied, setCopied] = useState(false);
@@ -60,7 +62,7 @@ export function ShareMenu({
                 )}
             >
                 <Share2 className="h-3.5 w-3.5" />
-                Share
+                {!onlyLogo && "Share"}
             </button>
             {open && (
                 <div className="absolute left-0 sm:left-auto sm:right-0 mt-1.5 z-30 w-56 max-w-[calc(100vw-2rem)] rounded-md border border-border bg-popover shadow-lg p-1">

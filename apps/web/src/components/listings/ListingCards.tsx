@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ShareMenu } from "@/src/components/listings/ShareMenu";
 import {
     PiBookmarkSimple,
     PiBookmarkSimpleFill,
@@ -31,11 +32,13 @@ export function ListingCards({
     loading,
     error,
     emptyText = "No listings yet — check back soon.",
+    from,
 }: {
     items: ListingWithCompany[];
     loading: boolean;
     error: ApiClientError | Error | null;
     emptyText?: string;
+    from?: string;
 }) {
     if (error) {
         return (
@@ -63,13 +66,13 @@ export function ListingCards({
     return (
         <div className="space-y-3">
             {items.map((listing) => (
-                <ListingCard key={listing.id} listing={listing} />
+                <ListingCard key={listing.id} listing={listing} from={from} />
             ))}
         </div>
     );
 }
 
-function ListingCard({ listing }: { listing: ListingWithCompany }) {
+function ListingCard({ listing, from }: { listing: ListingWithCompany; from?: string }) {
     const applied = useIsApplied(listing.id);
     const { me } = useMe();
     const canMultiApply = me?.role === "STUDENT" && !applied;
@@ -203,11 +206,13 @@ function ListingCard({ listing }: { listing: ListingWithCompany }) {
                                 </span>
                             )}
                         </div>
-                        <div className="self-stretch sm:self-auto">
+                        <div className="self-stretch sm:self-auto flex items-center gap-2">
+                            <ShareMenu url={`/home/listings/${listing.id}`} title={listing.title} company={listing.company.name} onlyLogo />
                             <ApplyCta
                                 listing={listing}
                                 applied={applied}
                                 closed={closed}
+                                from={from}
                             />
                         </div>
                     </div>
@@ -221,11 +226,14 @@ function ApplyCta({
     listing,
     applied,
     closed,
+    from,
 }: {
     listing: ListingWithCompany;
     applied: boolean;
     closed: boolean;
+    from?: string;
 }) {
+    const href = `/home/listings/${listing.id}${from ? `?from=${from}` : ""}`;
     if (closed) {
         return (
             <span className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium border border-border bg-secondary text-muted-foreground">
@@ -236,7 +244,7 @@ function ApplyCta({
     if (applied) {
         return (
             <Link
-                href={`/home/listings/${listing.id}`}
+                href={href}
                 className="inline-flex w-full sm:w-auto items-center justify-center gap-1.5 h-9 px-4 rounded-md text-[12.5px] font-medium border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
             >
                 <PiCheckCircleFill className="h-3.5 w-3.5" />
@@ -246,7 +254,7 @@ function ApplyCta({
     }
     return (
         <Link
-            href={`/home/listings/${listing.id}`}
+            href={href}
             className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors transform duration-250"
         >
             Apply now
