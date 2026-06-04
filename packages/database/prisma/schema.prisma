@@ -54,8 +54,9 @@ model User {
   savedListings      SavedListing[]
   assets             Asset[]
   notifications      Notification[]
-  payments           Payment[]
-  messagesSent       Message[]          @relation("MessageSentBy")
+  payments              Payment[]
+  cancellationRequests  CancellationRequest[]
+  messagesSent          Message[]             @relation("MessageSentBy")
   conversationReads  ConversationRead[]
 
   studentConversations   Conversation[] @relation("StudentConversations")
@@ -562,6 +563,8 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  cancellationRequest CancellationRequest?
+
   @@index([userId, createdAt])
 }
 
@@ -724,6 +727,48 @@ enum PaymentStatus {
   CREATED
   SUCCESS
   FAILED
+}
+
+enum CancellationRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum CancellationReason {
+  TOO_EXPENSIVE
+  LOW_APPLICANT_QUALITY
+  ALREADY_HIRED
+  FOUND_BETTER_PLATFORM
+  TECHNICAL_ISSUES
+  OTHER
+}
+
+model CancellationRequest {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  paymentId String  @unique
+  payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  reason    CancellationReason
+  otherText String?            @db.Text
+
+  status CancellationRequestStatus @default(PENDING)
+
+  listingsUsedAtRequest Int
+
+  adminNote    String?   @db.Text
+  resolvedById String?
+  resolvedAt   DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
 }
 
 enum ReportTargetType {

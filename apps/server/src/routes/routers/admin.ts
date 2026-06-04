@@ -5,6 +5,8 @@ import listPayments from "../controllers/admin-controllers/controller.admin.list
 import setUserBan from "../controllers/admin-controllers/controller.admin.set_user_ban.ts";
 import adminListStudents from "../controllers/admin-controllers/controller.admin.list_students.ts";
 import setStudentVerification from "../controllers/admin-controllers/controller.admin.set_student_verification.ts";
+import listCancellationRequests from "../controllers/admin-controllers/controller.admin.list_cancellation_requests.ts";
+import updateCancellationRequest from "../controllers/admin-controllers/controller.admin.update_cancellation_request.ts";
 
 const router: RouterType = Router();
 router.use(requireAuth);
@@ -14,5 +16,7 @@ router.get("/payments", requireAdmin, listPayments);
 router.get("/students", requireAdmin, adminListStudents);
 router.post("/user/:id/ban", requireAdmin, setUserBan);
 router.post("/student/:id/verify", requireAdmin, setStudentVerification);
+router.get("/cancellation-requests", requireAdmin, listCancellationRequests);
+router.patch("/cancellation-requests/:id", requireAdmin, updateCancellationRequest);
 
 export default router;

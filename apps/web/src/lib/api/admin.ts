@@ -69,6 +69,34 @@ export type AdminStudentVerificationResult = {
     student: { userId: string; isVerified: boolean };
 };
 
+export type AdminCancellationRequest = {
+    id: string;
+    reason: string;
+    otherText: string | null;
+    status: "PENDING" | "APPROVED" | "REJECTED";
+    listingsUsedAtRequest: number;
+    adminNote: string | null;
+    resolvedAt: string | null;
+    createdAt: string;
+    user: {
+        id: string;
+        name: string | null;
+        email: string | null;
+        isPremium: boolean;
+        companyMemberships: Array<{
+            company: { id: string; name: string; slug: string };
+        }>;
+    };
+    payment: {
+        id: string;
+        planCode: string;
+        planName: string;
+        amount: number;
+        currency: string;
+        createdAt: string;
+    };
+};
+
 export const adminApi = {
     get_stats: () => api.get<AdminPlatformStats>("/admin/stats"),
     set_user_ban: (
@@ -98,4 +126,22 @@ export const adminApi = {
             `/admin/student/${userId}/verify`,
             input,
         ),
+    list_cancellation_requests: (params?: {
+        status?: "PENDING" | "APPROVED" | "REJECTED";
+        page?: number;
+        pageSize?: number;
+    }) =>
+        api.get<{
+            items: AdminCancellationRequest[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/admin/cancellation-requests", params),
+    update_cancellation_request: (
+        id: string,
+        input: { action: "approve" | "reject"; adminNote?: string },
+    ) =>
+        api.patch<{
+            request: { id: string; status: string; resolvedAt: string | null };
+        }>(`/admin/cancellation-requests/${id}`, input),
 };
