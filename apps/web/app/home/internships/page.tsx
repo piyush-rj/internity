@@ -14,6 +14,9 @@ import {
 } from "@/src/components/listings/filtersFromSearchParams";
 import { useListings } from "@/src/hooks/useListings";
 import { useAppliedStore } from "@/src/store/useAppliedStore";
+import { useMultiSelectStore } from "@/src/store/useMultiSelectStore";
+import type { ListingWithCompany } from "@/src/lib/api";
+import { useMe } from "@/src/hooks/useMe";
 
 export default function InternshipsPage() {
     return (
@@ -51,11 +54,13 @@ function InternshipsView() {
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
                 <div className="min-w-0 space-y-5">
                     <ListingsFiltersMobile basePath="/home/internships" />
+                    <SelectAllBar items={visibleItems} />
                     <ListingCards
                         items={visibleItems}
                         loading={loading}
                         error={error}
                         emptyText="No internships match these filters. Try widening your search."
+                        from="internships"
                     />
                     <PaginationBar
                         basePath="/home/internships"
@@ -70,5 +75,47 @@ function InternshipsView() {
             </div>
             <MultiApplyBar />
         </EmptySection>
+    );
+}
+
+function SelectAllBar({ items }: { items: ListingWithCompany[] }) {
+    const { me } = useMe();
+    const selected = useMultiSelectStore((s) => s.selected);
+    const add = useMultiSelectStore((s) => s.add);
+    const clear = useMultiSelectStore((s) => s.clear);
+
+    if (!me || me.role !== "STUDENT" || items.length === 0) return null;
+
+    const selectedCount = items.filter((l) => selected.has(l.id)).length;
+    const allSelected = selectedCount === items.length;
+    const someSelected = selectedCount > 0 && !allSelected;
+
+    function toggle() {
+        if (allSelected) {
+            clear();
+        } else {
+            items.forEach((l) => add(l));
+        }
+    }
+
+    return (
+        <div className="flex items-center gap-3 px-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+                <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                    onChange={toggle}
+                    className="h-4 w-4 rounded border-border accent-foreground cursor-pointer"
+                />
+                <span className="text-[12.5px] text-muted-foreground">
+                    {allSelected
+                        ? "Deselect all"
+                        : someSelected
+                        ? `${selectedCount} selected`
+                        : "Select all"}
+                </span>
+            </label>
+        </div>
     );
 }

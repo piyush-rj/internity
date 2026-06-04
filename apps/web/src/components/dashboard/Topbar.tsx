@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Menu } from "lucide-react";
 import { PlusIcon, SearchIcon } from "@/src/components/dashboard/icons";
 import { NotificationPanel } from "@/src/components/dashboard/NotificationPanel";
@@ -23,8 +23,13 @@ type Crumb = {
     href: string;
 };
 
+const FROM_LABEL: Record<string, { label: string; href: string }> = {
+    internships: { label: "Internships", href: "/home/internships" },
+    saved: { label: "Saved", href: "/home/saved" },
+};
+
 // builds breadcrumbs from the url
-function buildCrumbs(pathname: string): Crumb[] {
+function buildCrumbs(pathname: string, from?: string | null): Crumb[] {
     const segments = pathname
         .replace(/^\/home\/?/, "")
         .split("/")
@@ -37,8 +42,13 @@ function buildCrumbs(pathname: string): Crumb[] {
     }
 
     for (let i = 0; i < segments.length; i++) {
+        const seg = segments[i]!;
         const href = "/home/" + segments.slice(0, i + 1).join("/");
-        crumbs.push({ label: prettify(segments[i]!), href });
+        if (seg === "listings" && from && FROM_LABEL[from]) {
+            crumbs.push(FROM_LABEL[from]!);
+        } else {
+            crumbs.push({ label: prettify(seg), href });
+        }
     }
     return crumbs;
 }
@@ -53,8 +63,9 @@ function prettify(segment: string): string {
 export function Topbar() {
     const router = useRouter();
     const pathname = usePathname() ?? "/home/dashboard";
+    const searchParams = useSearchParams();
     const crumbOverride = useBreadcrumbOverride();
-    const crumbs = buildCrumbs(pathname);
+    const crumbs = buildCrumbs(pathname, searchParams?.get("from"));
     if (crumbOverride && crumbs.length > 1) {
         crumbs[crumbs.length - 1]!.label = crumbOverride;
     }
