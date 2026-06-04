@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { Filter, Search, X } from "lucide-react";
 import type { JobTitle, WorkMode } from "@/src/lib/api";
 import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
@@ -78,35 +78,60 @@ function countActive(f: MyListingsFilters): number {
 export function MyListingsFilterPanel({
     filters,
     onChange,
+    onApplied,
 }: {
     filters: MyListingsFilters;
     onChange: (next: MyListingsFilters) => void;
+    // Called after Search applies the filters — mobile uses it to close the
+    // drawer once the results have updated.
+    onApplied?: () => void;
 }) {
-    const activeCount = useMemo(() => countActive(filters), [filters]);
+    // Selections are buffered locally and only pushed up (i.e. the results
+    // update) when the user hits Search — mirroring the internships browse
+    // panel. Checkboxes/selects don't filter live as you click.
+    const [draft, setDraft] = useState<MyListingsFilters>(filters);
+    const activeCount = useMemo(() => countActive(draft), [draft]);
 
     function setQ(v: string) {
-        onChange({ ...filters, q: v });
+        setDraft((d) => ({ ...d, q: v }));
     }
     function toggleStatus(s: MyListingsStatus) {
-        const next = new Set(filters.statuses);
-        if (next.has(s)) next.delete(s);
-        else next.add(s);
-        onChange({ ...filters, statuses: next });
+        setDraft((d) => {
+            const next = new Set(d.statuses);
+            if (next.has(s)) next.delete(s);
+            else next.add(s);
+            return { ...d, statuses: next };
+        });
     }
     function toggleMode(m: WorkMode) {
-        const next = new Set(filters.modes);
-        if (next.has(m)) next.delete(m);
-        else next.add(m);
-        onChange({ ...filters, modes: next });
+        setDraft((d) => {
+            const next = new Set(d.modes);
+            if (next.has(m)) next.delete(m);
+            else next.add(m);
+            return { ...d, modes: next };
+        });
     }
     function setJobTitle(v: JobTitle | "") {
-        onChange({ ...filters, jobTitle: v });
+        setDraft((d) => ({ ...d, jobTitle: v }));
     }
     function setApplicants(v: MyListingsApplicantsFilter) {
-        onChange({ ...filters, applicants: v });
+        setDraft((d) => ({ ...d, applicants: v }));
     }
     function setSort(v: MyListingsSortKey) {
-        onChange({ ...filters, sort: v });
+        setDraft((d) => ({ ...d, sort: v }));
+    }
+
+    function applyNow() {
+        onChange(draft);
+        onApplied?.();
+    }
+    function clearAll() {
+        const cleared: MyListingsFilters = {
+            ...emptyMyListingsFilters(),
+            sort: draft.sort,
+        };
+        setDraft(cleared);
+        onChange(cleared);
     }
 
     return (
@@ -115,16 +140,19 @@ export function MyListingsFilterPanel({
                 <div className="inline-flex items-center gap-2 text-[13px] font-semibold">
                     <Filter className="h-3.5 w-3.5 text-brand" />
                     Filters
+                    {activeCount > 0 && (
+                        <span
+                            className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-brand text-white text-[10.5px] font-semibold tabular-nums"
+                            aria-label={`${activeCount} selected filters`}
+                        >
+                            {activeCount}
+                        </span>
+                    )}
                 </div>
                 {activeCount > 0 && (
                     <button
                         type="button"
-                        onClick={() =>
-                            onChange({
-                                ...emptyMyListingsFilters(),
-                                sort: filters.sort,
-                            })
-                        }
+                        onClick={clearAll}
                         className="inline-flex items-center gap-1 text-[11.5px] font-medium text-orange-600 hover:text-orange-700 cursor-pointer"
                     >
                         <X className="h-3 w-3" />
@@ -139,8 +167,11 @@ export function MyListingsFilterPanel({
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                         <input
                             type="text"
-                            value={filters.q}
+                            value={draft.q}
                             onChange={(e) => setQ(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") applyNow();
+                            }}
                             placeholder="Title or skill"
                             className={cn(inputCls, "pl-9")}
                         />
@@ -149,7 +180,7 @@ export function MyListingsFilterPanel({
 
                 <Field label="Sort">
                     <select
-                        value={filters.sort}
+                        value={draft.sort}
                         onChange={(e) =>
                             setSort(e.target.value as MyListingsSortKey)
                         }
@@ -168,7 +199,7 @@ export function MyListingsFilterPanel({
 
                 <Field label="Role">
                     <select
-                        value={filters.jobTitle}
+                        value={draft.jobTitle}
                         onChange={(e) =>
                             setJobTitle(e.target.value as JobTitle | "")
                         }
@@ -193,7 +224,7 @@ export function MyListingsFilterPanel({
                             <CheckRow
                                 key={o.value}
                                 label={o.label}
-                                checked={filters.statuses.has(o.value)}
+                                checked={draft.statuses.has(o.value)}
                                 onChange={() => toggleStatus(o.value)}
                             />
                         ))}
@@ -201,12 +232,12 @@ export function MyListingsFilterPanel({
                 </Field>
 
                 <Field label="Work mode">
-                    <div className="space-y-1.5">
+                    <div className="flex items-center gap-x-4 gap-y-1.5 flex-wrap">
                         {MODE_OPTIONS.map((o) => (
                             <CheckRow
                                 key={o.value}
                                 label={o.label}
-                                checked={filters.modes.has(o.value)}
+                                checked={draft.modes.has(o.value)}
                                 onChange={() => toggleMode(o.value)}
                             />
                         ))}
@@ -217,21 +248,35 @@ export function MyListingsFilterPanel({
                     <div className="space-y-1.5">
                         <RadioRow
                             label="Any"
-                            checked={filters.applicants === "any"}
+                            checked={draft.applicants === "any"}
                             onChange={() => setApplicants("any")}
                         />
                         <RadioRow
                             label="With applicants"
-                            checked={filters.applicants === "with"}
+                            checked={draft.applicants === "with"}
                             onChange={() => setApplicants("with")}
                         />
                         <RadioRow
                             label="Without applicants"
-                            checked={filters.applicants === "without"}
+                            checked={draft.applicants === "without"}
                             onChange={() => setApplicants("without")}
                         />
                     </div>
                 </Field>
+
+                <button
+                    type="button"
+                    onClick={applyNow}
+                    className={cn(
+                        "w-full inline-flex items-center justify-center gap-1.5 h-10 rounded-lg",
+                        "bg-brand text-white text-[13px] font-semibold",
+                        "hover:bg-brand/90 transition-colors cursor-pointer",
+                    )}
+                >
+                    <Search className="h-3.5 w-3.5" />
+                    Search
+                    {activeCount > 0 ? ` (${activeCount})` : ""}
+                </button>
             </div>
         </section>
     );

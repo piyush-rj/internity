@@ -42,6 +42,11 @@ export type MyPlansResponse = {
         daysRemaining: number;
         totalDays: number | null;
     };
+    usage: {
+        listingsUsed: number;
+        // null = unlimited (Yearly) or no active plan.
+        listingLimit: number | null;
+    };
     payments: MyPayment[];
 };
 

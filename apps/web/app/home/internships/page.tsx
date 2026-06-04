@@ -104,7 +104,9 @@ function SelectAllBar({ items }: { items: ListingWithCompany[] }) {
                 <input
                     type="checkbox"
                     checked={allSelected}
-                    ref={(el) => { if (el) el.indeterminate = someSelected; }}
+                    ref={(el) => {
+                        if (el) el.indeterminate = someSelected;
+                    }}
                     onChange={toggle}
                     className="h-4 w-4 rounded border-border accent-foreground cursor-pointer"
                 />
@@ -112,8 +114,8 @@ function SelectAllBar({ items }: { items: ListingWithCompany[] }) {
                     {allSelected
                         ? "Deselect all"
                         : someSelected
-                        ? `${selectedCount} selected`
-                        : "Select all"}
+                          ? `${selectedCount} selected`
+                          : "Select all"}
                 </span>
             </label>
         </div>

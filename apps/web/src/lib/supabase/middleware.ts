@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { ENV } from "@/src/config/config.env";
 
 // Path prefixes that require an authenticated Supabase user. Anything not
-// listed here is public (landing, /pricing, /company/:slug, /auth/*).
+// listed here is public (landing, /company/:slug, /auth/*).
 const PROTECTED_PREFIXES = ["/home", "/admin"];
 
 // Routes that live under a protected prefix but are intentionally public so

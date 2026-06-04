@@ -72,7 +72,13 @@ export function ListingCards({
     );
 }
 
-function ListingCard({ listing, from }: { listing: ListingWithCompany; from?: string }) {
+function ListingCard({
+    listing,
+    from,
+}: {
+    listing: ListingWithCompany;
+    from?: string;
+}) {
     const applied = useIsApplied(listing.id);
     const { me } = useMe();
     const canMultiApply = me?.role === "STUDENT" && !applied;
@@ -207,7 +213,12 @@ function ListingCard({ listing, from }: { listing: ListingWithCompany; from?: st
                             )}
                         </div>
                         <div className="self-stretch sm:self-auto flex items-center gap-2">
-                            <ShareMenu url={`/home/listings/${listing.id}`} title={listing.title} company={listing.company.name} onlyLogo />
+                            <ShareMenu
+                                url={`/home/listings/${listing.id}`}
+                                title={listing.title}
+                                company={listing.company.name}
+                                onlyLogo
+                            />
                             <ApplyCta
                                 listing={listing}
                                 applied={applied}

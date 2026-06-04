@@ -1,4 +1,3 @@
-// plan catalogue for paid upgrades, amounts in smallest currency unit (paise)
 export type Plan = {
     code: string;
     name: string;
@@ -6,6 +5,7 @@ export type Plan = {
     amount: number;
     currency: string;
     durationDays: number;
+    listingLimit: number | null;
 };
 
 export const PLANS: Record<string, Plan> = {
@@ -16,6 +16,7 @@ export const PLANS: Record<string, Plan> = {
         amount: 99900,
         currency: "INR",
         durationDays: 30,
+        listingLimit: 1,
     },
     MONTHLY: {
         code: "MONTHLY",
@@ -24,6 +25,7 @@ export const PLANS: Record<string, Plan> = {
         amount: 249900,
         currency: "INR",
         durationDays: 30,
+        listingLimit: 10,
     },
     YEARLY: {
         code: "YEARLY",
@@ -32,6 +34,7 @@ export const PLANS: Record<string, Plan> = {
         amount: 999900,
         currency: "INR",
         durationDays: 365,
+        listingLimit: null,
     },
 };
 

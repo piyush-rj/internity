@@ -16,6 +16,16 @@ const EMPLOYER_ONLY_PREFIXES = [
     "/home/applicants",
     "/home/company",
     "/home/employer",
+    "/home/plans",
+    "/home/explore-plans",
+];
+
+// Routes only students should reach. An employer who lands here gets the same
+// "page doesn't exist" bounce back to their dashboard.
+const STUDENT_ONLY_PREFIXES = [
+    "/home/resume",
+    "/home/applications",
+    "/home/saved",
 ];
 
 // gates first-time users at the dashboard for role pick and onboarding
@@ -30,19 +40,23 @@ export function RoleGate() {
     const onEmployerOnlyRoute = EMPLOYER_ONLY_PREFIXES.some((p) =>
         pathname.startsWith(p),
     );
-    const studentOnEmployerRoute =
+    const onStudentOnlyRoute = STUDENT_ONLY_PREFIXES.some((p) =>
+        pathname.startsWith(p),
+    );
+    const onRoleRestrictedRoute = onEmployerOnlyRoute || onStudentOnlyRoute;
+
+    // A confirmed user sitting on a route reserved for the other role. Both
+    // directions are treated the same: the page simply doesn't exist for them.
+    const roleMismatch =
         !!me &&
-        me.role === "STUDENT" &&
         me.roleConfirmed &&
-        onEmployerOnlyRoute;
+        ((me.role === "STUDENT" && onEmployerOnlyRoute) ||
+            (me.role === "EMPLOYER" && onStudentOnlyRoute));
 
     useEffect(() => {
-        if (!studentOnEmployerRoute) return;
-        toast("That section is for employer accounts", {
-            description:
-                "Posting and managing listings needs an employer account.",
-        });
-    }, [studentOnEmployerRoute]);
+        if (!roleMismatch) return;
+        toast.error("Page doesn't exist");
+    }, [roleMismatch]);
 
     const profileComplete = !!(me?.hasStudentProfile || me?.hasEmployerProfile);
     const needsProfileNudge =
@@ -85,12 +99,12 @@ export function RoleGate() {
 
     if (!session?.user) return null;
 
-    // On employer-only routes we can't let the page paint until we know the
-    // role — otherwise the employer UI flashes for the fraction of a second it
-    // takes /auth/me to resolve (and again while we redirect a student away).
+    // On role-restricted routes we can't let the page paint until we know the
+    // role — otherwise the page flashes for the fraction of a second it takes
+    // /auth/me to resolve (and again while we redirect a mismatched user away).
     // Block it behind a skeleton overlay until the user is confirmed allowed.
-    if (onEmployerOnlyRoute && (loading || !me || studentOnEmployerRoute)) {
-        if (studentOnEmployerRoute) router.replace("/home/dashboard");
+    if (onRoleRestrictedRoute && (loading || !me || roleMismatch)) {
+        if (roleMismatch) router.replace("/home/dashboard");
         return <RouteGuardSkeleton />;
     }
 

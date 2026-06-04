@@ -10,8 +10,9 @@ export default async function listMyPayments(
     const api = new ResponseWriter(res);
     try {
         const userId = req.user!.id;
+        const now = new Date();
 
-        const [user, payments] = await Promise.all([
+        const [user, payments, listingsUsed] = await Promise.all([
             prisma.user.findUnique({
                 where: { id: userId },
                 select: {
@@ -25,28 +26,50 @@ export default async function listMyPayments(
                 where: { userId, status: PaymentStatus.SUCCESS },
                 orderBy: { createdAt: "desc" },
             }),
+            // Listings the user currently has occupying a slot: live or paused,
+            // i.e. not closed, not taken down, and not past expiry. This is what
+            // a plan's listingLimit is measured against.
+            prisma.listing.count({
+                where: {
+                    postedById: userId,
+                    closedAt: null,
+                    takenDownAt: null,
+                    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                },
+            }),
         ]);
 
-        const now = new Date();
         const premiumUntil = user?.premiumUntil ?? null;
-        const isActive = !!(user?.isPremium && premiumUntil && premiumUntil > now);
+        const isActive = !!(
+            user?.isPremium &&
+            premiumUntil &&
+            premiumUntil > now
+        );
         const daysRemaining = isActive
-            ? Math.ceil((premiumUntil!.getTime() - now.getTime()) / (1000 * 60 * 60 * 24))
+            ? Math.ceil(
+                  (premiumUntil!.getTime() - now.getTime()) /
+                      (1000 * 60 * 60 * 24),
+              )
             : 0;
+        const planCode = user?.activePlanCode ?? null;
+        const plan = planCode ? (PLANS[planCode] ?? null) : null;
 
         api.ok({
             currentPlan: {
                 isPremium: user?.isPremium ?? false,
                 isActive,
-                code: user?.activePlanCode ?? null,
-                name: user?.activePlanCode ? (PLANS[user.activePlanCode]?.name ?? null) : null,
+                code: planCode,
+                name: plan?.name ?? null,
                 since: user?.premiumSince?.toISOString() ?? null,
                 until: premiumUntil?.toISOString() ?? null,
                 daysRemaining,
-                totalDays: (() => {
-                    if (!user?.activePlanCode) return null;
-                    return PLANS[user.activePlanCode]?.durationDays ?? null;
-                })(),
+                totalDays: plan?.durationDays ?? null,
+            },
+            // Real usage tied to plan features. listingLimit null = unlimited
+            // (Yearly) or no active plan; listingsUsed is the live count above.
+            usage: {
+                listingsUsed,
+                listingLimit: plan?.listingLimit ?? null,
             },
             payments: payments.map((p) => ({
                 id: p.id,

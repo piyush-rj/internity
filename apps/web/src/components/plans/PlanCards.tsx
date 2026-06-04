@@ -8,13 +8,11 @@ import {
     PiCheckCircleFill,
     PiSparkleFill,
 } from "react-icons/pi";
-import { NavBar } from "@/src/components/navbar/NavBar";
 import { cn } from "@/src/lib/utils";
 import { openCheckout } from "@/src/lib/razorpay";
-import { useMe } from "@/src/hooks/useMe";
 import type { PlanCode } from "@/src/lib/api/payment";
 
-type Plan = {
+export type Plan = {
     code: PlanCode;
     name: string;
     price: string;
@@ -25,7 +23,7 @@ type Plan = {
     badge?: string;
 };
 
-const PLANS: Plan[] = [
+export const PLANS: Plan[] = [
     {
         code: "PER_POST",
         name: "Per Post",
@@ -72,40 +70,16 @@ const PLANS: Plan[] = [
     },
 ];
 
-export default function PricingPage() {
-    const { me } = useMe();
+export function PlanGrid({
+    prefill,
+}: {
+    prefill: { name?: string; email?: string };
+}) {
     return (
-        <div className="flex flex-col min-h-screen">
-            <NavBar />
-            <main className="flex-1 pt-14">
-                <div className="mx-auto max-w-5xl px-6 py-14">
-                    <header className="text-center space-y-3 mb-12">
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-0.5 text-[11.5px] font-medium">
-                            For founders
-                        </span>
-                        <h1 className="text-[32px] font-semibold tracking-tight">
-                            Simple pricing, no hidden tricks.
-                        </h1>
-                        <p className="text-[14px] text-muted-foreground max-w-xl mx-auto leading-relaxed">
-                            Pick a plan that matches your hiring volume. Switch
-                            or cancel any time — students always apply free.
-                        </p>
-                    </header>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        {PLANS.map((p) => (
-                            <PlanCard
-                                key={p.code}
-                                plan={p}
-                                prefill={{
-                                    name: me?.name ?? undefined,
-                                    email: me?.email ?? undefined,
-                                }}
-                            />
-                        ))}
-                    </div>
-                </div>
-            </main>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {PLANS.map((p) => (
+                <PlanCard key={p.code} plan={p} prefill={prefill} />
+            ))}
         </div>
     );
 }
@@ -202,4 +176,3 @@ function PlanCard({
         </section>
     );
 }
-

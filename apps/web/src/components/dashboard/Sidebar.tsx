@@ -4,10 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/src/lib/utils";
-import {
-    ChevronRightIcon,
-    SparklesIcon,
-} from "@/src/components/dashboard/icons";
+import { SparklesIcon } from "@/src/components/dashboard/icons";
 import {
     PiBookmarkSimpleFill,
     PiBookOpenFill,
@@ -19,6 +16,7 @@ import {
     PiFileTextFill,
     PiGearFill,
     PiHouseFill,
+    PiRocketLaunchFill,
     PiSquaresFourFill,
     PiUserFill,
     PiUsersFill,
@@ -43,7 +41,7 @@ type Item = {
     badgeIntent?: "muted" | "primary";
 };
 
-type NavSet = { workspace: Item[]; profile: Item[] };
+type NavSet = { workspace: Item[]; platform?: Item[]; profile: Item[] };
 
 const studentNav: NavSet = {
     workspace: [
@@ -84,6 +82,14 @@ const studentNav: NavSet = {
             href: "/home/schedules",
         },
     ],
+    platform: [
+        {
+            key: "instructions",
+            label: "Instructions",
+            icon: PiBookOpenFill,
+            href: "/home/instructions",
+        },
+    ],
     profile: [
         {
             key: "resume",
@@ -96,12 +102,6 @@ const studentNav: NavSet = {
             label: "Profile",
             icon: PiUserFill,
             href: "/home/profile",
-        },
-        {
-            key: "instructions",
-            label: "Instructions",
-            icon: PiBookOpenFill,
-            href: "/home/instructions",
         },
         {
             key: "settings",
@@ -145,6 +145,20 @@ const employerNav: NavSet = {
             href: "/home/schedules",
         },
     ],
+    platform: [
+        {
+            key: "explore-plans",
+            label: "Explore Plans",
+            icon: PiRocketLaunchFill,
+            href: "/home/explore-plans",
+        },
+        {
+            key: "instructions",
+            label: "Instructions",
+            icon: PiBookOpenFill,
+            href: "/home/instructions",
+        },
+    ],
     profile: [
         {
             key: "profile",
@@ -157,12 +171,6 @@ const employerNav: NavSet = {
             label: "My Plans",
             icon: PiCreditCardFill,
             href: "/home/plans",
-        },
-        {
-            key: "instructions",
-            label: "Instructions",
-            icon: PiBookOpenFill,
-            href: "/home/instructions",
         },
         {
             key: "settings",
@@ -179,7 +187,7 @@ function pickNav(role: UserRole | null | undefined): NavSet {
 
 function resolveActiveKey(pathname: string, nav: NavSet): string {
     const segment = pathname.split("/")[2] ?? "";
-    const all = [...nav.workspace, ...nav.profile];
+    const all = [...nav.workspace, ...(nav.platform ?? []), ...nav.profile];
     const match = all.find((it) => it.key === segment);
     // Fall back to the raw segment (e.g. "company") so a section with no
     // workspace entry doesn't spuriously highlight Dashboard; empty path
@@ -319,6 +327,24 @@ export function SidebarBody({
                             />
                         )}
 
+                        {initialized && nav.platform && (
+                            <>
+                                <SectionLabel className="mt-6">
+                                    Platform
+                                </SectionLabel>
+                                <div className="space-y-0.5">
+                                    {nav.platform.map((item) => (
+                                        <NavItem
+                                            key={item.key}
+                                            item={decorate(item)}
+                                            active={item.key === activeKey}
+                                            onClick={onNavClick}
+                                        />
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
                         <SectionLabel className="mt-6">Profile</SectionLabel>
                         <div className="space-y-0.5">
                             {!initialized
@@ -335,8 +361,6 @@ export function SidebarBody({
                                   ))}
                         </div>
                     </nav>
-
-                    {role === "EMPLOYER" && initialized && <UpgradeCard />}
                 </>
             )}
         </>
@@ -565,36 +589,6 @@ function SignInCard({ onNavigate }: { onNavigate?: () => void }) {
             >
                 Sign in
             </button>
-        </div>
-    );
-}
-
-function UpgradeCard() {
-    const isPremium = useMeStore((s) => s.me?.isPremium ?? false);
-
-    return (
-        <div className="rounded-lg border border-orange-200 bg-brand-soft p-3 m-2">
-            <div className="flex items-center gap-2 text-[12px] font-medium">
-                <SparklesIcon className="text-orange-600 h-3.5 w-3.5" />
-                <span>{isPremium ? "You're on Pro" : "Upgrade to Pro"}</span>
-            </div>
-            <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                {isPremium
-                    ? "Thanks for upgrading — enjoy unlimited listings, priority placement, and team invites."
-                    : "Unlimited listings, priority placement in search, team invites."}
-            </p>
-            {!isPremium && (
-                <Link
-                    href="/pricing"
-                    className={cn(
-                        "mt-3 inline-flex items-center gap-1 text-[12px] font-medium text-orange-600",
-                        "hover:underline cursor-pointer",
-                    )}
-                >
-                    See plans
-                    <ChevronRightIcon className="h-3 w-3" />
-                </Link>
-            )}
         </div>
     );
 }
