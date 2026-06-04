@@ -16,7 +16,7 @@ const JOB_TITLES_LIST = [
     "CUSTOM",
 ] as const;
 
-export const PAGE_SIZE = 20;
+export const PAGE_SIZE = 10;
 
 // parses url search params into a listing filters object
 export function filtersFromSearchParams(
