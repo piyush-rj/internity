@@ -5,5 +5,10 @@ export function createClient() {
     return createBrowserClient(
         ENV.NEXT_PUBLIC_SUPABASE_URL,
         ENV.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        {
+            cookieOptions: {
+                maxAge: 60 * 60 * 24 * 30,
+            },
+        },
     );
 }
