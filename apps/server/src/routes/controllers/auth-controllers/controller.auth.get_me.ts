@@ -100,6 +100,7 @@ export default async function getMe(
             roleConfirmed: user.roleConfirmed,
             isAdmin: isAdminUser({ role: user.role, email: user.email }),
             isPremium: user.isPremium,
+            premiumUntil: user.premiumUntil?.toISOString() ?? null,
             needsOnboarding: !user.name || user.name.trim().length === 0,
             hasStudentProfile: user.studentProfile !== null,
             hasEmployerProfile: user.employerProfile !== null,

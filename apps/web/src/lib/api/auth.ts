@@ -11,6 +11,7 @@ export type MeResponse = {
     roleConfirmed: boolean;
     isAdmin: boolean;
     isPremium: boolean;
+    premiumUntil: string | null;
     needsOnboarding: boolean;
     hasStudentProfile: boolean;
     hasEmployerProfile: boolean;

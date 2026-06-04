@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Plus } from "lucide-react";
+import { Crown, Plus } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { FilterDrawer } from "@/src/components/base/FilterDrawer";
 import { ApplicantCard } from "@/src/components/applicants/ApplicantCard";
@@ -21,6 +21,11 @@ import {
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { formatListingTitle } from "@/src/lib/listingTitle";
 import { useMyListings } from "@/src/hooks/useMyListings";
+import { useMe } from "@/src/hooks/useMe";
+import { PaginationBar } from "@/src/components/listings/PaginationBar";
+
+const PAGE_SIZE = 10;
+const FREE_LIMIT = 100;
 
 export default function ApplicantsPage() {
     return (
@@ -34,12 +39,12 @@ function ApplicantsView() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const queriedId = searchParams?.get("listingId") ?? null;
+    const page = Math.max(1, parseInt(searchParams?.get("page") ?? "1", 10));
 
+    const { me } = useMe();
     const { memberships } = useMyEmployer();
     const companyName = memberships[0]?.company.name ?? "";
     const companyId = memberships[0]?.company.id ?? undefined;
-    // Applicants can be handled by any company member (HR/Member too), so
-    // scope to the whole company rather than just listings I posted.
     const { items: listings, loading: listingsLoading } = useMyListings({
         scope: "company",
         companyId,
@@ -57,9 +62,6 @@ function ApplicantsView() {
         emptyApplicantsFilters(),
     );
 
-    // Seed the listing filter from the URL on first load so deep links
-    // from the dashboard still scope to the right role. After that the
-    // filter card owns the state and we keep the URL in sync.
     useEffect(() => {
         if (listings.length === 0) return;
         if (
@@ -76,10 +78,17 @@ function ApplicantsView() {
         }
     }, [queriedId, listings, filters.listingId]);
 
+    // Track previous listingId so we only reset page when it actually changes,
+    // not on every searchParams update (e.g. page navigation).
+    const prevListingId = useRef(filters.listingId);
     useEffect(() => {
+        const listingChanged = prevListingId.current !== filters.listingId;
+        prevListingId.current = filters.listingId;
+
         const params = new URLSearchParams(searchParams?.toString() ?? "");
         if (filters.listingId === "all") params.delete("listingId");
         else params.set("listingId", filters.listingId);
+        if (listingChanged) params.delete("page");
         const next = params.toString();
         const current = searchParams?.toString() ?? "";
         if (next === current) return;
@@ -88,8 +97,6 @@ function ApplicantsView() {
         });
     }, [filters.listingId, router, searchParams]);
 
-    // Screening questions + best-match sort default depend on whether a
-    // single listing is selected.
     const activeListing = useMemo(
         () =>
             filters.listingId === "all"
@@ -115,6 +122,51 @@ function ApplicantsView() {
                 getListingId,
             ),
         [items, filters],
+    );
+
+    // Listings posted while the employer had an active premium subscription are
+    // grandfathered — all their applicants stay visible even after premium lapses.
+    // grantedListingIds = null means the employer is currently premium (no cap at all).
+    const isPremium = me?.isPremium ?? false;
+    const premiumUntil = me?.premiumUntil ?? null;
+
+    const grantedListingIds = useMemo(() => {
+        if (isPremium) return null;
+        if (!premiumUntil) return new Set<string>();
+        const expiry = new Date(premiumUntil);
+        return new Set(
+            listings
+                .filter((l) => new Date(l.createdAt) <= expiry)
+                .map((l) => l.id),
+        );
+    }, [isPremium, premiumUntil, listings]);
+
+    // Apply the FREE_LIMIT cap while preserving list order. Applicants from
+    // grandfathered listings are always shown; non-grandfathered ones are
+    // capped at FREE_LIMIT total across all non-granted listings.
+    const { cappedItems, isCapActive } = useMemo(() => {
+        if (!grantedListingIds) {
+            return { cappedItems: visibleItems, isCapActive: false };
+        }
+        let nonGrantedCount = 0;
+        const result: AggregatedApplicant[] = [];
+        for (const item of visibleItems) {
+            if (grantedListingIds.has(item.listing.id)) {
+                result.push(item);
+            } else if (nonGrantedCount < FREE_LIMIT) {
+                result.push(item);
+                nonGrantedCount++;
+            }
+        }
+        return {
+            cappedItems: result,
+            isCapActive: result.length < visibleItems.length,
+        };
+    }, [visibleItems, grantedListingIds]);
+
+    const pageItems = useMemo(
+        () => cappedItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+        [cappedItems, page],
     );
 
     const activeFilterCount = countActiveApplicantFilters(filters);
@@ -143,7 +195,7 @@ function ApplicantsView() {
                                         visibleCount={
                                             loading || error
                                                 ? undefined
-                                                : visibleItems.length
+                                                : cappedItems.length
                                         }
                                         totalCount={
                                             loading || error
@@ -158,10 +210,10 @@ function ApplicantsView() {
                             <ErrorRow message={error.message} />
                         ) : loading ? (
                             <Skeleton />
-                        ) : visibleItems.length === 0 ? (
+                        ) : cappedItems.length === 0 ? (
                             <EmptyCard hasFilters={activeFilterCount > 0} />
                         ) : (
-                            visibleItems.map((applicant) => (
+                            pageItems.map((applicant) => (
                                 <div
                                     key={applicant.id}
                                     className="rounded-lg border border-border bg-card overflow-hidden"
@@ -183,6 +235,19 @@ function ApplicantsView() {
                                 </div>
                             ))
                         )}
+                        <PaginationBar
+                            basePath="/home/applicants"
+                            page={page}
+                            pageSize={PAGE_SIZE}
+                            total={cappedItems.length}
+                        />
+                        {isCapActive && (
+                            <FreeLimitBanner
+                                hidden={
+                                    visibleItems.length - cappedItems.length
+                                }
+                            />
+                        )}
                     </div>
 
                     <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
@@ -194,7 +259,7 @@ function ApplicantsView() {
                             visibleCount={
                                 loading || error
                                     ? undefined
-                                    : visibleItems.length
+                                    : cappedItems.length
                             }
                             totalCount={
                                 loading || error ? undefined : items.length
@@ -204,6 +269,29 @@ function ApplicantsView() {
                 </div>
             )}
         </EmptySection>
+    );
+}
+
+function FreeLimitBanner({ hidden }: { hidden: number }) {
+    return (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 dark:bg-orange-950/20 dark:border-orange-900 px-5 py-4 flex items-start gap-3">
+            <Crown className="h-4 w-4 text-orange-500 shrink-0 mt-0.5" />
+            <div className="min-w-0 flex-1">
+                <p className="text-[13px] font-medium text-orange-800 dark:text-orange-300">
+                    {hidden} more applicant{hidden !== 1 ? "s" : ""} hidden
+                </p>
+                <p className="mt-0.5 text-[12px] text-orange-700/80 dark:text-orange-400/80">
+                    Free accounts can view up to {FREE_LIMIT} applicants.
+                    Upgrade to see everyone who applied.
+                </p>
+                <Link
+                    href="/home/explore-plans"
+                    className="mt-2 inline-flex items-center gap-1 text-[12px] font-medium text-orange-700 dark:text-orange-300 hover:underline"
+                >
+                    View plans →
+                </Link>
+            </div>
+        </div>
     );
 }
 
@@ -266,7 +354,7 @@ function NoListings() {
 function ErrorRow({ message }: { message: string }) {
     return (
         <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
-            Couldn’t load applicants — {message}
+            Couldn&apos;t load applicants — {message}
         </div>
     );
 }
