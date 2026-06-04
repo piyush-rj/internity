@@ -6,7 +6,7 @@ import { prisma } from "../../../db.ts";
 const Query = z.object({
     status: z.enum(["CREATED", "SUCCESS", "FAILED"]).optional(),
     page: z.coerce.number().int().min(1).default(1),
-    pageSize: z.coerce.number().int().min(1).max(100).default(50),
+    pageSize: z.coerce.number().int().min(1).max(500).default(50),
 });
 
 export default async function listPayments(
