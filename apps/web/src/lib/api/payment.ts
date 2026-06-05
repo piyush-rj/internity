@@ -83,10 +83,35 @@ export type MyPlansResponse = {
 
 export const paymentApi = {
     list_mine: () => api.get<MyPlansResponse>("/payment/mine"),
-    create_order: (planCode: PlanCode, companyId: string) =>
-        api.post<CreateOrderResponse>("/payment/order", { planCode, companyId }),
+    create_order: (planCode: PlanCode, companyId: string, couponCode?: string) =>
+        api.post<CreateOrderResponse>("/payment/order", {
+            planCode,
+            companyId,
+            ...(couponCode ? { couponCode } : {}),
+        }),
     verify: (input: VerifyInput) =>
         api.post<{ ok: true; planCode: PlanCode }>("/payment/verify", input),
+    get_active_offer: () =>
+        api.get<{
+            offer: {
+                id: string;
+                title: string;
+                description: string | null;
+                discountPctPerPost: number;
+                discountPctMonthly: number;
+                discountPctYearly: number;
+                expiresAt: string;
+            } | null;
+        }>("/payment/offer/active"),
+    validate_coupon: (input: { code: string }) =>
+        api.post<{
+            valid: true;
+            code: string;
+            discounts: Record<
+                string,
+                { pct: number; originalAmount: number; discountedAmount: number }
+            >;
+        }>("/payment/coupon/validate", input),
     cancel_request: (input: {
         paymentId: string;
         reason: CancellationReason;

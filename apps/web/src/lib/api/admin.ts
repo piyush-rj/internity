@@ -144,4 +144,77 @@ export const adminApi = {
         api.patch<{
             request: { id: string; status: string; resolvedAt: string | null };
         }>(`/admin/cancellation-requests/${id}`, input),
+    list_coupons: (params?: { page?: number; pageSize?: number }) =>
+        api.get<{
+            items: AdminCoupon[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/admin/coupons", params),
+    create_coupon: (input: {
+        code: string;
+        defaultDiscountPct: number;
+        discountPctPerPost?: number;
+        discountPctMonthly?: number;
+        discountPctYearly?: number;
+        expiresAt?: string;
+    }) => api.post<{ coupon: { id: string; code: string } }>("/admin/coupons", input),
+    revoke_coupon: (id: string) =>
+        api.patch<{ coupon: { id: string; isActive: boolean } }>(
+            `/admin/coupons/${id}/revoke`,
+            {},
+        ),
+    list_offers: (params?: { page?: number; pageSize?: number }) =>
+        api.get<{
+            items: AdminOffer[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/admin/offers", params),
+    create_offer: (input: {
+        title: string;
+        description?: string;
+        defaultDiscountPct: number;
+        discountPctPerPost?: number;
+        discountPctMonthly?: number;
+        discountPctYearly?: number;
+        expiresAt?: string;
+    }) => api.post<{ offer: { id: string; title: string } }>("/admin/offers", input),
+    revoke_offer: (id: string) =>
+        api.patch<{ offer: { id: string; isActive: boolean } }>(
+            `/admin/offers/${id}/revoke`,
+            {},
+        ),
+};
+
+export type AdminCoupon = {
+    id: string;
+    code: string;
+    discountPctPerPost: number;
+    discountPctMonthly: number;
+    discountPctYearly: number;
+    isActive: boolean;
+    isExpired: boolean;
+    revokedAt: string | null;
+    revokedById: string | null;
+    expiresAt: string;
+    createdAt: string;
+    createdBy: { id: string; name: string | null; email: string | null };
+    redemptionCount: number;
+};
+
+export type AdminOffer = {
+    id: string;
+    title: string;
+    description: string | null;
+    discountPctPerPost: number;
+    discountPctMonthly: number;
+    discountPctYearly: number;
+    isActive: boolean;
+    isExpired: boolean;
+    revokedAt: string | null;
+    revokedById: string | null;
+    expiresAt: string;
+    createdAt: string;
+    createdBy: { id: string; name: string | null; email: string | null };
 };

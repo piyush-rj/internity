@@ -10,7 +10,9 @@ import {
     PiFlagFill,
     PiGraduationCapFill,
     PiHouseFill,
+    PiPlusFill,
     PiProhibitFill,
+    PiTagFill,
     PiUsersFill,
 } from "react-icons/pi";
 import { GiTie } from "react-icons/gi";
@@ -73,6 +75,18 @@ const NAV: Item[] = [
         label: "Cancellations",
         icon: PiProhibitFill,
         href: "/admin/cancellations",
+    },
+    {
+        key: "offers",
+        label: "Offers",
+        icon: PiTagFill,
+        href: "/admin/offers",
+    },
+    {
+        key: "add-offer",
+        label: "Add Offer",
+        icon: PiPlusFill,
+        href: "/admin/offers/new",
     },
 ];
 

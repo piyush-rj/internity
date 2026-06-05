@@ -14,6 +14,7 @@ import { PaymentStatus, prisma } from "../../../db.ts";
 const Body = z.object({
     planCode: z.string().min(1).refine(isPlanCode, "Unknown plan"),
     companyId: z.string().min(1),
+    couponCode: z.string().optional(),
 });
 
 function gatewayNotConfigured(): ApiError {
@@ -46,6 +47,39 @@ export default async function createOrder(
 
         const plan = PLANS[body.planCode]!;
 
+        // Validate coupon if provided — fail fast so the user sees the error
+        // before Razorpay opens.
+        let couponId: string | null = null;
+        let finalAmount = plan.amount;
+
+        if (body.couponCode) {
+            const now = new Date();
+            const coupon = await prisma.coupon.findUnique({
+                where: { code: body.couponCode.trim().toUpperCase() },
+                include: {
+                    redemptions: { where: { userId }, take: 1 },
+                },
+            });
+
+            if (!coupon || !coupon.isActive || coupon.expiresAt < now) {
+                api.fail(400, "INVALID_COUPON", "Invalid or expired coupon code.");
+                return;
+            }
+            if (coupon.redemptions.length > 0) {
+                api.fail(400, "ALREADY_USED", "You have already used this coupon.");
+                return;
+            }
+
+            const pctMap: Record<string, number> = {
+                PER_POST: coupon.discountPctPerPost,
+                MONTHLY: coupon.discountPctMonthly,
+                YEARLY: coupon.discountPctYearly,
+            };
+            const pct = pctMap[body.planCode] ?? 0;
+            finalAmount = Math.round(plan.amount * (1 - pct / 100));
+            couponId = coupon.id;
+        }
+
         const client = new Razorpay({
             key_id: config.SERVER_RAZORPAY_ID,
             key_secret: config.SERVER_RAZORPAY_SECRET,
@@ -54,10 +88,15 @@ export default async function createOrder(
         let order;
         try {
             order = await client.orders.create({
-                amount: plan.amount,
+                amount: finalAmount,
                 currency: plan.currency,
                 receipt,
-                notes: { userId, companyId: body.companyId, planCode: plan.code },
+                notes: {
+                    userId,
+                    companyId: body.companyId,
+                    planCode: plan.code,
+                    ...(couponId ? { couponId } : {}),
+                },
             });
         } catch (razorpayErr) {
             console.error(
@@ -72,10 +111,12 @@ export default async function createOrder(
                 userId,
                 companyId: body.companyId,
                 planCode: plan.code,
-                amount: plan.amount,
+                // Store the discounted amount so verify_payment knows what was charged.
+                amount: finalAmount,
                 currency: plan.currency,
                 razorpayOrderId: order.id,
                 status: PaymentStatus.CREATED,
+                ...(couponId ? { couponId } : {}),
             },
         });
 

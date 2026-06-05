@@ -57,19 +57,14 @@ export default function AdminCancellationsPage() {
         load();
     }, [load]);
 
-    async function handleAction(
-        id: string,
-        action: "approve" | "reject",
-    ) {
+    async function handleAction(id: string, action: "approve" | "reject") {
         setActionLoading(id + action);
         try {
             await adminApi.update_cancellation_request(id, { action });
             await load();
         } catch (err) {
             alert(
-                err instanceof ApiClientError
-                    ? err.message
-                    : "Action failed.",
+                err instanceof ApiClientError ? err.message : "Action failed.",
             );
         } finally {
             setActionLoading(null);
@@ -77,50 +72,55 @@ export default function AdminCancellationsPage() {
     }
 
     return (
-        <section className="px-6 py-6 space-y-4">
+        <section className="px-3 sm:px-6 py-4 sm:py-6 space-y-4">
             <header className="space-y-1">
                 <h1 className="text-[18px] font-semibold tracking-tight">
                     Cancellation Requests
                 </h1>
                 <p className="text-[12.5px] text-muted-foreground">
-                    Subscription cancellation and refund requests from founders.
-                    Approve to revoke premium access immediately.
+                    Subscription cancellation requests from founders. Approve
+                    to revoke premium access immediately.
                 </p>
             </header>
 
-            <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/60 p-1 shadow-xs w-fit">
-                {STATUS_TABS.map((t) => {
-                    const active = t.key === status;
-                    return (
-                        <button
-                            key={t.key}
-                            type="button"
-                            onClick={() => setStatus(t.key)}
-                            className={cn(
-                                "inline-flex items-center h-7 px-3 rounded-md text-[12px] font-medium cursor-pointer transition-colors",
-                                active
-                                    ? "bg-card text-foreground shadow-xs ring-1 ring-border"
-                                    : "text-muted-foreground hover:text-foreground",
-                            )}
-                        >
-                            {t.label}
-                        </button>
-                    );
-                })}
+            {/* Status tabs — scrollable on mobile */}
+            <div className="overflow-x-auto -mx-3 sm:mx-0 px-3 sm:px-0">
+                <div className="flex items-center gap-1 rounded-lg border border-border bg-secondary/60 p-1 shadow-xs w-fit">
+                    {STATUS_TABS.map((t) => {
+                        const active = t.key === status;
+                        return (
+                            <button
+                                key={t.key}
+                                type="button"
+                                onClick={() => setStatus(t.key)}
+                                className={cn(
+                                    "inline-flex items-center h-7 px-3 rounded-md text-[12px] font-medium cursor-pointer transition-colors whitespace-nowrap",
+                                    active
+                                        ? "bg-card text-foreground shadow-xs ring-1 ring-border"
+                                        : "text-muted-foreground hover:text-foreground",
+                                )}
+                            >
+                                {t.label}
+                            </button>
+                        );
+                    })}
+                </div>
             </div>
 
             <section className="rounded-xl border border-border bg-card overflow-hidden">
-                <header className="flex items-center justify-between px-5 py-3 border-b border-border">
+                <header className="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-border">
                     <div className="text-[12.5px] font-medium">
                         Cancellation requests
                     </div>
                     <span className="text-[11.5px] text-muted-foreground tabular-nums">
-                        {loading ? "…" : `${total} ${total === 1 ? "request" : "requests"}`}
+                        {loading
+                            ? "…"
+                            : `${total} ${total === 1 ? "request" : "requests"}`}
                     </span>
                 </header>
 
                 {error ? (
-                    <div className="mx-5 my-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
+                    <div className="mx-4 sm:mx-5 my-4 rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2.5 text-[12.5px] text-destructive">
                         {error}
                     </div>
                 ) : loading && items.length === 0 ? (
@@ -158,18 +158,22 @@ function RequestRow({
     const isPending = r.status === "PENDING";
 
     return (
-        <div className="px-5 py-4 space-y-3">
-            {/* Row header: user + plan + status */}
-            <div className="flex items-start justify-between gap-4 flex-wrap">
-                <div className="min-w-0">
+        <div className="px-4 sm:px-5 py-4 space-y-3">
+            {/* Header: user info + amount */}
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+                <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-[13px] font-semibold truncate">
+                        <span className="text-[13px] font-semibold truncate max-w-45 sm:max-w-none">
                             {founder}
                         </span>
                         <StatusBadge status={r.status} />
                     </div>
-                    <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-0.5 text-[11.5px] text-muted-foreground">
-                        {r.user.email && <span>{r.user.email}</span>}
+                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5 text-[11.5px] text-muted-foreground">
+                        {r.user.email && (
+                            <span className="truncate max-w-50">
+                                {r.user.email}
+                            </span>
+                        )}
                         {company && <span>· {company.name}</span>}
                     </div>
                 </div>
@@ -187,9 +191,12 @@ function RequestRow({
                 </div>
             </div>
 
-            {/* Details grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <Detail label="Reason" value={REASON_LABELS[r.reason] ?? r.reason} />
+            {/* Details grid: 2 cols on mobile, 4 on desktop */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+                <Detail
+                    label="Reason"
+                    value={REASON_LABELS[r.reason] ?? r.reason}
+                />
                 <Detail
                     label="Listings used"
                     value={
@@ -205,37 +212,37 @@ function RequestRow({
                 />
                 <Detail
                     label="Requested"
-                    value={formatDate(r.createdAt)}
+                    value={formatDateShort(r.createdAt)}
                 />
                 <Detail
                     label="Payment date"
-                    value={formatDate(r.payment.createdAt)}
+                    value={formatDateShort(r.payment.createdAt)}
                 />
             </div>
 
-            {/* Other text if present */}
             {r.otherText && (
                 <p className="text-[12px] text-muted-foreground bg-secondary/40 rounded-md px-3 py-2 italic">
                     &ldquo;{r.otherText}&rdquo;
                 </p>
             )}
 
-            {/* Admin note if resolved */}
             {r.adminNote && (
                 <p className="text-[12px] text-muted-foreground">
-                    <span className="font-medium text-foreground">Admin note:</span>{" "}
+                    <span className="font-medium text-foreground">
+                        Admin note:
+                    </span>{" "}
                     {r.adminNote}
                 </p>
             )}
 
-            {/* Actions for pending requests */}
+            {/* Action buttons — stack on mobile */}
             {isPending && (
-                <div className="flex items-center gap-2 pt-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 pt-1">
                     <button
                         type="button"
                         disabled={actionLoading !== null}
                         onClick={() => onAction(r.id, "approve")}
-                        className="h-8 px-4 rounded-md bg-emerald-500 text-white text-[12px] font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
+                        className="h-9 sm:h-8 px-4 rounded-md bg-emerald-500 text-white text-[12px] font-medium hover:bg-emerald-600 transition-colors disabled:opacity-50"
                     >
                         {actionLoading === r.id + "approve"
                             ? "Approving…"
@@ -245,7 +252,7 @@ function RequestRow({
                         type="button"
                         disabled={actionLoading !== null}
                         onClick={() => onAction(r.id, "reject")}
-                        className="h-8 px-4 rounded-md border border-border bg-background text-[12px] font-medium hover:bg-secondary transition-colors disabled:opacity-50"
+                        className="h-9 sm:h-8 px-4 rounded-md border border-border bg-background text-[12px] font-medium hover:bg-secondary transition-colors disabled:opacity-50"
                     >
                         {actionLoading === r.id + "reject"
                             ? "Rejecting…"
@@ -256,7 +263,7 @@ function RequestRow({
 
             {r.resolvedAt && (
                 <p className="text-[11px] text-muted-foreground">
-                    Resolved {formatDate(r.resolvedAt)}
+                    Resolved {formatDateShort(r.resolvedAt)}
                 </p>
             )}
         </div>
@@ -275,7 +282,7 @@ function Detail({
     return (
         <div className="rounded-md border border-border bg-secondary/20 px-2.5 py-2">
             <p className="text-[10.5px] text-muted-foreground">{label}</p>
-            <p className={cn("text-[12px] font-medium mt-0.5", valueClass)}>
+            <p className={cn("text-[12px] font-medium mt-0.5 truncate", valueClass)}>
                 {value}
             </p>
         </div>
@@ -291,7 +298,7 @@ function StatusBadge({ status }: { status: string }) {
     return (
         <span
             className={cn(
-                "inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-medium",
+                "inline-flex items-center rounded-md border px-2 py-0.5 text-[10.5px] font-medium shrink-0",
                 styles[status] ?? "bg-secondary text-foreground border-border",
             )}
         >
@@ -312,10 +319,10 @@ function Skeleton() {
     return (
         <div className="divide-y divide-border">
             {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="px-5 py-4 space-y-2 animate-pulse">
-                    <div className="h-3.5 w-48 rounded bg-secondary" />
-                    <div className="h-3 w-32 rounded bg-secondary" />
-                    <div className="grid grid-cols-4 gap-3 mt-2">
+                <div key={i} className="px-4 sm:px-5 py-4 space-y-2 animate-pulse">
+                    <div className="h-3.5 w-40 rounded bg-secondary" />
+                    <div className="h-3 w-28 rounded bg-secondary" />
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-2">
                         {[0, 1, 2, 3].map((j) => (
                             <div key={j} className="h-10 rounded-md bg-secondary" />
                         ))}
@@ -326,12 +333,10 @@ function Skeleton() {
     );
 }
 
-function formatDate(iso: string): string {
-    return new Date(iso).toLocaleString("en-US", {
+function formatDateShort(iso: string): string {
+    return new Date(iso).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
-        hour: "numeric",
-        minute: "2-digit",
     });
 }

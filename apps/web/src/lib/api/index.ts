@@ -62,6 +62,8 @@ export {
     type AdminPaymentsResponse,
     type AdminStudentListItem,
     type AdminCancellationRequest,
+    type AdminCoupon,
+    type AdminOffer,
 } from "./admin";
 export {
     interviewApi,

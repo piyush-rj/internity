@@ -7,6 +7,12 @@ import adminListStudents from "../controllers/admin-controllers/controller.admin
 import setStudentVerification from "../controllers/admin-controllers/controller.admin.set_student_verification.ts";
 import listCancellationRequests from "../controllers/admin-controllers/controller.admin.list_cancellation_requests.ts";
 import updateCancellationRequest from "../controllers/admin-controllers/controller.admin.update_cancellation_request.ts";
+import createCoupon from "../controllers/admin-controllers/controller.admin.create_coupon.ts";
+import listCoupons from "../controllers/admin-controllers/controller.admin.list_coupons.ts";
+import revokeCoupon from "../controllers/admin-controllers/controller.admin.revoke_coupon.ts";
+import createOffer from "../controllers/admin-controllers/controller.admin.create_offer.ts";
+import listOffers from "../controllers/admin-controllers/controller.admin.list_offers.ts";
+import revokeOffer from "../controllers/admin-controllers/controller.admin.revoke_offer.ts";
 
 const router: RouterType = Router();
 router.use(requireAuth);
@@ -18,5 +24,11 @@ router.post("/user/:id/ban", requireAdmin, setUserBan);
 router.post("/student/:id/verify", requireAdmin, setStudentVerification);
 router.get("/cancellation-requests", requireAdmin, listCancellationRequests);
 router.patch("/cancellation-requests/:id", requireAdmin, updateCancellationRequest);
+router.get("/coupons", requireAdmin, listCoupons);
+router.post("/coupons", requireAdmin, createCoupon);
+router.patch("/coupons/:id/revoke", requireAdmin, revokeCoupon);
+router.get("/offers", requireAdmin, listOffers);
+router.post("/offers", requireAdmin, createOffer);
+router.patch("/offers/:id/revoke", requireAdmin, revokeOffer);
 
 export default router;

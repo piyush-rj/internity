@@ -65,13 +65,14 @@ export default async function verifyPayment(
             now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000,
         );
 
-        // Resolve which company this payment belongs to so we can
-        // set the premium on the company — not the individual user.
+        // Resolve which company this payment belongs to and whether a coupon
+        // was applied so we can record the redemption.
         const payment = await prisma.payment.findFirst({
             where: { razorpayOrderId: body.razorpay_order_id, userId },
-            select: { companyId: true },
+            select: { id: true, companyId: true, couponId: true, amount: true },
         });
         const companyId = payment?.companyId ?? null;
+        const couponId = payment?.couponId ?? null;
 
         if (companyId) {
             // Company-scoped payment: update the company's premium status.
@@ -117,8 +118,42 @@ export default async function verifyPayment(
             ]);
         }
 
+        // Record coupon redemption now that the payment is confirmed.
+        if (couponId && payment?.id) {
+            try {
+                await prisma.couponRedemption.create({
+                    data: {
+                        couponId,
+                        userId,
+                        paymentId: payment.id,
+                        discountPct: await (async () => {
+                            const c = await prisma.coupon.findUnique({
+                                where: { id: couponId },
+                                select: {
+                                    discountPctPerPost: true,
+                                    discountPctMonthly: true,
+                                    discountPctYearly: true,
+                                },
+                            });
+                            const map: Record<string, number> = {
+                                PER_POST: c?.discountPctPerPost ?? 0,
+                                MONTHLY: c?.discountPctMonthly ?? 0,
+                                YEARLY: c?.discountPctYearly ?? 0,
+                            };
+                            return map[plan.code] ?? 0;
+                        })(),
+                        originalAmount: plan.amount,
+                        discountedAmount: payment.amount,
+                    },
+                });
+            } catch (err) {
+                // Non-fatal: redemption logging should never break the payment.
+                console.error("[payment] Failed to record coupon redemption:", err);
+            }
+        }
+
         console.log(
-            `[payment] ✅ Payment verified — user=${userId} company=${companyId ?? "n/a"} plan=${plan.code} amount=₹${plan.amount / 100} validUntil=${premiumUntil.toISOString()}`,
+            `[payment] ✅ Payment verified — user=${userId} company=${companyId ?? "n/a"} plan=${plan.code} amount=₹${(payment?.amount ?? plan.amount) / 100} validUntil=${premiumUntil.toISOString()}`,
         );
 
         await notify({

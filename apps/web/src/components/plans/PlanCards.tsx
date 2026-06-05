@@ -12,6 +12,12 @@ import { cn } from "@/src/lib/utils";
 import { openCheckout } from "@/src/lib/razorpay";
 import type { PlanCode } from "@/src/lib/api/payment";
 
+export type CouponDiscount = {
+    pct: number;
+    originalAmount: number;
+    discountedAmount: number;
+};
+
 export type Plan = {
     code: PlanCode;
     name: string;
@@ -73,14 +79,25 @@ export const PLANS: Plan[] = [
 export function PlanGrid({
     prefill,
     companyId,
+    couponCode,
+    discounts,
 }: {
     prefill: { name?: string; email?: string };
     companyId: string | null;
+    couponCode?: string;
+    discounts?: Record<string, CouponDiscount>;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {PLANS.map((p) => (
-                <PlanCard key={p.code} plan={p} prefill={prefill} companyId={companyId} />
+                <PlanCard
+                    key={p.code}
+                    plan={p}
+                    prefill={prefill}
+                    companyId={companyId}
+                    couponCode={couponCode}
+                    discount={discounts?.[p.code]}
+                />
             ))}
         </div>
     );
@@ -90,22 +107,25 @@ function PlanCard({
     plan,
     prefill,
     companyId,
+    couponCode,
+    discount,
 }: {
     plan: Plan;
     prefill: { name?: string; email?: string };
     companyId: string | null;
+    couponCode?: string;
+    discount?: CouponDiscount;
 }) {
     const [loading, setLoading] = useState(false);
 
     async function handlePay() {
-        if (!companyId) {
-            return;
-        }
+        if (!companyId) return;
         setLoading(true);
         try {
             await openCheckout({
                 planCode: plan.code,
                 companyId,
+                couponCode,
                 prefill,
                 onSuccess: () => {
                     toast.success(
@@ -146,13 +166,36 @@ function PlanCard({
                     {plan.name}
                 </h2>
             </div>
-            <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-[34px] font-semibold tracking-tight tabular-nums">
-                    {plan.price}
-                </span>
-                <span className="text-[13px] text-muted-foreground">
-                    {plan.cadence}
-                </span>
+            <div className="mt-4">
+                {discount ? (
+                    <div className="space-y-0.5">
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-[34px] font-semibold tracking-tight tabular-nums text-orange-600">
+                                ₹{(discount.discountedAmount / 100).toLocaleString("en-IN")}
+                            </span>
+                            <span className="text-[13px] text-muted-foreground">
+                                {plan.cadence}
+                            </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <span className="text-[12px] text-muted-foreground line-through tabular-nums">
+                                {plan.price}
+                            </span>
+                            <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-700 px-2 py-0.5 text-[10.5px] font-semibold">
+                                {discount.pct}% off
+                            </span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="flex items-baseline gap-1">
+                        <span className="text-[34px] font-semibold tracking-tight tabular-nums">
+                            {plan.price}
+                        </span>
+                        <span className="text-[13px] text-muted-foreground">
+                            {plan.cadence}
+                        </span>
+                    </div>
+                )}
             </div>
             <ul className="mt-5 space-y-2.5 text-[13px] flex-1">
                 {plan.features.map((f) => (
