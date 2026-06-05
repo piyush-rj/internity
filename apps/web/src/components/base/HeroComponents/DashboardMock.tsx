@@ -137,21 +137,6 @@ function DashboardSidebar() {
                     ))}
                 </div>
             </nav>
-
-            {/* Upgrade card */}
-            <div className="m-2 rounded-md border border-orange-200 bg-brand-soft p-2.5">
-                <div className="flex items-center gap-1.5 text-[10.5px] font-medium">
-                    <PiSparkleFill className="h-3 w-3 text-orange-600" />
-                    Upgrade to Pro
-                </div>
-                <p className="mt-1 text-[9.5px] text-muted-foreground leading-snug">
-                    Unlimited listings, priority placement, team invites.
-                </p>
-                <div className="mt-2 inline-flex items-center gap-1 text-[10px] font-medium text-orange-600">
-                    See plans
-                    <PiCaretRight className="h-2.5 w-2.5" />
-                </div>
-            </div>
         </aside>
     );
 }

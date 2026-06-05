@@ -252,7 +252,24 @@ function ProfileView({ profile }: { profile: PublicStudentProfile }) {
                                 className="inline-flex items-center h-7 px-2.5 rounded-lg border border-border bg-secondary/40 text-[12.5px]"
                             >
                                 {l.name}
-                                {l.proficiency ? ` · ${l.proficiency}/5` : ""}
+                                {l.proficiency
+                                    ? ` · ${
+                                          [
+                                              "Basic",
+                                              "Conversational",
+                                              "Fluent",
+                                              "Native",
+                                          ][
+                                              Math.min(
+                                                  Math.max(
+                                                      l.proficiency - 1,
+                                                      0,
+                                                  ),
+                                                  3,
+                                              )
+                                          ]
+                                      }`
+                                    : ""}
                             </span>
                         ))}
                     </div>

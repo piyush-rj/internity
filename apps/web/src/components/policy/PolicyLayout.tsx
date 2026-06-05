@@ -84,13 +84,54 @@ export function PolicyLayout({
 
     return (
         <div className="mx-auto max-w-6xl px-6 py-12">
-            <header className="mb-10 border-b border-black/20 pb-10">
-                <div
-                    className={cn(
-                        heroImage &&
-                            "grid gap-8 lg:gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-center",
-                    )}
-                >
+            {heroImage ? (
+                <header className="mb-10">
+                    {/* Full-width hero banner: the photo fills the width and the
+                        header text is overlaid on top with a legibility scrim. */}
+                    <div className="relative overflow-hidden rounded-2xl bg-neutral-900 ring-1 ring-black/10 shadow-sm">
+                        <div className="absolute inset-0">
+                            <Image
+                                src={heroImage.src}
+                                alt={heroImage.alt}
+                                fill
+                                priority
+                                sizes="(min-width: 1152px) 1152px, 100vw"
+                                className="object-cover object-center"
+                            />
+                            <div
+                                aria-hidden
+                                className="absolute inset-0 bg-linear-to-r from-black/85 via-black/55 to-black/20"
+                            />
+                        </div>
+                        <div className="relative z-10 px-6 sm:px-10 py-12 sm:py-16">
+                            <div className="max-w-2xl">
+                                {eyebrow && (
+                                    <span className="inline-flex items-center rounded-full bg-white/15 text-white border border-white/25 px-2.5 py-0.5 text-[11.5px] font-medium backdrop-blur-sm">
+                                        {eyebrow}
+                                    </span>
+                                )}
+                                <h1 className="mt-3 text-[32px] sm:text-[36px] font-semibold tracking-tight leading-tight text-white">
+                                    {title}
+                                </h1>
+                                <h3 className="text-[16px] tracking-tight leading-tight text-white/85">
+                                    {subTitle}
+                                </h3>
+                                {updated && (
+                                    <p className="mt-2 text-[12.5px] text-white/70">
+                                        Last updated: {updated}
+                                    </p>
+                                )}
+                                {intro && (
+                                    <div className="mt-5 max-w-3xl text-[14px] leading-relaxed text-white/85 space-y-3">
+                                        {intro}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </header>
+            ) : (
+                <header className="mb-10 border-b border-black/20 pb-10">
                     <div>
                         {eyebrow && (
                             <span className="inline-flex items-center rounded-full bg-orange-50 text-orange-700 border border-orange-200 px-2.5 py-0.5 text-[11.5px] font-medium">
@@ -114,20 +155,8 @@ export function PolicyLayout({
                             </div>
                         )}
                     </div>
-                    {heroImage && (
-                        <div className="relative w-full aspect-3/2 overflow-hidden rounded-2xl ring-1 ring-black/10 shadow-sm">
-                            <Image
-                                src={heroImage.src}
-                                alt={heroImage.alt}
-                                fill
-                                priority
-                                sizes="(min-width: 1024px) 420px, 100vw"
-                                className="object-cover"
-                            />
-                        </div>
-                    )}
-                </div>
-            </header>
+                </header>
+            )}
 
             <div className="grid grid-cols-1 lg:grid-cols-[240px_minmax(0,1fr)] gap-12">
                 <aside className="lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">

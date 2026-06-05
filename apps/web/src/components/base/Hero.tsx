@@ -7,20 +7,20 @@ export function Hero() {
         <section className="bg-neutral-50">
             {/* The photo is bounded by the page rails (max-w-6xl) rather than
                 bleeding full-width. */}
-            <div className="relative mx-auto max-w-6xl bg-neutral-900">
+            <div className="relative mx-auto max-w-6xl bg-neutral-900 rounded-3xl">
                 {/* Clip layer: zooms the photo in and shifts the subject right.
                     The scale gives headroom so the translate never reveals an
                     edge; overflow-hidden keeps the zoom inside the rails without
                     clipping the search dropdown (which lives in the layer
                     below). */}
-                <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden rounded-3xl">
                     <Image
                         src="/platform-images/image5.png"
                         alt="Student celebrating after landing an internship"
                         fill
                         priority
                         sizes="(min-width: 1152px) 1152px, 100vw"
-                        className="object-cover object-center scale-130 translate-x-[12%] -translate-y-10"
+                        className="object-cover object-center scale-130 translate-x-[12%] -translate-y-10 rounded-3xl"
                     />
                     {/* Legibility scrims: darker on the left (under the text)
                         fading to clear on the right, plus soft top/bottom edges.
