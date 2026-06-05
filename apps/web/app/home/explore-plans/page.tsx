@@ -9,6 +9,22 @@ import { ApiClientError } from "@/src/lib/apiClient";
 import { useMe } from "@/src/hooks/useMe";
 import { PLANS } from "@/src/components/plans/PlanCards";
 
+const COUPON_ERROR_MESSAGES: Record<string, string> = {
+    COUPON_NOT_FOUND: "No coupon found with that code. Double-check and try again.",
+    INVALID_COUPON:   "No coupon found with that code. Double-check and try again.",
+    COUPON_EXPIRED:   "This coupon has expired and can no longer be applied.",
+    COUPON_REVOKED:   "This coupon has been revoked and is no longer valid.",
+    COUPON_ALREADY_USED: "You've already used this coupon — it's single-use per account.",
+    ALREADY_USED:     "You've already used this coupon — it's single-use per account.",
+};
+
+function couponErrorMessage(err: unknown): string {
+    if (err instanceof ApiClientError) {
+        return COUPON_ERROR_MESSAGES[err.code] ?? err.message ?? "Invalid coupon code.";
+    }
+    return "Invalid coupon code.";
+}
+
 type ActiveOffer = {
     id: string;
     title: string;
@@ -89,9 +105,7 @@ export default function ExplorePlansPage() {
             setAppliedCode(res.code);
             setCouponDiscounts(res.discounts as Record<string, CouponDiscount>);
         } catch (err) {
-            setCouponError(
-                err instanceof ApiClientError ? err.message : "Invalid coupon code.",
-            );
+            setCouponError(couponErrorMessage(err));
         } finally {
             setValidating(false);
         }
