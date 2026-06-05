@@ -10,7 +10,6 @@ import {
     PiFlagFill,
     PiGraduationCapFill,
     PiHouseFill,
-    PiPlusFill,
     PiProhibitFill,
     PiTagFill,
     PiUsersFill,
@@ -81,12 +80,6 @@ const NAV: Item[] = [
         label: "Offers",
         icon: PiTagFill,
         href: "/admin/offers",
-    },
-    {
-        key: "add-offer",
-        label: "Add Offer",
-        icon: PiPlusFill,
-        href: "/admin/offers/new",
     },
 ];
 

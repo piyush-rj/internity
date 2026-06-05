@@ -200,6 +200,7 @@ export function SkillsSection({
         <SectionCard
             id="profile-skills"
             title="Key skills"
+            tooltip="Languages, frameworks, and tools you know. Be specific — 'React' beats 'Web Development'."
             description="Languages, tools, frameworks — the more specific, the better."
         >
             {!profile ? (

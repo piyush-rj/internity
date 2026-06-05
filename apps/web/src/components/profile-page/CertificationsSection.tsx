@@ -86,6 +86,8 @@ export function CertificationsSection({
         <SectionCard
             id="profile-certifications"
             title="Certifications"
+            optional={true}
+            tooltip="Courses, certificates, or badges you've earned. Optional — great for showing initiative."
             action={
                 profile && !open ? (
                     <AddButton onClick={() => setOpen(true)} />

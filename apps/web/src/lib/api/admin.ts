@@ -187,6 +187,8 @@ export const adminApi = {
         ),
 };
 
+type AdminUser = { id: string; name: string | null; email: string | null };
+
 export type AdminCoupon = {
     id: string;
     code: string;
@@ -196,10 +198,10 @@ export type AdminCoupon = {
     isActive: boolean;
     isExpired: boolean;
     revokedAt: string | null;
-    revokedById: string | null;
+    revokedBy: AdminUser | null;
     expiresAt: string;
     createdAt: string;
-    createdBy: { id: string; name: string | null; email: string | null };
+    createdBy: AdminUser;
     redemptionCount: number;
 };
 
@@ -213,8 +215,8 @@ export type AdminOffer = {
     isActive: boolean;
     isExpired: boolean;
     revokedAt: string | null;
-    revokedById: string | null;
+    revokedBy: AdminUser | null;
     expiresAt: string;
     createdAt: string;
-    createdBy: { id: string; name: string | null; email: string | null };
+    createdBy: AdminUser;
 };

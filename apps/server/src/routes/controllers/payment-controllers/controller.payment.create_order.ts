@@ -47,18 +47,20 @@ export default async function createOrder(
 
         const plan = PLANS[body.planCode]!;
 
-        // Validate coupon if provided — fail fast so the user sees the error
-        // before Razorpay opens.
+        // Determine the correct amount to charge. Priority:
+        //   1. Coupon code (user-provided, validated against DB)
+        //   2. Active promotional offer (auto-applied when no coupon)
+        //   3. Full plan price
         let couponId: string | null = null;
+        let offerId: string | null = null;
         let finalAmount = plan.amount;
+        const now = new Date();
 
         if (body.couponCode) {
-            const now = new Date();
+            // ── Coupon path ──────────────────────────────────────────────
             const coupon = await prisma.coupon.findUnique({
                 where: { code: body.couponCode.trim().toUpperCase() },
-                include: {
-                    redemptions: { where: { userId }, take: 1 },
-                },
+                include: { redemptions: { where: { userId }, take: 1 } },
             });
 
             if (!coupon || !coupon.isActive || coupon.expiresAt < now) {
@@ -78,6 +80,23 @@ export default async function createOrder(
             const pct = pctMap[body.planCode] ?? 0;
             finalAmount = Math.round(plan.amount * (1 - pct / 100));
             couponId = coupon.id;
+        } else {
+            // ── Offer path: auto-apply if a live offer exists ─────────────
+            const offer = await prisma.offer.findFirst({
+                where: { isActive: true, expiresAt: { gt: now } },
+                orderBy: { createdAt: "desc" },
+            });
+
+            if (offer) {
+                const pctMap: Record<string, number> = {
+                    PER_POST: offer.discountPctPerPost,
+                    MONTHLY: offer.discountPctMonthly,
+                    YEARLY: offer.discountPctYearly,
+                };
+                const pct = pctMap[body.planCode] ?? 0;
+                finalAmount = Math.round(plan.amount * (1 - pct / 100));
+                offerId = offer.id;
+            }
         }
 
         const client = new Razorpay({
@@ -96,6 +115,7 @@ export default async function createOrder(
                     companyId: body.companyId,
                     planCode: plan.code,
                     ...(couponId ? { couponId } : {}),
+                    ...(offerId ? { offerId } : {}),
                 },
             });
         } catch (razorpayErr) {
@@ -117,6 +137,7 @@ export default async function createOrder(
                 razorpayOrderId: order.id,
                 status: PaymentStatus.CREATED,
                 ...(couponId ? { couponId } : {}),
+                ...(offerId ? { offerId } : {}),
             },
         });
 

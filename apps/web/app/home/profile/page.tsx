@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { BasicsSection } from "@/src/components/profile-page/BasicsSection";
 import { CertificationsSection } from "@/src/components/profile-page/CertificationsSection";
 import { EducationSection } from "@/src/components/profile-page/EducationSection";
 import { EmployerProfileEditor } from "@/src/components/profile-page/EmployerProfileEditor";
@@ -23,7 +24,6 @@ export default function ProfilePage() {
 function StudentProfile() {
     const { profile, loading, refetch } = useMyProfile();
     const [currentStep, setCurrentStep] = useState<StepKey>("summary");
-    const [basicsEditTrigger, setBasicsEditTrigger] = useState<number>(0);
 
     function handleStepClick(step: StepKey) {
         setCurrentStep(step);
@@ -31,15 +31,11 @@ function StudentProfile() {
             window.scrollTo({ top: 0, behavior: "smooth" });
             return;
         }
-        if (step === "basics") {
-            setBasicsEditTrigger((n) => n + 1);
-            document
-                .getElementById("profile-summary")
-                ?.scrollIntoView({ behavior: "smooth", block: "start" });
-            return;
-        }
+        // "basics" now has its own section card below the header
+        const id =
+            step === "basics" ? "profile-basics" : `profile-${step}`;
         document
-            .getElementById(`profile-${step}`)
+            .getElementById(id)
             ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
@@ -57,11 +53,15 @@ function StudentProfile() {
                         <LoadingShell />
                     ) : (
                         <>
-                            <ProfileHeaderCard
+                            {/* Summary: pure display — avatar, name, key facts */}
+                            <ProfileHeaderCard profile={profile} />
+
+                            {/* Basics: editable section card */}
+                            <BasicsSection
                                 profile={profile}
                                 onSaved={refetch}
-                                editTrigger={basicsEditTrigger}
                             />
+
                             <EducationSection
                                 profile={profile}
                                 onSaved={refetch}

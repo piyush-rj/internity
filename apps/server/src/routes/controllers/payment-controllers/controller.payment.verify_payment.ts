@@ -1,5 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import type { Request, Response } from "express";
+import Razorpay from "razorpay";
 import { z } from "zod";
 import {
     ApiError,
@@ -66,13 +67,57 @@ export default async function verifyPayment(
         );
 
         // Resolve which company this payment belongs to and whether a coupon
-        // was applied so we can record the redemption.
+        // or offer was applied so we can record the redemption.
         const payment = await prisma.payment.findFirst({
             where: { razorpayOrderId: body.razorpay_order_id, userId },
             select: { id: true, companyId: true, couponId: true, amount: true },
         });
-        const companyId = payment?.companyId ?? null;
-        const couponId = payment?.couponId ?? null;
+
+        if (!payment) {
+            throw new InvalidRequest("Payment record not found.");
+        }
+
+        // ── Amount integrity check ────────────────────────────────────────
+        // Fetch the actual payment from Razorpay and compare the charged
+        // amount against what we stored when creating the order. This catches
+        // any attempt to pay a different amount than the server calculated
+        // (original price, coupon-discounted, or offer-discounted).
+        if (config.SERVER_RAZORPAY_ID && config.SERVER_RAZORPAY_SECRET) {
+            try {
+                const rzpClient = new Razorpay({
+                    key_id: config.SERVER_RAZORPAY_ID,
+                    key_secret: config.SERVER_RAZORPAY_SECRET,
+                });
+                const rzpPayment = await rzpClient.payments.fetch(
+                    body.razorpay_payment_id,
+                );
+                const rzpAmount =
+                    typeof rzpPayment.amount === "string"
+                        ? parseInt(rzpPayment.amount, 10)
+                        : (rzpPayment.amount as number);
+
+                if (rzpAmount !== payment.amount) {
+                    await prisma.payment.updateMany({
+                        where: { razorpayOrderId: body.razorpay_order_id, userId },
+                        data: { status: PaymentStatus.FAILED },
+                    });
+                    console.warn(
+                        `[payment] ⚠ Amount mismatch — expected=${payment.amount} razorpay=${rzpAmount} user=${userId} order=${body.razorpay_order_id}`,
+                    );
+                    throw new InvalidRequest(
+                        "Payment amount does not match the expected amount.",
+                    );
+                }
+            } catch (err) {
+                // Re-throw our own InvalidRequest; log and absorb Razorpay
+                // fetch errors so a transient API hiccup doesn't block valid payments.
+                if (err instanceof InvalidRequest) throw err;
+                console.error("[payment] Could not verify amount via Razorpay API:", err);
+            }
+        }
+
+        const companyId = payment.companyId ?? null;
+        const couponId = payment.couponId ?? null;
 
         if (companyId) {
             // Company-scoped payment: update the company's premium status.

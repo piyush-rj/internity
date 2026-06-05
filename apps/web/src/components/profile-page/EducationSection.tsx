@@ -83,6 +83,7 @@ export function EducationSection({
         <SectionCard
             id="profile-education"
             title="Education"
+            tooltip="Add your college, degree, field of study, and graduation year. At least one entry is required."
             action={
                 profile && !open ? (
                     <AddButton onClick={() => setOpen(true)} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import Image from "next/image";
 import { ArrowUpRight, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +11,6 @@ import {
     PiPhone,
     PiUserCircle,
 } from "react-icons/pi";
-import { BasicsForm } from "@/src/components/profile-page/BasicsForm";
 import { computeCompletion } from "@/src/components/profile-wizard/utils";
 import type { StudentProfile } from "@/src/lib/api";
 import { uploadApi } from "@/src/lib/api";
@@ -23,20 +22,13 @@ import { cn } from "@/src/lib/utils";
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ACCEPTED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"] as const;
 
+// Pure display card — shows avatar, name, and key facts.
+// Editing basics lives in the separate BasicsSection below.
 export function ProfileHeaderCard({
     profile,
-    onSaved,
-    editTrigger = 0,
 }: {
     profile: StudentProfile | null;
-    onSaved: () => Promise<void>;
-    editTrigger?: number;
 }) {
-    const [editing, setEditing] = useState(!profile);
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        if (editTrigger > 0) setEditing(true);
-    }, [editTrigger]);
     const { pct } = computeCompletion(profile);
     const session = useUserSessionStore((s) => s.session);
     const me = useMeStore((s) => s.me);
@@ -60,18 +52,6 @@ export function ProfileHeaderCard({
                         <h1 className="text-[22px] font-semibold tracking-tight truncate">
                             {fullName.toUpperCase()}
                         </h1>
-                        {profile && (
-                            <button
-                                type="button"
-                                onClick={() => setEditing((v) => !v)}
-                                aria-label={
-                                    editing ? "Close editor" : "Edit basics"
-                                }
-                                className="h-7 w-7 inline-flex items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-                            >
-                                <Pencil className="h-3.5 w-3.5" />
-                            </button>
-                        )}
                         {profile && me?.id && (
                             <a
                                 href={`/student/${me.id}`}
@@ -111,16 +91,6 @@ export function ProfileHeaderCard({
                     </dl>
                 </div>
             </div>
-
-            {(editing || !profile) && (
-                <div className="border-t border-border bg-secondary/30 p-6">
-                    <BasicsForm
-                        profile={profile}
-                        onSaved={onSaved}
-                        onCancel={profile ? () => setEditing(false) : undefined}
-                    />
-                </div>
-            )}
         </section>
     );
 }
@@ -290,7 +260,6 @@ function formatDob(iso: string): string {
     }
 }
 
-// direct put to s3-compatible presigned url
 function putToPresignedUrl(url: string, file: File): Promise<void> {
     return new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();

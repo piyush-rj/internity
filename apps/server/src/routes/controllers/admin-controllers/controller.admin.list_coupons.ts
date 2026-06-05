@@ -31,6 +31,19 @@ export default async function listCoupons(
             }),
         ]);
 
+        // Batch-fetch revoking users so we can show who revoked each coupon.
+        const revokedByIds = [
+            ...new Set(items.map((c) => c.revokedById).filter((id): id is string => id !== null)),
+        ];
+        const revokedUsers =
+            revokedByIds.length > 0
+                ? await prisma.user.findMany({
+                      where: { id: { in: revokedByIds } },
+                      select: { id: true, name: true, email: true },
+                  })
+                : [];
+        const revokedUserMap = new Map(revokedUsers.map((u) => [u.id, u]));
+
         const now = new Date();
         api.ok({
             items: items.map((c) => ({
@@ -42,7 +55,9 @@ export default async function listCoupons(
                 isActive: c.isActive,
                 isExpired: c.expiresAt < now,
                 revokedAt: c.revokedAt?.toISOString() ?? null,
-                revokedById: c.revokedById ?? null,
+                revokedBy: c.revokedById
+                    ? (revokedUserMap.get(c.revokedById) ?? null)
+                    : null,
                 expiresAt: c.expiresAt.toISOString(),
                 createdAt: c.createdAt.toISOString(),
                 createdBy: c.createdBy,

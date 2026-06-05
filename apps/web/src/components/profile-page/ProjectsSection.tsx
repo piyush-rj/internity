@@ -87,6 +87,7 @@ export function ProjectsSection({
         <SectionCard
             id="profile-projects"
             title="Projects"
+            tooltip="Showcase personal or academic projects. Include a live link or repo to stand out."
             action={
                 profile && !open ? (
                     <AddButton onClick={() => setOpen(true)} />

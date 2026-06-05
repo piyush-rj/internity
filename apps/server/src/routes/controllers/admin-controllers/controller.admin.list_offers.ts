@@ -31,6 +31,19 @@ export default async function listOffers(
             }),
         ]);
 
+        // Batch-fetch revoking users so we can show who revoked each offer.
+        const revokedByIds = [
+            ...new Set(items.map((o) => o.revokedById).filter((id): id is string => id !== null)),
+        ];
+        const revokedUsers =
+            revokedByIds.length > 0
+                ? await prisma.user.findMany({
+                      where: { id: { in: revokedByIds } },
+                      select: { id: true, name: true, email: true },
+                  })
+                : [];
+        const revokedUserMap = new Map(revokedUsers.map((u) => [u.id, u]));
+
         api.ok({
             items: items.map((o) => ({
                 id: o.id,
@@ -42,7 +55,9 @@ export default async function listOffers(
                 isActive: o.isActive,
                 isExpired: o.expiresAt < now,
                 revokedAt: o.revokedAt?.toISOString() ?? null,
-                revokedById: o.revokedById ?? null,
+                revokedBy: o.revokedById
+                    ? (revokedUserMap.get(o.revokedById) ?? null)
+                    : null,
                 expiresAt: o.expiresAt.toISOString(),
                 createdAt: o.createdAt.toISOString(),
                 createdBy: o.createdBy,

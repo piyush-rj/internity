@@ -354,7 +354,7 @@ export function BasicsForm({
 
             <Field
                 label="Short bio"
-                hint="Optional — one line is plenty. You can edit it anytime."
+                hint='e.g. "CS undergrad at IIT Delhi, building mobile apps on weekends."'
                 icon={<Info className="h-3.5 w-3.5" />}
             >
                 <textarea

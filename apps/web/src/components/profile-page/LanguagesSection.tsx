@@ -83,6 +83,7 @@ export function LanguagesSection({
         <SectionCard
             id="profile-languages"
             title="Languages"
+            tooltip="Spoken languages and your proficiency level. Helpful for roles that require communication skills."
             action={
                 profile && !open ? (
                     <AddButton onClick={() => setOpen(true)} />

@@ -93,6 +93,8 @@ export function ExperienceSection({
         <SectionCard
             id="profile-experience"
             title="Work experience"
+            optional={true}
+            tooltip="Past internships or jobs. Optional — but adds strong credibility if you have any."
             action={
                 profile && !open ? (
                     <AddButton onClick={() => setOpen(true)} />

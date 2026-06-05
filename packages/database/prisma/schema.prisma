@@ -586,6 +586,9 @@ model Payment {
   coupon           Coupon?           @relation(fields: [couponId], references: [id], onDelete: SetNull)
   couponRedemption CouponRedemption?
 
+  offerId String?
+  offer   Offer?  @relation(fields: [offerId], references: [id], onDelete: SetNull)
+
   @@index([userId, createdAt])
   @@index([companyId, createdAt])
 }
@@ -804,6 +807,8 @@ model Offer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  payments Payment[]
 
   @@index([isActive, expiresAt])
 }
