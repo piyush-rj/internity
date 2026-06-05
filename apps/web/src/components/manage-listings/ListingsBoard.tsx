@@ -45,6 +45,8 @@ export function ListingsBoard({
     const { memberships } = useMyEmployer();
     const company = memberships[0]?.company ?? null;
     const isPremium = company?.isPremium ?? false;
+    // Directly from DB — now accurate because the gate always consumes free
+    // slots first (even for premium companies) before using the paid plan.
     const freeListingUsed = company?.freeListingUsed ?? false;
     const [filters, setFilters] = useState<MyListingsFilters>(
         emptyMyListingsFilters,

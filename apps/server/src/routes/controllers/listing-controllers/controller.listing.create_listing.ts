@@ -5,9 +5,10 @@ import {
     ResponseWriter,
     handleApiError,
 } from "../../../utils/api-response.ts";
-import { JobTitle, Prisma, WorkMode, prisma } from "../../../db.ts";
+import { JobTitle, NotificationType, Prisma, WorkMode, prisma } from "../../../db.ts";
 import { canManageListings } from "../../../utils/company-roles.ts";
 import { ScreeningQuestionsSchema } from "../../../utils/screening.ts";
+import { notify } from "../../../services/notifications.ts";
 
 const JOB_TITLE_VALUES = [
     "AI",
@@ -96,35 +97,67 @@ export default async function createListing(
             );
         }
 
-        if (!company?.isPremium) {
-            // Check for an admin-granted free-posting quota (oldest grant first).
-            const activeGrants = await prisma.freePostingGrant.findMany({
-                where: { companyId: body.companyId, isActive: true },
-                orderBy: { createdAt: "asc" },
-                select: { id: true, grantedPostings: true, usedPostings: true },
-            });
-            const grant = activeGrants.find(
-                (g) => g.usedPostings < g.grantedPostings,
-            ) ?? null;
+        // Free slots are always consumed first — even for premium companies.
+        // Priority: admin-granted quota → default 1-free → paid subscription.
+        // This ensures freeListingUsed in the DB always reflects reality.
+        const activeGrants = await prisma.freePostingGrant.findMany({
+            where: { companyId: body.companyId, isActive: true },
+            orderBy: { createdAt: "asc" },
+            select: { id: true, grantedPostings: true, usedPostings: true },
+        });
+        const grant =
+            activeGrants.find((g) => g.usedPostings < g.grantedPostings) ??
+            null;
 
-            if (grant) {
-                // Consume one slot from the admin grant atomically.
-                await prisma.freePostingGrant.update({
-                    where: { id: grant.id },
-                    data: { usedPostings: { increment: 1 } },
+        // Helper: notify the company's FOUNDER_OWNER about free-slot usage.
+        async function notifyFounder(
+            title: string,
+            message: string,
+        ): Promise<void> {
+            const founder = await prisma.companyMember.findFirst({
+                where: { companyId: body.companyId, role: "FOUNDER_OWNER" },
+                select: { userId: true },
+            });
+            if (founder) {
+                await notify({
+                    userId: founder.userId,
+                    type: NotificationType.FREE_POSTING_GRANTED,
+                    title,
+                    body: message,
+                    link: "/home/manage-listings",
                 });
-            } else if (!company?.freeListingUsed) {
-                // Default first-ever free listing for every company.
-                await prisma.company.update({
-                    where: { id: body.companyId },
-                    data: { freeListingUsed: true },
-                });
-            } else {
-                throw new Forbidden(
-                    "Your company has used its free listing. Subscribe to a plan to post more.",
-                );
             }
         }
+
+        if (grant) {
+            // Consume one admin-granted slot.
+            const updated = await prisma.freePostingGrant.update({
+                where: { id: grant.id },
+                data: { usedPostings: { increment: 1 } },
+                select: { grantedPostings: true, usedPostings: true },
+            });
+            const remaining = grant.grantedPostings - updated.usedPostings;
+            await notifyFounder(
+                "Free posting slot used",
+                `Your company used 1 admin-granted free posting. ${remaining} slot${remaining === 1 ? "" : "s"} remaining.`,
+            );
+        } else if (!company?.freeListingUsed) {
+            // Consume the default one-time free listing every company gets.
+            await prisma.company.update({
+                where: { id: body.companyId },
+                data: { freeListingUsed: true },
+            });
+            await notifyFounder(
+                "Free listing used",
+                "Your company's one free listing has been posted. Subscribe to a plan to post more.",
+            );
+        } else if (!company?.isPremium) {
+            // No free slots left and no paid plan — block.
+            throw new Forbidden(
+                "Your company has used its free listing. Subscribe to a plan to post more.",
+            );
+        }
+        // else: isPremium and no free slots — allow via paid subscription.
 
         // Verification is no longer a posting gate. Listings go live
         // immediately; the "Verified" badge is shown on the card / detail
