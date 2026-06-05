@@ -45,6 +45,9 @@ function ApplicantsView() {
     const { memberships } = useMyEmployer();
     const companyName = memberships[0]?.company.name ?? "";
     const companyId = memberships[0]?.company.id ?? undefined;
+    // Company premium is the source of truth for employer features.
+    // Fall back to user-level isPremium for legacy user-scoped payments.
+    const company = memberships[0]?.company ?? null;
     const { items: listings, loading: listingsLoading } = useMyListings({
         scope: "company",
         companyId,
@@ -126,10 +129,14 @@ function ApplicantsView() {
 
     // Listings posted while the employer had an active premium subscription are
     // grandfathered — all their applicants stay visible even after premium lapses.
-    // grantedListingIds = null means the employer is currently premium (no cap at all).
-    const isPremium = me?.isPremium ?? false;
-    const premiumUntil = me?.premiumUntil ?? null;
+    // Company premium is the source of truth. Fall back to user.isPremium
+    // only for legacy user-scoped payments (no companyId on payment).
+    const isPremium = (company?.isPremium ?? false) || (me?.isPremium ?? false);
+    const premiumUntil = company?.premiumUntil ?? me?.premiumUntil ?? null;
 
+    // grantedListingIds = null means currently premium — no cap at all.
+    // Otherwise it's the set of listings posted while premium was active
+    // (grandfathered — always visible even after premium lapses).
     const grantedListingIds = useMemo(() => {
         if (isPremium) return null;
         if (!premiumUntil) return new Set<string>();

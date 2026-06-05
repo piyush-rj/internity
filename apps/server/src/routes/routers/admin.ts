@@ -7,6 +7,10 @@ import adminListStudents from "../controllers/admin-controllers/controller.admin
 import setStudentVerification from "../controllers/admin-controllers/controller.admin.set_student_verification.ts";
 import listCancellationRequests from "../controllers/admin-controllers/controller.admin.list_cancellation_requests.ts";
 import updateCancellationRequest from "../controllers/admin-controllers/controller.admin.update_cancellation_request.ts";
+import searchCompanies from "../controllers/admin-controllers/controller.admin.search_companies.ts";
+import createFreePostingGrant from "../controllers/admin-controllers/controller.admin.create_free_posting_grant.ts";
+import listFreePostingGrants from "../controllers/admin-controllers/controller.admin.list_free_posting_grants.ts";
+import revokeFreePostingGrant from "../controllers/admin-controllers/controller.admin.revoke_free_posting_grant.ts";
 import createCoupon from "../controllers/admin-controllers/controller.admin.create_coupon.ts";
 import listCoupons from "../controllers/admin-controllers/controller.admin.list_coupons.ts";
 import revokeCoupon from "../controllers/admin-controllers/controller.admin.revoke_coupon.ts";
@@ -30,5 +34,9 @@ router.patch("/coupons/:id/revoke", requireAdmin, revokeCoupon);
 router.get("/offers", requireAdmin, listOffers);
 router.post("/offers", requireAdmin, createOffer);
 router.patch("/offers/:id/revoke", requireAdmin, revokeOffer);
+router.get("/company-search", requireAdmin, searchCompanies);
+router.get("/allow-postings", requireAdmin, listFreePostingGrants);
+router.post("/allow-postings", requireAdmin, createFreePostingGrant);
+router.patch("/allow-postings/:id/revoke", requireAdmin, revokeFreePostingGrant);
 
 export default router;

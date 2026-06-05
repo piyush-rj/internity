@@ -13,6 +13,7 @@ import {
     PiProhibitFill,
     PiTagFill,
     PiUsersFill,
+    PiPaperPlaneTiltFill,
 } from "react-icons/pi";
 import { GiTie } from "react-icons/gi";
 import { cn } from "@/src/lib/utils";
@@ -80,6 +81,12 @@ const NAV: Item[] = [
         label: "Offers",
         icon: PiTagFill,
         href: "/admin/offers",
+    },
+    {
+        key: "allow-postings",
+        label: "Allow Postings",
+        icon: PiPaperPlaneTiltFill,
+        href: "/admin/allow-postings",
     },
 ];
 

@@ -1,7 +1,8 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
 import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
-import { prisma } from "../../../db.ts";
+import { NotificationType, prisma } from "../../../db.ts";
+import { notifyMany } from "../../../services/notifications.ts";
 
 const Body = z.object({
     title: z.string().min(1).max(120),
@@ -37,6 +38,21 @@ export default async function createOffer(
                 expiresAt,
                 createdById: adminId,
             },
+        });
+
+        // Notify all FOUNDER_OWNER members — they're the ones who see pricing.
+        const founders = await prisma.companyMember.findMany({
+            where: { role: "FOUNDER_OWNER" },
+            select: { userId: true },
+        });
+        const founderIds = [...new Set(founders.map((f) => f.userId))];
+        await notifyMany(founderIds, {
+            type: NotificationType.NEW_OFFER,
+            title: `New offer: ${offer.title}`,
+            body:
+                offer.description ??
+                `A new discount offer is now live on our pricing page.`,
+            link: "/home/explore-plans",
         });
 
         api.ok({ offer: { id: offer.id, title: offer.title } });

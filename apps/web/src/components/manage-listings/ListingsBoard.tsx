@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Crown, Plus } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import { MyListingCard } from "@/src/components/manage-listings/MyListingCard";
 import {
@@ -12,6 +12,7 @@ import {
     type MyListingsFilters,
 } from "@/src/components/manage-listings/MyListingsFilterPanel";
 import { useMyListings } from "@/src/hooks/useMyListings";
+import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { cn } from "@/src/lib/utils";
 
 // Shared listings manager used by both "My listings" (scope="mine" — only
@@ -40,6 +41,11 @@ export function ListingsBoard({
         unpause,
         remove,
     } = useMyListings({ scope, companyId });
+
+    const { memberships } = useMyEmployer();
+    const company = memberships[0]?.company ?? null;
+    const isPremium = company?.isPremium ?? false;
+    const freeListingUsed = company?.freeListingUsed ?? false;
     const [filters, setFilters] = useState<MyListingsFilters>(
         emptyMyListingsFilters,
     );
@@ -58,6 +64,59 @@ export function ListingsBoard({
 
     return (
         <EmptySection title={title} description={description}>
+            {/* Subscription status banner */}
+            {!isPremium && (
+                <div
+                    className={cn(
+                        "rounded-lg border px-4 py-3 flex items-start gap-3",
+                        freeListingUsed
+                            ? "border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900"
+                            : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900",
+                    )}
+                >
+                    <Crown
+                        className={cn(
+                            "h-4 w-4 shrink-0 mt-0.5",
+                            freeListingUsed ? "text-rose-500" : "text-amber-500",
+                        )}
+                    />
+                    <div className="flex-1 min-w-0">
+                        {freeListingUsed ? (
+                            <>
+                                <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
+                                    Free listing used
+                                </p>
+                                <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
+                                    Your company has used its one free listing.
+                                    Subscribe to a plan to post more.
+                                </p>
+                            </>
+                        ) : (
+                            <>
+                                <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
+                                    1 free listing available
+                                </p>
+                                <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
+                                    Your company gets one free listing to start.
+                                    Subscribe for unlimited posts.
+                                </p>
+                            </>
+                        )}
+                        <Link
+                            href="/home/explore-plans"
+                            className={cn(
+                                "mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium hover:underline",
+                                freeListingUsed
+                                    ? "text-rose-700 dark:text-rose-300"
+                                    : "text-amber-700 dark:text-amber-300",
+                            )}
+                        >
+                            View plans →
+                        </Link>
+                    </div>
+                </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
                 <div className="min-w-0 space-y-3">
                     <header className="flex items-center justify-between gap-3 px-1">

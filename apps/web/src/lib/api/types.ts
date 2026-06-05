@@ -205,6 +205,12 @@ export type Company = {
     rejectionNote: string | null;
     submittedAt: string | null;
     approvedAt: string | null;
+    // Subscription fields — set when the company pays for a plan.
+    isPremium: boolean;
+    premiumSince: string | null;
+    premiumUntil: string | null;
+    activePlanCode: string | null;
+    freeListingUsed: boolean;
 };
 
 export type CompanyMember = {

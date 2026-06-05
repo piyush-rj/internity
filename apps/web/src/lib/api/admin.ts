@@ -185,6 +185,28 @@ export const adminApi = {
             `/admin/offers/${id}/revoke`,
             {},
         ),
+    search_companies: (q: string) =>
+        api.get<{ companies: AdminCompanySearchResult[] }>(
+            "/admin/company-search",
+            { q },
+        ),
+    list_free_posting_grants: (params?: { page?: number; pageSize?: number }) =>
+        api.get<{
+            items: AdminFreePostingGrant[];
+            page: number;
+            pageSize: number;
+            total: number;
+        }>("/admin/allow-postings", params),
+    create_free_posting_grant: (input: {
+        companyId: string;
+        grantedPostings: number;
+        note?: string;
+    }) =>
+        api.post<{
+            grant: { id: string; grantedPostings: number; companyName: string };
+        }>("/admin/allow-postings", input),
+    revoke_free_posting_grant: (id: string) =>
+        api.patch<{ ok: true }>(`/admin/allow-postings/${id}/revoke`, {}),
 };
 
 type AdminUser = { id: string; name: string | null; email: string | null };
@@ -219,4 +241,33 @@ export type AdminOffer = {
     expiresAt: string;
     createdAt: string;
     createdBy: AdminUser;
+};
+
+export type AdminCompanySearchResult = {
+    id: string;
+    name: string;
+    slug: string;
+    logoUrl: string | null;
+    verificationStatus: string;
+    isPremium: boolean;
+    freeListingUsed: boolean;
+    freePostingGrants: Array<{
+        id: string;
+        grantedPostings: number;
+        usedPostings: number;
+    }>;
+};
+
+export type AdminFreePostingGrant = {
+    id: string;
+    grantedPostings: number;
+    usedPostings: number;
+    remainingPostings: number;
+    note: string | null;
+    isActive: boolean;
+    revokedAt: string | null;
+    revokedBy: AdminUser | null;
+    createdAt: string;
+    company: { id: string; name: string; slug: string; logoUrl: string | null };
+    grantedBy: AdminUser;
 };

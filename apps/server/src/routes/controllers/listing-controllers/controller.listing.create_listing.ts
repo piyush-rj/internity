@@ -74,19 +74,56 @@ export default async function createListing(
     try {
         const body = Body.parse(req.body);
 
-        const member = await prisma.companyMember.findUnique({
-            where: {
-                companyId_userId: {
-                    companyId: body.companyId,
-                    userId: req.user!.id,
+        const [member, company] = await Promise.all([
+            prisma.companyMember.findUnique({
+                where: {
+                    companyId_userId: {
+                        companyId: body.companyId,
+                        userId: req.user!.id,
+                    },
                 },
-            },
-        });
+            }),
+            prisma.company.findUnique({
+                where: { id: body.companyId },
+                select: { isPremium: true, freeListingUsed: true },
+            }),
+        ]);
+
         if (!member) throw new Forbidden("Not a member of this company");
         if (!canManageListings(member.role)) {
             throw new Forbidden(
                 "Your role can't post listings — ask a founder or co-founder.",
             );
+        }
+
+        if (!company?.isPremium) {
+            // Check for an admin-granted free-posting quota (oldest grant first).
+            const activeGrants = await prisma.freePostingGrant.findMany({
+                where: { companyId: body.companyId, isActive: true },
+                orderBy: { createdAt: "asc" },
+                select: { id: true, grantedPostings: true, usedPostings: true },
+            });
+            const grant = activeGrants.find(
+                (g) => g.usedPostings < g.grantedPostings,
+            ) ?? null;
+
+            if (grant) {
+                // Consume one slot from the admin grant atomically.
+                await prisma.freePostingGrant.update({
+                    where: { id: grant.id },
+                    data: { usedPostings: { increment: 1 } },
+                });
+            } else if (!company?.freeListingUsed) {
+                // Default first-ever free listing for every company.
+                await prisma.company.update({
+                    where: { id: body.companyId },
+                    data: { freeListingUsed: true },
+                });
+            } else {
+                throw new Forbidden(
+                    "Your company has used its free listing. Subscribe to a plan to post more.",
+                );
+            }
         }
 
         // Verification is no longer a posting gate. Listings go live

@@ -58,6 +58,7 @@ model User {
   cancellationRequests  CancellationRequest[]
   couponsCreated        Coupon[]              @relation("CouponCreatedBy")
   offersCreated         Offer[]               @relation("OfferCreatedBy")
+  freePostingGrantsCreated FreePostingGrant[] @relation("FreePostingGrantCreatedBy")
   couponRedemptions     CouponRedemption[]
   messagesSent          Message[]             @relation("MessageSentBy")
   conversationReads  ConversationRead[]
@@ -273,6 +274,9 @@ model Company {
   premiumUntil   DateTime?
   activePlanCode String?
 
+  // Every company gets one free listing before a subscription is required.
+  freeListingUsed Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -282,8 +286,31 @@ model Company {
   activeFor            User[]                @relation("UserActiveCompany")
   payments             Payment[]
   cancellationRequests CancellationRequest[]
+  freePostingGrants    FreePostingGrant[]
 
   @@index([verificationStatus, submittedAt])
+}
+
+model FreePostingGrant {
+  id        String  @id @default(cuid())
+  companyId String
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  grantedPostings Int
+  usedPostings    Int @default(0)
+  note            String? @db.Text
+
+  isActive    Boolean   @default(true)
+  revokedAt   DateTime?
+  revokedById String?
+
+  grantedById String
+  grantedBy   User   @relation("FreePostingGrantCreatedBy", fields: [grantedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([companyId, isActive])
 }
 
 model CompanyInvitation {
@@ -743,6 +770,9 @@ enum NotificationType {
   COMPANY_APPROVED
   COMPANY_REJECTED
   SUBSCRIPTION_ACTIVATED
+  FREE_POSTING_GRANTED
+  FREE_POSTING_REVOKED
+  NEW_OFFER
   INTERVIEW_SCHEDULED
   INTERVIEW_CANCELLED
   GENERIC

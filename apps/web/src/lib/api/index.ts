@@ -64,6 +64,8 @@ export {
     type AdminCancellationRequest,
     type AdminCoupon,
     type AdminOffer,
+    type AdminFreePostingGrant,
+    type AdminCompanySearchResult,
 } from "./admin";
 export {
     interviewApi,
