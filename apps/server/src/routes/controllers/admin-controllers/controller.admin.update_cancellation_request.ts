@@ -19,6 +19,11 @@ export default async function updateCancellationRequest(
 
         const existing = await prisma.cancellationRequest.findUnique({
             where: { id },
+            select: {
+                status: true,
+                userId: true,
+                companyId: true,
+            },
         });
 
         if (!existing) {
@@ -44,16 +49,28 @@ export default async function updateCancellationRequest(
                 },
             });
 
-            // On approval: revoke the user's premium immediately
             if (newStatus === "APPROVED") {
-                await tx.user.update({
-                    where: { id: existing.userId },
-                    data: {
-                        isPremium: false,
-                        premiumUntil: null,
-                        activePlanCode: null,
-                    },
-                });
+                if (existing.companyId) {
+                    // Company-scoped: revoke the company's premium.
+                    await tx.company.update({
+                        where: { id: existing.companyId },
+                        data: {
+                            isPremium: false,
+                            premiumUntil: null,
+                            activePlanCode: null,
+                        },
+                    });
+                } else {
+                    // Legacy user-scoped: revoke the user's premium.
+                    await tx.user.update({
+                        where: { id: existing.userId },
+                        data: {
+                            isPremium: false,
+                            premiumUntil: null,
+                            activePlanCode: null,
+                        },
+                    });
+                }
             }
 
             return request;

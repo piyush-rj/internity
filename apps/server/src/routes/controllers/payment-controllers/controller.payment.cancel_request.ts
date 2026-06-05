@@ -1,6 +1,10 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    Forbidden,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 const Body = z.object({
@@ -30,13 +34,13 @@ export default async function cancelRequest(
             return;
         }
 
-        // Verify the payment belongs to this user and was successful
+        // Resolve the payment and the company it belongs to.
         const payment = await prisma.payment.findUnique({
             where: { id: body.paymentId },
             include: { cancellationRequest: true },
         });
 
-        if (!payment || payment.userId !== userId) {
+        if (!payment) {
             api.notFound();
             return;
         }
@@ -51,16 +55,53 @@ export default async function cancelRequest(
             return;
         }
 
-        // Block if the employer has used any listings from this plan
+        const companyId = payment.companyId ?? null;
+
+        if (companyId) {
+            // Company-scoped payment: only the FOUNDER_OWNER may request
+            // cancellation — other members can buy but not cancel.
+            const membership = await prisma.companyMember.findFirst({
+                where: { userId, companyId },
+                select: { role: true },
+            });
+
+            if (!membership) {
+                throw new Forbidden("You are not a member of this company.");
+            }
+
+            if (membership.role !== "FOUNDER_OWNER") {
+                throw new Forbidden(
+                    "Only the company founder can request a cancellation.",
+                );
+            }
+        } else {
+            // Legacy user-scoped payment: just verify ownership.
+            if (payment.userId !== userId) {
+                api.notFound();
+                return;
+            }
+        }
+
+        // Block if the company (or user for legacy) still has active listings —
+        // usage means a refund is not eligible.
         const now = new Date();
-        const listingsUsed = await prisma.listing.count({
-            where: {
-                postedById: userId,
-                closedAt: null,
-                takenDownAt: null,
-                OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-            },
-        });
+        const listingsUsed = companyId
+            ? await prisma.listing.count({
+                  where: {
+                      companyId,
+                      closedAt: null,
+                      takenDownAt: null,
+                      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                  },
+              })
+            : await prisma.listing.count({
+                  where: {
+                      postedById: userId,
+                      closedAt: null,
+                      takenDownAt: null,
+                      OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                  },
+              });
 
         if (listingsUsed > 0) {
             api.fail(
@@ -74,6 +115,7 @@ export default async function cancelRequest(
         const request = await prisma.cancellationRequest.create({
             data: {
                 userId,
+                companyId,
                 paymentId: body.paymentId,
                 reason: body.reason,
                 otherText: body.otherText?.trim() ?? null,

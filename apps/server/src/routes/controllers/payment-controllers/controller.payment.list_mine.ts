@@ -12,64 +12,147 @@ export default async function listMyPayments(
         const userId = req.user!.id;
         const now = new Date();
 
-        const [user, payments, listingsUsed, allListings] = await Promise.all([
-            prisma.user.findUnique({
-                where: { id: userId },
-                select: {
-                    isPremium: true,
-                    premiumSince: true,
-                    premiumUntil: true,
-                    activePlanCode: true,
-                },
-            }),
-            prisma.payment.findMany({
-                where: { userId, status: PaymentStatus.SUCCESS },
-                orderBy: { createdAt: "desc" },
-                include: {
-                    cancellationRequest: {
-                        select: {
-                            id: true,
-                            paymentId: true,
-                            reason: true,
-                            otherText: true,
-                            status: true,
-                            listingsUsedAtRequest: true,
-                            createdAt: true,
-                        },
-                    },
-                },
-            }),
-            // Listings the user currently has occupying a slot: live or paused,
-            // i.e. not closed, not taken down, and not past expiry. This is what
-            // a plan's listingLimit is measured against.
-            prisma.listing.count({
-                where: {
-                    postedById: userId,
-                    closedAt: null,
-                    takenDownAt: null,
-                    OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
-                },
-            }),
-            // All listings ever posted by this user — used for the posting
-            // activity chart and per-day listing cards.
-            prisma.listing.findMany({
-                where: { postedById: userId },
-                select: {
-                    id: true,
-                    title: true,
-                    city: true,
-                    mode: true,
-                    jobTitle: true,
-                    closedAt: true,
-                    createdAt: true,
-                },
-                orderBy: { createdAt: "asc" },
-            }),
-        ]);
+        // Resolve the user's primary company membership so the plan is
+        // displayed at company scope — any member can view, all payments
+        // for that company are shown regardless of who made them.
+        const membership = await prisma.companyMember.findFirst({
+            where: { userId },
+            orderBy: { joinedAt: "asc" },
+            select: { companyId: true, role: true },
+        });
+        const companyId = membership?.companyId ?? null;
 
-        const premiumUntil = user?.premiumUntil ?? null;
+        // Fetch company premium state, all company payments, active listing
+        // count, and all listing dates in parallel.
+        const [company, payments, listingsUsed, allListings] =
+            await Promise.all([
+                companyId
+                    ? prisma.company.findUnique({
+                          where: { id: companyId },
+                          select: {
+                              isPremium: true,
+                              premiumSince: true,
+                              premiumUntil: true,
+                              activePlanCode: true,
+                          },
+                      })
+                    : null,
+
+                companyId
+                    ? prisma.payment.findMany({
+                          where: {
+                              companyId,
+                              status: PaymentStatus.SUCCESS,
+                          },
+                          orderBy: { createdAt: "desc" },
+                          include: {
+                              cancellationRequest: {
+                                  select: {
+                                      id: true,
+                                      paymentId: true,
+                                      reason: true,
+                                      otherText: true,
+                                      status: true,
+                                      listingsUsedAtRequest: true,
+                                      createdAt: true,
+                                  },
+                              },
+                          },
+                      })
+                    : // Fallback: show payments tied directly to the user for
+                      // accounts that predated the company-scoped model.
+                      prisma.payment.findMany({
+                          where: {
+                              userId,
+                              companyId: null,
+                              status: PaymentStatus.SUCCESS,
+                          },
+                          orderBy: { createdAt: "desc" },
+                          include: {
+                              cancellationRequest: {
+                                  select: {
+                                      id: true,
+                                      paymentId: true,
+                                      reason: true,
+                                      otherText: true,
+                                      status: true,
+                                      listingsUsedAtRequest: true,
+                                      createdAt: true,
+                                  },
+                              },
+                          },
+                      }),
+
+                // Active listings for the whole company (or user as fallback).
+                companyId
+                    ? prisma.listing.count({
+                          where: {
+                              companyId,
+                              closedAt: null,
+                              takenDownAt: null,
+                              OR: [
+                                  { expiresAt: null },
+                                  { expiresAt: { gt: now } },
+                              ],
+                          },
+                      })
+                    : prisma.listing.count({
+                          where: {
+                              postedById: userId,
+                              closedAt: null,
+                              takenDownAt: null,
+                              OR: [
+                                  { expiresAt: null },
+                                  { expiresAt: { gt: now } },
+                              ],
+                          },
+                      }),
+
+                // All listings ever posted by this company for the activity chart.
+                companyId
+                    ? prisma.listing.findMany({
+                          where: { companyId },
+                          select: {
+                              id: true,
+                              title: true,
+                              city: true,
+                              mode: true,
+                              jobTitle: true,
+                              closedAt: true,
+                              createdAt: true,
+                          },
+                          orderBy: { createdAt: "asc" },
+                      })
+                    : prisma.listing.findMany({
+                          where: { postedById: userId },
+                          select: {
+                              id: true,
+                              title: true,
+                              city: true,
+                              mode: true,
+                              jobTitle: true,
+                              closedAt: true,
+                              createdAt: true,
+                          },
+                          orderBy: { createdAt: "asc" },
+                      }),
+            ]);
+
+        // Determine plan state from the company (or fall back to the user for
+        // legacy accounts that still have isPremium on the user record).
+        const premiumSource = company ?? (await prisma.user.findUnique({
+            where: { id: userId },
+            select: {
+                isPremium: true,
+                premiumSince: true,
+                premiumUntil: true,
+                activePlanCode: true,
+            },
+        }));
+
+        const premiumUntil = premiumSource?.premiumUntil ?? null;
         const isActive = !!(
-            user?.isPremium &&
+            premiumSource?.isPremium &&
             premiumUntil &&
             premiumUntil > now
         );
@@ -79,22 +162,20 @@ export default async function listMyPayments(
                       (1000 * 60 * 60 * 24),
               )
             : 0;
-        const planCode = user?.activePlanCode ?? null;
+        const planCode = premiumSource?.activePlanCode ?? null;
         const plan = planCode ? (PLANS[planCode] ?? null) : null;
 
         api.ok({
             currentPlan: {
-                isPremium: user?.isPremium ?? false,
+                isPremium: premiumSource?.isPremium ?? false,
                 isActive,
                 code: planCode,
                 name: plan?.name ?? null,
-                since: user?.premiumSince?.toISOString() ?? null,
+                since: premiumSource?.premiumSince?.toISOString() ?? null,
                 until: premiumUntil?.toISOString() ?? null,
                 daysRemaining,
                 totalDays: plan?.durationDays ?? null,
             },
-            // Real usage tied to plan features. listingLimit null = unlimited
-            // (Yearly) or no active plan; listingsUsed is the live count above.
             usage: {
                 listingsUsed,
                 listingLimit: plan?.listingLimit ?? null,

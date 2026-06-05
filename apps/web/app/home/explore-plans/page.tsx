@@ -25,6 +25,7 @@ export default function ExplorePlansPage() {
                     name: me?.name ?? undefined,
                     email: me?.email ?? undefined,
                 }}
+                companyId={me?.activeCompanyId ?? null}
             />
         </div>
     );

@@ -263,13 +263,22 @@ model Company {
   submittedAt        DateTime?
   approvedAt         DateTime?
 
+  // Premium plan — owned by the company, visible to all members,
+  // cancellable only by FOUNDER_OWNER.
+  isPremium      Boolean   @default(false)
+  premiumSince   DateTime?
+  premiumUntil   DateTime?
+  activePlanCode String?
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members     CompanyMember[]
-  invitations CompanyInvitation[]
-  listings    Listing[]
-  activeFor   User[]              @relation("UserActiveCompany")
+  members              CompanyMember[]
+  invitations          CompanyInvitation[]
+  listings             Listing[]
+  activeFor            User[]                @relation("UserActiveCompany")
+  payments             Payment[]
+  cancellationRequests CancellationRequest[]
 
   @@index([verificationStatus, submittedAt])
 }
@@ -550,6 +559,11 @@ model Payment {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // The company this payment was made for. Nullable for legacy user-level
+  // payments; all new payments must carry a companyId.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
   planCode String
   amount   Int
   currency String @default("INR")
@@ -566,6 +580,7 @@ model Payment {
   cancellationRequest CancellationRequest?
 
   @@index([userId, createdAt])
+  @@index([companyId, createdAt])
 }
 
 model Notification {
@@ -750,6 +765,10 @@ model CancellationRequest {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  // Company the cancellation is for — populated for all new requests.
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
   paymentId String  @unique
   payment   Payment @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
@@ -768,6 +787,7 @@ model CancellationRequest {
   updatedAt DateTime @updatedAt
 
   @@index([userId])
+  @@index([companyId])
   @@index([status])
 }
 

@@ -65,36 +65,68 @@ export default async function verifyPayment(
             now.getTime() + plan.durationDays * 24 * 60 * 60 * 1000,
         );
 
-        await prisma.$transaction([
-            prisma.payment.updateMany({
-                where: { razorpayOrderId: body.razorpay_order_id, userId },
-                data: {
-                    status: PaymentStatus.SUCCESS,
-                    razorpayPaymentId: body.razorpay_payment_id,
-                    razorpaySignature: body.razorpay_signature,
-                },
-            }),
-            prisma.user.update({
-                where: { id: userId },
-                data: {
-                    isPremium: true,
-                    premiumSince: now,
-                    premiumUntil,
-                    activePlanCode: plan.code,
-                },
-            }),
-        ]);
+        // Resolve which company this payment belongs to so we can
+        // set the premium on the company — not the individual user.
+        const payment = await prisma.payment.findFirst({
+            where: { razorpayOrderId: body.razorpay_order_id, userId },
+            select: { companyId: true },
+        });
+        const companyId = payment?.companyId ?? null;
+
+        if (companyId) {
+            // Company-scoped payment: update the company's premium status.
+            await prisma.$transaction([
+                prisma.payment.updateMany({
+                    where: { razorpayOrderId: body.razorpay_order_id, userId },
+                    data: {
+                        status: PaymentStatus.SUCCESS,
+                        razorpayPaymentId: body.razorpay_payment_id,
+                        razorpaySignature: body.razorpay_signature,
+                    },
+                }),
+                prisma.company.update({
+                    where: { id: companyId },
+                    data: {
+                        isPremium: true,
+                        premiumSince: now,
+                        premiumUntil,
+                        activePlanCode: plan.code,
+                    },
+                }),
+            ]);
+        } else {
+            // Legacy user-scoped payment — keep backward compatibility.
+            await prisma.$transaction([
+                prisma.payment.updateMany({
+                    where: { razorpayOrderId: body.razorpay_order_id, userId },
+                    data: {
+                        status: PaymentStatus.SUCCESS,
+                        razorpayPaymentId: body.razorpay_payment_id,
+                        razorpaySignature: body.razorpay_signature,
+                    },
+                }),
+                prisma.user.update({
+                    where: { id: userId },
+                    data: {
+                        isPremium: true,
+                        premiumSince: now,
+                        premiumUntil,
+                        activePlanCode: plan.code,
+                    },
+                }),
+            ]);
+        }
 
         console.log(
-            `[payment] ✅ Payment verified — user=${userId} plan=${plan.code} amount=₹${plan.amount / 100} validUntil=${premiumUntil.toISOString()}`,
+            `[payment] ✅ Payment verified — user=${userId} company=${companyId ?? "n/a"} plan=${plan.code} amount=₹${plan.amount / 100} validUntil=${premiumUntil.toISOString()}`,
         );
 
         await notify({
             userId,
             type: NotificationType.SUBSCRIPTION_ACTIVATED,
             title: `Welcome to ${plan.name}`,
-            body: "Your upgrade is active. Enjoy unlimited applications, priority support, and mentor sessions.",
-            link: "/home",
+            body: "Your company upgrade is active. Enjoy priority placement and unlimited applicants.",
+            link: "/home/plans",
         });
 
         api.ok({ ok: true, planCode: plan.code });

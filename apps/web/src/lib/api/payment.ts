@@ -83,8 +83,8 @@ export type MyPlansResponse = {
 
 export const paymentApi = {
     list_mine: () => api.get<MyPlansResponse>("/payment/mine"),
-    create_order: (planCode: PlanCode) =>
-        api.post<CreateOrderResponse>("/payment/order", { planCode }),
+    create_order: (planCode: PlanCode, companyId: string) =>
+        api.post<CreateOrderResponse>("/payment/order", { planCode, companyId }),
     verify: (input: VerifyInput) =>
         api.post<{ ok: true; planCode: PlanCode }>("/payment/verify", input),
     cancel_request: (input: {

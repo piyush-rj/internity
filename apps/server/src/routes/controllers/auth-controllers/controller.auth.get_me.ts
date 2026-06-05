@@ -74,6 +74,10 @@ export default async function getMe(
                                 slug: true,
                                 logoUrl: true,
                                 verificationStatus: true,
+                                // Premium lives on the company so any member
+                                // gets the correct isPremium in their session.
+                                isPremium: true,
+                                premiumUntil: true,
                             },
                         },
                     },
@@ -99,8 +103,15 @@ export default async function getMe(
             role: user.role,
             roleConfirmed: user.roleConfirmed,
             isAdmin: isAdminUser({ role: user.role, email: user.email }),
-            isPremium: user.isPremium,
-            premiumUntil: user.premiumUntil?.toISOString() ?? null,
+            // isPremium is the company's premium status for employer users.
+            // Falls back to the user-level flag for legacy / student accounts.
+            isPremium:
+                user.companyMemberships[0]?.company.isPremium ??
+                user.isPremium,
+            premiumUntil:
+                user.companyMemberships[0]?.company.premiumUntil?.toISOString() ??
+                user.premiumUntil?.toISOString() ??
+                null,
             needsOnboarding: !user.name || user.name.trim().length === 0,
             hasStudentProfile: user.studentProfile !== null,
             hasEmployerProfile: user.employerProfile !== null,

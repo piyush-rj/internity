@@ -72,13 +72,15 @@ export const PLANS: Plan[] = [
 
 export function PlanGrid({
     prefill,
+    companyId,
 }: {
     prefill: { name?: string; email?: string };
+    companyId: string | null;
 }) {
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
             {PLANS.map((p) => (
-                <PlanCard key={p.code} plan={p} prefill={prefill} />
+                <PlanCard key={p.code} plan={p} prefill={prefill} companyId={companyId} />
             ))}
         </div>
     );
@@ -87,17 +89,23 @@ export function PlanGrid({
 function PlanCard({
     plan,
     prefill,
+    companyId,
 }: {
     plan: Plan;
     prefill: { name?: string; email?: string };
+    companyId: string | null;
 }) {
     const [loading, setLoading] = useState(false);
 
     async function handlePay() {
+        if (!companyId) {
+            return;
+        }
         setLoading(true);
         try {
             await openCheckout({
                 planCode: plan.code,
+                companyId,
                 prefill,
                 onSuccess: () => {
                     toast.success(

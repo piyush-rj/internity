@@ -60,6 +60,7 @@ function loadScript(): Promise<boolean> {
 
 export type CheckoutInput = {
     planCode: PlanCode;
+    companyId: string;
     prefill?: { name?: string; email?: string };
     onSuccess?: () => void | Promise<void>;
     onDismiss?: () => void;
@@ -71,7 +72,7 @@ export async function openCheckout(input: CheckoutInput): Promise<void> {
     if (!ok) {
         throw new Error("Couldn’t load the payment gateway. Try again.");
     }
-    const order = await paymentApi.create_order(input.planCode);
+    const order = await paymentApi.create_order(input.planCode, input.companyId);
 
     const instance = new window.Razorpay({
         key: order.keyId,

@@ -21,6 +21,7 @@ export type MeResponse = {
     // The cover letter the student submitted on their most recent apply.
     // Used as the one-click prefill on subsequent Apply forms.
     lastCoverLetter: string | null;
+    activeCompanyId: string | null;
 };
 
 export const authApi = {

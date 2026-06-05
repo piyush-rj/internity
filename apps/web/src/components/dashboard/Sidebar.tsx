@@ -12,7 +12,7 @@ import {
     PiBuildingsFill,
     PiCalendarCheckFill,
     PiChatCircleFill,
-    PiCreditCardFill,
+    PiCurrencyInrFill,
     PiFileTextFill,
     PiGearFill,
     PiHouseFill,
@@ -165,12 +165,6 @@ const employerNav: NavSet = {
             label: "Profile",
             icon: PiUserFill,
             href: "/home/profile",
-        },
-        {
-            key: "plans",
-            label: "My Plans",
-            icon: PiCreditCardFill,
-            href: "/home/plans",
         },
         {
             key: "settings",
@@ -454,8 +448,9 @@ const COMPANY_LINKS: ReadonlyArray<{
     label: string;
     icon: IconComp;
     adminOnly?: boolean;
-    // When set, the item opens this external URL in a new tab instead of
-    // navigating to /home/company/:sub.
+    // Custom internal href — overrides the default /home/company/:sub path.
+    href?: string;
+    // When set, opens this external URL in a new tab.
     externalHref?: string;
 }> = [
     {
@@ -467,6 +462,12 @@ const COMPANY_LINKS: ReadonlyArray<{
     { sub: "profile", label: "Profile", icon: PiBuildingsFill },
     { sub: "listings", label: "Listings", icon: PiBriefcaseFill },
     { sub: "members", label: "Members", icon: PiUsersFill },
+    {
+        sub: "plans",
+        label: "Plans",
+        icon: PiCurrencyInrFill,
+        href: "/home/plans",
+    },
     {
         sub: "offer-letter",
         label: "Offer Letter template",
@@ -509,10 +510,14 @@ function CompanySection({
             <div className="space-y-0.5">
                 {links.map((l) => {
                     const Icon = l.icon;
-                    const active = activeSub === l.sub;
+                    // Items with a custom href are active when pathname matches
+                    // that href; others use the /home/company/:sub sub-segment.
+                    const active = l.href
+                        ? pathname === l.href || pathname.startsWith(l.href + "/")
+                        : activeSub === l.sub;
+                    const dest = l.href ?? `/home/company/${l.sub}`;
 
-                    // External reference links (e.g. the offer-letter Google
-                    // Doc) open in a new tab and never highlight as active.
+                    // External reference links open in a new tab.
                     if (l.externalHref) {
                         return (
                             <a
@@ -533,7 +538,7 @@ function CompanySection({
                     return (
                         <Link
                             key={l.sub}
-                            href={`/home/company/${l.sub}`}
+                            href={dest}
                             prefetch
                             onClick={() => onNavigate?.()}
                             className={cn(
