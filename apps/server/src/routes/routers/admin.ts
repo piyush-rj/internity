@@ -27,7 +27,11 @@ router.get("/students", requireAdmin, adminListStudents);
 router.post("/user/:id/ban", requireAdmin, setUserBan);
 router.post("/student/:id/verify", requireAdmin, setStudentVerification);
 router.get("/cancellation-requests", requireAdmin, listCancellationRequests);
-router.patch("/cancellation-requests/:id", requireAdmin, updateCancellationRequest);
+router.patch(
+    "/cancellation-requests/:id",
+    requireAdmin,
+    updateCancellationRequest,
+);
 router.get("/coupons", requireAdmin, listCoupons);
 router.post("/coupons", requireAdmin, createCoupon);
 router.patch("/coupons/:id/revoke", requireAdmin, revokeCoupon);
@@ -37,6 +41,10 @@ router.patch("/offers/:id/revoke", requireAdmin, revokeOffer);
 router.get("/company-search", requireAdmin, searchCompanies);
 router.get("/allow-postings", requireAdmin, listFreePostingGrants);
 router.post("/allow-postings", requireAdmin, createFreePostingGrant);
-router.patch("/allow-postings/:id/revoke", requireAdmin, revokeFreePostingGrant);
+router.patch(
+    "/allow-postings/:id/revoke",
+    requireAdmin,
+    revokeFreePostingGrant,
+);
 
 export default router;

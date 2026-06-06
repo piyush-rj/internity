@@ -64,11 +64,19 @@ export default async function createOrder(
             });
 
             if (!coupon || !coupon.isActive || coupon.expiresAt < now) {
-                api.fail(400, "INVALID_COUPON", "Invalid or expired coupon code.");
+                api.fail(
+                    400,
+                    "INVALID_COUPON",
+                    "Invalid or expired coupon code.",
+                );
                 return;
             }
             if (coupon.redemptions.length > 0) {
-                api.fail(400, "ALREADY_USED", "You have already used this coupon.");
+                api.fail(
+                    400,
+                    "ALREADY_USED",
+                    "You have already used this coupon.",
+                );
                 return;
             }
 

@@ -8,7 +8,10 @@ const Body = z.object({
         .string()
         .min(3)
         .max(20)
-        .regex(/^[A-Z0-9]+$/, "Code must be uppercase letters and digits only."),
+        .regex(
+            /^[A-Z0-9]+$/,
+            "Code must be uppercase letters and digits only.",
+        ),
     // Default percentage — pre-fills all three plans.
     defaultDiscountPct: z.number().int().min(1).max(99),
     // Per-plan overrides (fall back to defaultDiscountPct if omitted).
@@ -32,7 +35,11 @@ export default async function createCoupon(
             where: { code: body.code },
         });
         if (existing) {
-            api.fail(409, "DUPLICATE_CODE", `Coupon code "${body.code}" already exists.`);
+            api.fail(
+                409,
+                "DUPLICATE_CODE",
+                `Coupon code "${body.code}" already exists.`,
+            );
             return;
         }
 

@@ -32,7 +32,11 @@ export default async function updateCancellationRequest(
         }
 
         if (existing.status !== "PENDING") {
-            api.fail(409, "ALREADY_RESOLVED", "This request has already been resolved.");
+            api.fail(
+                409,
+                "ALREADY_RESOLVED",
+                "This request has already been resolved.",
+            );
             return;
         }
 

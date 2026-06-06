@@ -41,7 +41,9 @@ export function ProfileFormSidebar({
         setTooltip(null);
     }
 
-    const activeStep = tooltip ? stepsConfig.find((s) => s.key === tooltip.key) : null;
+    const activeStep = tooltip
+        ? stepsConfig.find((s) => s.key === tooltip.key)
+        : null;
 
     return (
         <>
@@ -79,7 +81,9 @@ export function ProfileFormSidebar({
                                             active && "text-orange-500",
                                         )}
                                     />
-                                    <span className="flex-1 truncate">{label}</span>
+                                    <span className="flex-1 truncate">
+                                        {label}
+                                    </span>
                                     {isDone && (
                                         <span
                                             className={cn(

@@ -40,7 +40,9 @@ export default function AdminCouponsPage() {
             await load();
         } catch (err) {
             alert(
-                err instanceof ApiClientError ? err.message : "Failed to revoke.",
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Failed to revoke.",
             );
         } finally {
             setRevoking(null);
@@ -227,8 +229,16 @@ function CreateCouponForm({ onCreated }: { onCreated: () => void }) {
                 {expanded && (
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-3">
                         {[
-                            { label: "Per Post %", val: perPost, set: setPerPost },
-                            { label: "Monthly %", val: monthly, set: setMonthly },
+                            {
+                                label: "Per Post %",
+                                val: perPost,
+                                set: setPerPost,
+                            },
+                            {
+                                label: "Monthly %",
+                                val: monthly,
+                                set: setMonthly,
+                            },
                             { label: "Yearly %", val: yearly, set: setYearly },
                         ].map(({ label, val, set }) => (
                             <div key={label} className="space-y-1">
@@ -288,8 +298,7 @@ function CouponRow({
                         <StatusPill coupon={c} />
                     </div>
                     <p className="text-[11.5px] text-muted-foreground">
-                        Created by {creator} ·{" "}
-                        {formatDateShort(c.createdAt)}
+                        Created by {creator} · {formatDateShort(c.createdAt)}
                     </p>
                 </div>
 
@@ -380,7 +389,10 @@ function Skeleton() {
                     <div className="h-3 w-44 rounded bg-secondary" />
                     <div className="grid grid-cols-3 gap-2 mt-2">
                         {[0, 1, 2].map((j) => (
-                            <div key={j} className="h-10 rounded-md bg-secondary" />
+                            <div
+                                key={j}
+                                className="h-10 rounded-md bg-secondary"
+                            />
                         ))}
                     </div>
                 </div>

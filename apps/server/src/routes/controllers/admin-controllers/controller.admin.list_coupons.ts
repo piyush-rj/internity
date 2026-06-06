@@ -33,7 +33,11 @@ export default async function listCoupons(
 
         // Batch-fetch revoking users so we can show who revoked each coupon.
         const revokedByIds = [
-            ...new Set(items.map((c) => c.revokedById).filter((id): id is string => id !== null)),
+            ...new Set(
+                items
+                    .map((c) => c.revokedById)
+                    .filter((id): id is string => id !== null),
+            ),
         ];
         const revokedUsers =
             revokedByIds.length > 0

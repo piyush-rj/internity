@@ -158,7 +158,11 @@ export const adminApi = {
         discountPctMonthly?: number;
         discountPctYearly?: number;
         expiresAt?: string;
-    }) => api.post<{ coupon: { id: string; code: string } }>("/admin/coupons", input),
+    }) =>
+        api.post<{ coupon: { id: string; code: string } }>(
+            "/admin/coupons",
+            input,
+        ),
     revoke_coupon: (id: string) =>
         api.patch<{ coupon: { id: string; isActive: boolean } }>(
             `/admin/coupons/${id}/revoke`,
@@ -179,7 +183,11 @@ export const adminApi = {
         discountPctMonthly?: number;
         discountPctYearly?: number;
         expiresAt?: string;
-    }) => api.post<{ offer: { id: string; title: string } }>("/admin/offers", input),
+    }) =>
+        api.post<{ offer: { id: string; title: string } }>(
+            "/admin/offers",
+            input,
+        ),
     revoke_offer: (id: string) =>
         api.patch<{ offer: { id: string; isActive: boolean } }>(
             `/admin/offers/${id}/revoke`,

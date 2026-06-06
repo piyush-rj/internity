@@ -3,7 +3,10 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { PiSparkleFill } from "react-icons/pi";
-import { PlanGrid, type CouponDiscount } from "@/src/components/plans/PlanCards";
+import {
+    PlanGrid,
+    type CouponDiscount,
+} from "@/src/components/plans/PlanCards";
 import { paymentApi } from "@/src/lib/api/payment";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useMe } from "@/src/hooks/useMe";
@@ -35,9 +38,7 @@ type ActiveOffer = {
     expiresAt: string;
 };
 
-function offerToDiscounts(
-    offer: ActiveOffer,
-): Record<string, CouponDiscount> {
+function offerToDiscounts(offer: ActiveOffer): Record<string, CouponDiscount> {
     function discounted(original: number, pct: number) {
         return Math.round(original * (1 - pct / 100));
     }
@@ -51,23 +52,34 @@ function offerToDiscounts(
         MONTHLY: 249900,
         YEARLY: 999900,
     };
-    void perPostPlan; void monthlyPlan; void yearlyPlan;
+    void perPostPlan;
+    void monthlyPlan;
+    void yearlyPlan;
 
     return {
         PER_POST: {
             pct: offer.discountPctPerPost,
             originalAmount: amounts.PER_POST!,
-            discountedAmount: discounted(amounts.PER_POST!, offer.discountPctPerPost),
+            discountedAmount: discounted(
+                amounts.PER_POST!,
+                offer.discountPctPerPost,
+            ),
         },
         MONTHLY: {
             pct: offer.discountPctMonthly,
             originalAmount: amounts.MONTHLY!,
-            discountedAmount: discounted(amounts.MONTHLY!, offer.discountPctMonthly),
+            discountedAmount: discounted(
+                amounts.MONTHLY!,
+                offer.discountPctMonthly,
+            ),
         },
         YEARLY: {
             pct: offer.discountPctYearly,
             originalAmount: amounts.YEARLY!,
-            discountedAmount: discounted(amounts.YEARLY!, offer.discountPctYearly),
+            discountedAmount: discounted(
+                amounts.YEARLY!,
+                offer.discountPctYearly,
+            ),
         },
     };
 }
@@ -79,7 +91,9 @@ export default function ExplorePlansPage() {
 
     // Coupon state (manual entry, overrides offer discounts)
     const [couponInput, setCouponInput] = useState("");
-    const [appliedCode, setAppliedCode] = useState<string | undefined>(undefined);
+    const [appliedCode, setAppliedCode] = useState<string | undefined>(
+        undefined,
+    );
     const [couponDiscounts, setCouponDiscounts] = useState<
         Record<string, CouponDiscount> | undefined
     >(undefined);
@@ -105,7 +119,11 @@ export default function ExplorePlansPage() {
             setAppliedCode(res.code);
             setCouponDiscounts(res.discounts as Record<string, CouponDiscount>);
         } catch (err) {
-            setCouponError(couponErrorMessage(err));
+            setCouponError(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Invalid coupon code.",
+            );
         } finally {
             setValidating(false);
         }
@@ -120,7 +138,8 @@ export default function ExplorePlansPage() {
 
     // Coupon discounts take priority over the offer
     const activeDiscounts =
-        couponDiscounts ?? (offer && !offerDismissed ? offerToDiscounts(offer) : undefined);
+        couponDiscounts ??
+        (offer && !offerDismissed ? offerToDiscounts(offer) : undefined);
     const activeCouponCode = appliedCode;
 
     return (
@@ -152,11 +171,15 @@ export default function ExplorePlansPage() {
                             </p>
                         )}
                         <p className="mt-0.5 text-[11px] text-orange-600">
-                            Expires {new Date(offer.expiresAt).toLocaleDateString("en-IN", {
-                                day: "numeric",
-                                month: "short",
-                                year: "numeric",
-                            })}
+                            Expires{" "}
+                            {new Date(offer.expiresAt).toLocaleDateString(
+                                "en-IN",
+                                {
+                                    day: "numeric",
+                                    month: "short",
+                                    year: "numeric",
+                                },
+                            )}
                         </p>
                     </div>
                     <button
@@ -176,7 +199,9 @@ export default function ExplorePlansPage() {
                         <span className="text-[12.5px] font-semibold text-emerald-700 font-mono">
                             {appliedCode}
                         </span>
-                        <span className="text-[12px] text-emerald-600">applied</span>
+                        <span className="text-[12px] text-emerald-600">
+                            applied
+                        </span>
                         <button
                             type="button"
                             onClick={clearCoupon}

@@ -83,7 +83,11 @@ export type MyPlansResponse = {
 
 export const paymentApi = {
     list_mine: () => api.get<MyPlansResponse>("/payment/mine"),
-    create_order: (planCode: PlanCode, companyId: string, couponCode?: string) =>
+    create_order: (
+        planCode: PlanCode,
+        companyId: string,
+        couponCode?: string,
+    ) =>
         api.post<CreateOrderResponse>("/payment/order", {
             planCode,
             companyId,
@@ -109,7 +113,11 @@ export const paymentApi = {
             code: string;
             discounts: Record<
                 string,
-                { pct: number; originalAmount: number; discountedAmount: number }
+                {
+                    pct: number;
+                    originalAmount: number;
+                    discountedAmount: number;
+                }
             >;
         }>("/payment/coupon/validate", input),
     cancel_request: (input: {
@@ -117,8 +125,7 @@ export const paymentApi = {
         reason: CancellationReason;
         otherText?: string;
     }) =>
-        api.post<{ request: { id: string; status: CancellationRequestStatus } }>(
-            "/payment/cancel-request",
-            input,
-        ),
+        api.post<{
+            request: { id: string; status: CancellationRequestStatus };
+        }>("/payment/cancel-request", input),
 };

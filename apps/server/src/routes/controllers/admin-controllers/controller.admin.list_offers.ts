@@ -33,7 +33,11 @@ export default async function listOffers(
 
         // Batch-fetch revoking users so we can show who revoked each offer.
         const revokedByIds = [
-            ...new Set(items.map((o) => o.revokedById).filter((id): id is string => id !== null)),
+            ...new Set(
+                items
+                    .map((o) => o.revokedById)
+                    .filter((id): id is string => id !== null),
+            ),
         ];
         const revokedUsers =
             revokedByIds.length > 0

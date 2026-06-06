@@ -513,7 +513,8 @@ function CompanySection({
                     // Items with a custom href are active when pathname matches
                     // that href; others use the /home/company/:sub sub-segment.
                     const active = l.href
-                        ? pathname === l.href || pathname.startsWith(l.href + "/")
+                        ? pathname === l.href ||
+                          pathname.startsWith(l.href + "/")
                         : activeSub === l.sub;
                     const dest = l.href ?? `/home/company/${l.sub}`;
 

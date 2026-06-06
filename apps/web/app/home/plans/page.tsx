@@ -124,7 +124,9 @@ export default function MyPlansPage() {
                     <CurrentPlanCard
                         plan={data!.currentPlan}
                         activePayment={activePayment}
-                        onCancel={() => activePayment && setCancelTarget(activePayment)}
+                        onCancel={() =>
+                            activePayment && setCancelTarget(activePayment)
+                        }
                     />
                     {data!.listingActivity.length > 0 && (
                         <PostingActivitySection
@@ -594,9 +596,11 @@ function CurrentPlanCard({
                             <span
                                 className={cn(
                                     "font-medium",
-                                    activePayment.cancellationRequest.status === "PENDING"
+                                    activePayment.cancellationRequest.status ===
+                                        "PENDING"
                                         ? "text-amber-600"
-                                        : activePayment.cancellationRequest.status === "APPROVED"
+                                        : activePayment.cancellationRequest
+                                                .status === "APPROVED"
                                           ? "text-emerald-600"
                                           : "text-rose-500",
                                 )}
@@ -953,7 +957,9 @@ function PostingActivitySection({
         now.setHours(23, 59, 59, 999);
 
         const firstPost = new Date(
-            Math.min(...listingActivity.map((l) => new Date(l.createdAt).getTime())),
+            Math.min(
+                ...listingActivity.map((l) => new Date(l.createdAt).getTime()),
+            ),
         );
         firstPost.setHours(0, 0, 0, 0);
 
@@ -990,7 +996,9 @@ function PostingActivitySection({
         <section className="rounded-xl border border-border bg-card overflow-hidden">
             <header className="flex items-center gap-2 px-5 py-4 border-b border-border">
                 <PiRocketLaunchFill className="h-4 w-4 text-orange-500" />
-                <h2 className="text-[13.5px] font-semibold">Posting activity</h2>
+                <h2 className="text-[13.5px] font-semibold">
+                    Posting activity
+                </h2>
                 <div className="ml-auto flex items-center gap-0.5 rounded-md border border-border bg-secondary/50 p-0.5">
                     {RANGE_OPTS.map((o) => (
                         <button
@@ -1015,8 +1023,14 @@ function PostingActivitySection({
                     label="Total invested"
                     value={`₹${totalSpent.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 />
-                <StatChip label="Plans purchased" value={String(payments.length)} />
-                <StatChip label="Listings posted" value={String(listingActivity.length)} />
+                <StatChip
+                    label="Plans purchased"
+                    value={String(payments.length)}
+                />
+                <StatChip
+                    label="Listings posted"
+                    value={String(listingActivity.length)}
+                />
             </div>
 
             <div className="px-4 pt-4 pb-3">
@@ -1026,7 +1040,11 @@ function PostingActivitySection({
                         barCategoryGap="30%"
                         margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
                     >
-                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e4e4e7" />
+                        <CartesianGrid
+                            strokeDasharray="3 3"
+                            vertical={false}
+                            stroke="#e4e4e7"
+                        />
                         <XAxis
                             dataKey="label"
                             interval={tickInterval}
@@ -1044,34 +1062,60 @@ function PostingActivitySection({
                             cursor={{ fill: "rgba(0,0,0,0.04)" }}
                             content={({ active, payload }) => {
                                 if (!active || !payload?.length) return null;
-                                const d = payload[0]?.payload as (typeof chartData)[0];
+                                const d = payload[0]
+                                    ?.payload as (typeof chartData)[0];
                                 const listings = listingsByDate[d.date] ?? [];
                                 return (
                                     <div className="rounded-xl border border-border bg-background shadow-xl text-[12px] w-60 overflow-hidden">
                                         <div className="px-3.5 py-2.5 border-b border-border bg-secondary/30">
-                                            <p className="font-semibold text-[12.5px]">{d.label}</p>
+                                            <p className="font-semibold text-[12.5px]">
+                                                {d.label}
+                                            </p>
                                             <p className="text-[11px] text-muted-foreground">
-                                                {d.count} {d.count === 1 ? "listing" : "listings"} posted
+                                                {d.count}{" "}
+                                                {d.count === 1
+                                                    ? "listing"
+                                                    : "listings"}{" "}
+                                                posted
                                             </p>
                                         </div>
                                         {listings.length > 0 && (
                                             <div className="divide-y divide-border max-h-52 overflow-y-auto">
                                                 {listings.map((l) => (
-                                                    <div key={l.id} className="px-3.5 py-2.5">
+                                                    <div
+                                                        key={l.id}
+                                                        className="px-3.5 py-2.5"
+                                                    >
                                                         <p className="font-medium leading-snug line-clamp-2">
                                                             {l.title}
                                                         </p>
                                                         <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 mt-1 text-[10.5px] text-muted-foreground">
                                                             {l.city && (
                                                                 <>
-                                                                    <span>{l.city}</span>
-                                                                    <span>·</span>
+                                                                    <span>
+                                                                        {l.city}
+                                                                    </span>
+                                                                    <span>
+                                                                        ·
+                                                                    </span>
                                                                 </>
                                                             )}
-                                                            <span>{MODE_LABEL[l.mode] ?? l.mode}</span>
+                                                            <span>
+                                                                {MODE_LABEL[
+                                                                    l.mode
+                                                                ] ?? l.mode}
+                                                            </span>
                                                             <span>·</span>
-                                                            <span className={!l.closedAt ? "text-emerald-600" : "text-rose-500"}>
-                                                                {!l.closedAt ? "Active" : "Closed"}
+                                                            <span
+                                                                className={
+                                                                    !l.closedAt
+                                                                        ? "text-emerald-600"
+                                                                        : "text-rose-500"
+                                                                }
+                                                            >
+                                                                {!l.closedAt
+                                                                    ? "Active"
+                                                                    : "Closed"}
                                                             </span>
                                                         </div>
                                                     </div>

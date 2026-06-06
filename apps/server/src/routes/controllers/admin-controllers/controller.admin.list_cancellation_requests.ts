@@ -38,7 +38,11 @@ export default async function listCancellationRequests(
                                 orderBy: { joinedAt: "asc" },
                                 select: {
                                     company: {
-                                        select: { id: true, name: true, slug: true },
+                                        select: {
+                                            id: true,
+                                            name: true,
+                                            slug: true,
+                                        },
                                     },
                                 },
                             },
@@ -70,7 +74,8 @@ export default async function listCancellationRequests(
                 user: r.user,
                 payment: {
                     ...r.payment,
-                    planName: PLANS[r.payment.planCode]?.name ?? r.payment.planCode,
+                    planName:
+                        PLANS[r.payment.planCode]?.name ?? r.payment.planCode,
                     createdAt: r.payment.createdAt.toISOString(),
                 },
             })),

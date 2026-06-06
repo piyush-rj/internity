@@ -32,8 +32,7 @@ function StudentProfile() {
             return;
         }
         // "basics" now has its own section card below the header
-        const id =
-            step === "basics" ? "profile-basics" : `profile-${step}`;
+        const id = step === "basics" ? "profile-basics" : `profile-${step}`;
         document
             .getElementById(id)
             ?.scrollIntoView({ behavior: "smooth", block: "start" });

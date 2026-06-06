@@ -62,8 +62,7 @@ export default function AdminPaymentsPage() {
         const q = query.trim().toLowerCase();
         if (!q) return items;
         return items.filter((p) => {
-            const company =
-                p.user.companyMemberships[0]?.company.name ?? "";
+            const company = p.user.companyMemberships[0]?.company.name ?? "";
             const date = formatDate(p.createdAt).toLowerCase();
             return (
                 (p.user.name ?? "").toLowerCase().includes(q) ||

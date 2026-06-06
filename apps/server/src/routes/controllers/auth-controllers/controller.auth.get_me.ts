@@ -106,8 +106,7 @@ export default async function getMe(
             // isPremium is the company's premium status for employer users.
             // Falls back to the user-level flag for legacy / student accounts.
             isPremium:
-                user.companyMemberships[0]?.company.isPremium ??
-                user.isPremium,
+                user.companyMemberships[0]?.company.isPremium ?? user.isPremium,
             premiumUntil:
                 user.companyMemberships[0]?.company.premiumUntil?.toISOString() ??
                 user.premiumUntil?.toISOString() ??

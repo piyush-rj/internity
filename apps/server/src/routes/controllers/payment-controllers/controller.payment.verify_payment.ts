@@ -98,7 +98,10 @@ export default async function verifyPayment(
 
                 if (rzpAmount !== payment.amount) {
                     await prisma.payment.updateMany({
-                        where: { razorpayOrderId: body.razorpay_order_id, userId },
+                        where: {
+                            razorpayOrderId: body.razorpay_order_id,
+                            userId,
+                        },
                         data: { status: PaymentStatus.FAILED },
                     });
                     console.warn(
@@ -112,7 +115,10 @@ export default async function verifyPayment(
                 // Re-throw our own InvalidRequest; log and absorb Razorpay
                 // fetch errors so a transient API hiccup doesn't block valid payments.
                 if (err instanceof InvalidRequest) throw err;
-                console.error("[payment] Could not verify amount via Razorpay API:", err);
+                console.error(
+                    "[payment] Could not verify amount via Razorpay API:",
+                    err,
+                );
             }
         }
 
@@ -193,7 +199,10 @@ export default async function verifyPayment(
                 });
             } catch (err) {
                 // Non-fatal: redemption logging should never break the payment.
-                console.error("[payment] Failed to record coupon redemption:", err);
+                console.error(
+                    "[payment] Failed to record coupon redemption:",
+                    err,
+                );
             }
         }
 

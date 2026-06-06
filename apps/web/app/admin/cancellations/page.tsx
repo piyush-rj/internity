@@ -78,8 +78,8 @@ export default function AdminCancellationsPage() {
                     Cancellation Requests
                 </h1>
                 <p className="text-[12.5px] text-muted-foreground">
-                    Subscription cancellation requests from founders. Approve
-                    to revoke premium access immediately.
+                    Subscription cancellation requests from founders. Approve to
+                    revoke premium access immediately.
                 </p>
             </header>
 
@@ -179,7 +179,9 @@ function RequestRow({
                 </div>
                 <div className="text-right shrink-0">
                     <p className="text-[13px] font-semibold tabular-nums">
-                        {r.payment.currency === "INR" ? "₹" : r.payment.currency}
+                        {r.payment.currency === "INR"
+                            ? "₹"
+                            : r.payment.currency}
                         {(r.payment.amount / 100).toLocaleString("en-IN", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
@@ -282,7 +284,12 @@ function Detail({
     return (
         <div className="rounded-md border border-border bg-secondary/20 px-2.5 py-2">
             <p className="text-[10.5px] text-muted-foreground">{label}</p>
-            <p className={cn("text-[12px] font-medium mt-0.5 truncate", valueClass)}>
+            <p
+                className={cn(
+                    "text-[12px] font-medium mt-0.5 truncate",
+                    valueClass,
+                )}
+            >
                 {value}
             </p>
         </div>
@@ -319,12 +326,18 @@ function Skeleton() {
     return (
         <div className="divide-y divide-border">
             {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="px-4 sm:px-5 py-4 space-y-2 animate-pulse">
+                <div
+                    key={i}
+                    className="px-4 sm:px-5 py-4 space-y-2 animate-pulse"
+                >
                     <div className="h-3.5 w-40 rounded bg-secondary" />
                     <div className="h-3 w-28 rounded bg-secondary" />
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 mt-2">
                         {[0, 1, 2, 3].map((j) => (
-                            <div key={j} className="h-10 rounded-md bg-secondary" />
+                            <div
+                                key={j}
+                                className="h-10 rounded-md bg-secondary"
+                            />
                         ))}
                     </div>
                 </div>

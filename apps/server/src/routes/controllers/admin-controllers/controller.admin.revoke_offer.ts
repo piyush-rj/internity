@@ -23,7 +23,11 @@ export default async function revokeOffer(
 
         const updated = await prisma.offer.update({
             where: { id },
-            data: { isActive: false, revokedAt: new Date(), revokedById: adminId },
+            data: {
+                isActive: false,
+                revokedAt: new Date(),
+                revokedById: adminId,
+            },
         });
 
         api.ok({ offer: { id: updated.id, isActive: updated.isActive } });

@@ -140,15 +140,17 @@ export default async function listMyPayments(
 
         // Determine plan state from the company (or fall back to the user for
         // legacy accounts that still have isPremium on the user record).
-        const premiumSource = company ?? (await prisma.user.findUnique({
-            where: { id: userId },
-            select: {
-                isPremium: true,
-                premiumSince: true,
-                premiumUntil: true,
-                activePlanCode: true,
-            },
-        }));
+        const premiumSource =
+            company ??
+            (await prisma.user.findUnique({
+                where: { id: userId },
+                select: {
+                    isPremium: true,
+                    premiumSince: true,
+                    premiumUntil: true,
+                    activePlanCode: true,
+                },
+            }));
 
         const premiumUntil = premiumSource?.premiumUntil ?? null;
         const isActive = !!(
@@ -190,8 +192,7 @@ export default async function listMyPayments(
                       )
                     : null;
                 const listingsPosted = allListings.filter(
-                    (l) =>
-                        l.createdAt >= start && (!end || l.createdAt <= end),
+                    (l) => l.createdAt >= start && (!end || l.createdAt <= end),
                 ).length;
                 return {
                     id: p.id,

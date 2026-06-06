@@ -22,6 +22,8 @@ export type Plan = {
     code: PlanCode;
     name: string;
     price: string;
+    originalPrice: string;
+    discountPct: number;
     cadence: string;
     icon: React.ReactNode;
     features: string[];
@@ -34,6 +36,8 @@ export const PLANS: Plan[] = [
         code: "PER_POST",
         name: "Per Post",
         price: "₹999",
+        originalPrice: "₹1,499",
+        discountPct: 33,
         cadence: "one-time",
         icon: <PiBriefcase className="h-5 w-5" />,
         features: [
@@ -48,6 +52,8 @@ export const PLANS: Plan[] = [
         code: "MONTHLY",
         name: "Monthly",
         price: "₹2,499",
+        originalPrice: "₹3,999",
+        discountPct: 38,
         cadence: "per month",
         icon: <PiCalendarBlank className="h-5 w-5" />,
         features: [
@@ -64,6 +70,8 @@ export const PLANS: Plan[] = [
         code: "YEARLY",
         name: "Yearly",
         price: "₹9,999",
+        originalPrice: "₹29,988",
+        discountPct: 67,
         cadence: "per year",
         icon: <PiSparkleFill className="h-5 w-5" />,
         features: [
@@ -171,7 +179,10 @@ function PlanCard({
                     <div className="space-y-0.5">
                         <div className="flex items-baseline gap-2">
                             <span className="text-[34px] font-semibold tracking-tight tabular-nums text-orange-600">
-                                ₹{(discount.discountedAmount / 100).toLocaleString("en-IN")}
+                                ₹
+                                {(
+                                    discount.discountedAmount / 100
+                                ).toLocaleString("en-IN")}
                             </span>
                             <span className="text-[13px] text-muted-foreground">
                                 {plan.cadence}
@@ -187,12 +198,20 @@ function PlanCard({
                         </div>
                     </div>
                 ) : (
-                    <div className="flex items-baseline gap-1">
-                        <span className="text-[34px] font-semibold tracking-tight tabular-nums">
-                            {plan.price}
-                        </span>
-                        <span className="text-[13px] text-muted-foreground">
-                            {plan.cadence}
+                    <div className="space-y-0.5">
+                        <div className="flex items-baseline gap-2">
+                            <span className="text-[13px] text-muted-foreground line-through tabular-nums">
+                                {plan.originalPrice}
+                            </span>
+                            <span className="text-[34px] font-semibold tracking-tight tabular-nums">
+                                {plan.price}
+                            </span>
+                            <span className="text-[13px] text-muted-foreground">
+                                {plan.cadence}
+                            </span>
+                        </div>
+                        <span className="inline-flex items-center rounded-full bg-orange-100 text-orange-700 px-2 py-0.5 text-[10.5px] font-semibold">
+                            {plan.discountPct}% off
                         </span>
                     </div>
                 )}

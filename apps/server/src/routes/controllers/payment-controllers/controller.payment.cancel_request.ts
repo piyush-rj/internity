@@ -46,12 +46,20 @@ export default async function cancelRequest(
         }
 
         if (payment.status !== "SUCCESS") {
-            api.fail(400, "INVALID_PAYMENT", "Only successful payments can be cancelled.");
+            api.fail(
+                400,
+                "INVALID_PAYMENT",
+                "Only successful payments can be cancelled.",
+            );
             return;
         }
 
         if (payment.cancellationRequest) {
-            api.fail(409, "ALREADY_REQUESTED", "A cancellation request already exists for this payment.");
+            api.fail(
+                409,
+                "ALREADY_REQUESTED",
+                "A cancellation request already exists for this payment.",
+            );
             return;
         }
 

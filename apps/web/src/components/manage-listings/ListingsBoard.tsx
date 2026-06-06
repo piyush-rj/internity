@@ -79,7 +79,9 @@ export function ListingsBoard({
                     <Crown
                         className={cn(
                             "h-4 w-4 shrink-0 mt-0.5",
-                            freeListingUsed ? "text-rose-500" : "text-amber-500",
+                            freeListingUsed
+                                ? "text-rose-500"
+                                : "text-amber-500",
                         )}
                     />
                     <div className="flex-1 min-w-0">

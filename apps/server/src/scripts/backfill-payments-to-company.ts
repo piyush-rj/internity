@@ -28,7 +28,12 @@ async function main() {
     // Track which companies get premium so we can bulk-set it at the end.
     const companyPremiumMap = new Map<
         string,
-        { isPremium: boolean; premiumSince: Date; premiumUntil: Date; planCode: string }
+        {
+            isPremium: boolean;
+            premiumSince: Date;
+            premiumUntil: Date;
+            planCode: string;
+        }
     >();
 
     let migrated = 0;
@@ -71,8 +76,7 @@ async function main() {
             // Keep the most recently created active payment as the source of truth.
             if (
                 isStillActive &&
-                (!existing ||
-                    payment.createdAt > existing.premiumSince)
+                (!existing || payment.createdAt > existing.premiumSince)
             ) {
                 companyPremiumMap.set(companyId, {
                     isPremium: true,
@@ -92,9 +96,7 @@ async function main() {
             }
         }
 
-        console.log(
-            `  ✓ Payment ${payment.id} → company ${companyId}`,
-        );
+        console.log(`  ✓ Payment ${payment.id} → company ${companyId}`);
         migrated++;
     }
 
