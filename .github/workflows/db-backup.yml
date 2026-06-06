@@ -1,0 +1,61 @@
+name: Database backup
+
+# Daily logical backup of the Supabase `public` schema, run from GitHub's
+# servers (independent of any laptop). The dump is stored as a workflow
+# artifact (downloadable from the Actions tab, ~90-day retention).
+#
+# Requires a repository secret named BACKUP_DATABASE_URL containing the
+# Postgres connection string (use the DIRECT_URL / session-mode connection,
+# not the transaction pooler). Set it under:
+#   Repo -> Settings -> Secrets and variables -> Actions -> New repository secret
+#
+# You can also trigger it manually from the Actions tab ("Run workflow").
+
+on:
+  schedule:
+    - cron: "30 18 * * *" # 18:30 UTC daily (00:00 IST)
+  workflow_dispatch: {}
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install latest PostgreSQL client
+        # Install the newest client from the PGDG repo rather than pinning a
+        # major version. pg_dump requires the client be >= the server, and a
+        # newer client can always dump an older-or-equal server -- so "latest"
+        # keeps working when Supabase upgrades Postgres (17 -> 18 -> ...).
+        run: |
+          sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/postgresql.gpg
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Dump public schema
+        env:
+          BACKUP_DATABASE_URL: ${{ secrets.BACKUP_DATABASE_URL }}
+        run: |
+          if [ -z "$BACKUP_DATABASE_URL" ]; then
+            echo "::error::BACKUP_DATABASE_URL secret is not set"
+            exit 1
+          fi
+          # Pick the highest-version pg_dump that got installed, regardless of
+          # major number -- no hardcoded version path to drift out of date.
+          PG_DUMP="$(ls -d /usr/lib/postgresql/*/bin/pg_dump 2>/dev/null | sort -V | tail -1)"
+          [ -n "$PG_DUMP" ] || PG_DUMP="$(command -v pg_dump)"
+          "$PG_DUMP" --version
+          STAMP="$(date -u +%Y%m%d_%H%M%S)"
+          echo "STAMP=$STAMP" >> "$GITHUB_ENV"
+          "$PG_DUMP" "$BACKUP_DATABASE_URL" \
+            --schema=public \
+            --no-owner --no-privileges \
+            --clean --if-exists \
+            | gzip > "backup_${STAMP}.sql.gz"
+          ls -lh "backup_${STAMP}.sql.gz"
+
+      - name: Upload backup artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: db-backup-${{ env.STAMP }}
+          path: backup_${{ env.STAMP }}.sql.gz
+          retention-days: 90

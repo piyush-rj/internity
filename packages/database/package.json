@@ -8,6 +8,15 @@
     ".": "./index.ts"
   },
   "scripts": {
+    "db:up": "docker compose -f ../../docker-compose.yml up -d",
+    "db:down": "docker compose -f ../../docker-compose.yml down",
+    "migrate:dev": "bash scripts/prisma-dev.sh migrate dev",
+    "migrate:reset:dev": "bash scripts/prisma-dev.sh migrate reset",
+    "migrate:status:dev": "bash scripts/prisma-dev.sh migrate status",
+    "studio:dev": "bash scripts/prisma-dev.sh studio",
+    "migrate:deploy": "prisma migrate deploy",
+    "migrate:status": "prisma migrate status",
+    "db:backup": "bash scripts/backup.sh",
     "prisma:seed": "bun run seed.ts"
   },
   "devDependencies": {
