@@ -10,6 +10,7 @@ import { invitationApi, type InvitationLookup } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { displayCompanyRole } from "@/src/lib/catalog/companyRoles";
 import { useMeStore } from "@/src/store/useMeStore";
+import { useEmployerStore } from "@/src/hooks/useMyEmployer";
 import { cn } from "@/src/lib/utils";
 
 export default function InviteAcceptPage({
@@ -20,6 +21,7 @@ export default function InviteAcceptPage({
     const { token } = use(params);
     const router = useRouter();
     const me = useMeStore((s) => s.me);
+    const refetchMe = useMeStore((s) => s.refetch);
     const [data, setData] = useState<InvitationLookup | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -52,6 +54,13 @@ export default function InviteAcceptPage({
         setAccepting(true);
         try {
             await invitationApi.accept(token);
+            // Joining can flip the user to an employer and adds a membership;
+            // refresh both stores so the employer nav + Company section show
+            // immediately, without a manual page refresh.
+            await Promise.all([
+                refetchMe(),
+                useEmployerStore.getState().refetch(),
+            ]);
             toast.success(
                 `You're in! Welcome to ${data?.invitation.company.name}.`,
             );

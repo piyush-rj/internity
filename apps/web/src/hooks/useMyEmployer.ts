@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
+import { create } from "zustand";
 import {
     employerApi,
     type Company,
@@ -19,41 +20,96 @@ export type EmployerState = {
     refetch: () => Promise<void>;
 };
 
-export function useMyEmployer(): EmployerState {
-    const [profile, setProfile] = useState<EmployerProfile | null>(null);
-    const [memberships, setMemberships] = useState<EmployerMembership[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<ApiClientError | Error | null>(null);
+type EmployerStore = {
+    profile: EmployerProfile | null;
+    memberships: EmployerMembership[];
+    loading: boolean;
+    initialized: boolean;
+    error: ApiClientError | Error | null;
+    init: () => Promise<void>;
+    refetch: () => Promise<void>;
+    reset: () => void;
+};
 
-    const fetchEmployer = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+// Single shared source of truth for the signed-in user's employer profile and
+// company memberships. Backing useMyEmployer() with one store -- rather than a
+// fetch per component instance -- means a refetch from anywhere (e.g. right
+// after creating a company) propagates to every consumer, including the
+// sidebar's Company section, with no page reload required.
+export const useEmployerStore = create<EmployerStore>((set, get) => {
+    async function load() {
+        set({ loading: true, error: null });
         try {
             const data = await employerApi.get_me();
-            setProfile(data.profile);
-            setMemberships(data.memberships);
+            set({
+                profile: data.profile,
+                memberships: data.memberships,
+                loading: false,
+                initialized: true,
+            });
         } catch (err) {
+            // 404 = the user has no employer profile yet; that's a valid empty
+            // state, not an error.
             if (err instanceof ApiClientError && err.status === 404) {
-                setProfile(null);
-                setMemberships([]);
+                set({
+                    profile: null,
+                    memberships: [],
+                    loading: false,
+                    initialized: true,
+                });
             } else {
-                setError(err instanceof Error ? err : new Error(String(err)));
+                set({
+                    error: err instanceof Error ? err : new Error(String(err)),
+                    loading: false,
+                    initialized: true,
+                });
             }
-        } finally {
-            setLoading(false);
         }
-    }, []);
+    }
+
+    return {
+        profile: null,
+        memberships: [],
+        loading: false,
+        initialized: false,
+        error: null,
+        init: async () => {
+            if (get().initialized || get().loading) return;
+            await load();
+        },
+        refetch: load,
+        reset: () =>
+            set({
+                profile: null,
+                memberships: [],
+                loading: false,
+                initialized: false,
+                error: null,
+            }),
+    };
+});
+
+export function useMyEmployer(): EmployerState {
+    const profile = useEmployerStore((s) => s.profile);
+    const memberships = useEmployerStore((s) => s.memberships);
+    const loading = useEmployerStore((s) => s.loading);
+    const initialized = useEmployerStore((s) => s.initialized);
+    const error = useEmployerStore((s) => s.error);
+    const init = useEmployerStore((s) => s.init);
+    const refetch = useEmployerStore((s) => s.refetch);
 
     useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        fetchEmployer();
-    }, [fetchEmployer]);
+        // Fetch once on first mount; later mounts reuse the shared store.
+        init();
+    }, [init]);
 
+    // Preserve the previous contract: report "loading" until the first fetch
+    // resolves, so callers that gate skeletons on `loading` behave as before.
     return {
         profile,
         memberships,
-        loading,
+        loading: loading || !initialized,
         error,
-        refetch: fetchEmployer,
+        refetch,
     };
 }

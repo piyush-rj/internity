@@ -9,6 +9,7 @@ import {
 } from "@/src/store/useUserSessionStore";
 import { useMeStore } from "@/src/store/useMeStore";
 import { useMyProfileStore } from "@/src/store/useMyProfileStore";
+import { useEmployerStore } from "@/src/hooks/useMyEmployer";
 
 function toAppSession(
     user: {
@@ -38,6 +39,7 @@ export function SessionSetter() {
     const setSession = useUserSessionStore((s) => s.setSession);
     const resetMe = useMeStore((s) => s.reset);
     const resetMyProfile = useMyProfileStore((s) => s.reset);
+    const resetEmployer = useEmployerStore((s) => s.reset);
 
     useEffect(() => {
         const supabase = createClient();
@@ -53,13 +55,14 @@ export function SessionSetter() {
             if (event === "SIGNED_OUT") {
                 resetMe();
                 resetMyProfile();
+                resetEmployer();
             }
         });
 
         return () => {
             subscription.unsubscribe();
         };
-    }, [setSession, resetMe, resetMyProfile]);
+    }, [setSession, resetMe, resetMyProfile, resetEmployer]);
 
     return null;
 }

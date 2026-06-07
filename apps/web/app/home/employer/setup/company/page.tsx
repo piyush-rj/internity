@@ -13,6 +13,7 @@ import {
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useMeStore } from "@/src/store/useMeStore";
+import { useEmployerStore } from "@/src/hooks/useMyEmployer";
 import { COUNTRIES, DEFAULT_COUNTRY } from "@/src/lib/catalog/countries";
 import { INDUSTRIES } from "@/src/lib/catalog/industries";
 import { ORG_TYPES } from "@/src/lib/catalog/orgTypes";
@@ -101,7 +102,13 @@ export default function CreateCompanyPage() {
                 organizationType: form.organizationType as OrganizationType,
             };
             await companyApi.create(input);
-            await refetchMe();
+            // Refresh both the user (role/company flags) and the shared
+            // employer store so the sidebar's Company section appears
+            // immediately, without needing a manual page refresh.
+            await Promise.all([
+                refetchMe(),
+                useEmployerStore.getState().refetch(),
+            ]);
             toast.success("Company created. You can post listings now.");
             router.replace("/home/dashboard");
         } catch (err) {

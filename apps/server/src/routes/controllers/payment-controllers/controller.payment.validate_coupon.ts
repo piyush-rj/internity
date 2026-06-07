@@ -33,11 +33,19 @@ export default async function validateCoupon(
         });
 
         if (!coupon) {
-            api.fail(400, "COUPON_NOT_FOUND", "No coupon found with that code.");
+            api.fail(
+                400,
+                "COUPON_NOT_FOUND",
+                "No coupon found with that code.",
+            );
             return;
         }
         if (!coupon.isActive) {
-            api.fail(400, "COUPON_REVOKED", "This coupon has been revoked and is no longer valid.");
+            api.fail(
+                400,
+                "COUPON_REVOKED",
+                "This coupon has been revoked and is no longer valid.",
+            );
             return;
         }
         if (coupon.expiresAt < now) {
@@ -45,7 +53,11 @@ export default async function validateCoupon(
             return;
         }
         if (coupon.redemptions.length > 0) {
-            api.fail(400, "COUPON_ALREADY_USED", "You've already used this coupon.");
+            api.fail(
+                400,
+                "COUPON_ALREADY_USED",
+                "You've already used this coupon.",
+            );
             return;
         }
 
