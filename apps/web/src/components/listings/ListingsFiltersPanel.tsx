@@ -277,7 +277,10 @@ export function ListingsFiltersPanel({
                     <select
                         value={filters.currency}
                         onChange={(e) => set("currency", e.target.value)}
-                        className={cn(inputCls, "appearance-none pr-8 cursor-pointer")}
+                        className={cn(
+                            inputCls,
+                            "appearance-none pr-8 cursor-pointer",
+                        )}
                     >
                         <option value="">Any currency</option>
                         {CURRENCIES.map((c) => (

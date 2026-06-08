@@ -102,17 +102,23 @@ export function ListingsBoard({
                         ) : freeListingUsed && remainingGranted > 0 ? (
                             <>
                                 <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
-                                    {remainingGranted} free listing{remainingGranted !== 1 ? "s" : ""} available
+                                    {remainingGranted} free listing
+                                    {remainingGranted !== 1 ? "s" : ""}{" "}
+                                    available
                                 </p>
                                 <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
-                                    Your company has been granted {remainingGranted} free listing{remainingGranted !== 1 ? "s" : ""} to use.
+                                    Your company has been granted{" "}
+                                    {remainingGranted} free listing
+                                    {remainingGranted !== 1 ? "s" : ""} to use.
                                     Subscribe for unlimited posts.
                                 </p>
                             </>
                         ) : (
                             <>
                                 <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
-                                    {1 + remainingGranted} free listing{1 + remainingGranted !== 1 ? "s" : ""} available
+                                    {1 + remainingGranted} free listing
+                                    {1 + remainingGranted !== 1 ? "s" : ""}{" "}
+                                    available
                                 </p>
                                 <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
                                     Your company gets one free listing to start.

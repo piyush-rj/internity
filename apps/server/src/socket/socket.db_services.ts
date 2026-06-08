@@ -47,7 +47,12 @@ export class SocketDbService {
     } | null> {
         return prisma.message.findUnique({
             where: { id: messageId },
-            select: { id: true, conversationId: true, senderId: true, createdAt: true },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                createdAt: true,
+            },
         });
     }
 

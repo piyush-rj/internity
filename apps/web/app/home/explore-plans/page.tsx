@@ -127,11 +127,7 @@ export default function ExplorePlansPage() {
             setAppliedCode(res.code);
             setCouponDiscounts(res.discounts as Record<string, CouponDiscount>);
         } catch (err) {
-            setCouponError(
-                err instanceof ApiClientError
-                    ? err.message
-                    : "Invalid coupon code.",
-            );
+            setCouponError(couponErrorMessage(err));
         } finally {
             setValidating(false);
         }

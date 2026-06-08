@@ -103,8 +103,7 @@ export default async function listListings(
                 { skillTagsRaw: { has: needle.toLowerCase() } },
             ];
         }
-        if (q.minSalary !== undefined)
-            where.stipendMax = { gte: q.minSalary };
+        if (q.minSalary !== undefined) where.stipendMax = { gte: q.minSalary };
         if (q.currency) where.currency = q.currency;
         if (q.durationMax !== undefined) {
             where.durationMonths = { lte: q.durationMax };

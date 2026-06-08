@@ -279,7 +279,8 @@ export class ChatSocket {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
                 code: SOCKET_ERROR_CODE.FORBIDDEN,
-                message: "Messages can only be edited within 1 hour of sending.",
+                message:
+                    "Messages can only be edited within 1 hour of sending.",
             });
             return;
         }

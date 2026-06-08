@@ -22,7 +22,10 @@ function buildLocation(mode: string, city: string | null): string {
     return city ?? "On-site";
 }
 
-function buildDuration(months: number | null, weeks: number | null): string | null {
+function buildDuration(
+    months: number | null,
+    weeks: number | null,
+): string | null {
     if (months) return `${months} Month${months !== 1 ? "s" : ""}`;
     if (weeks) return `${weeks} Week${weeks !== 1 ? "s" : ""}`;
     return null;
@@ -35,14 +38,26 @@ function buildStipend(
 ): string | null {
     if (!min) return null;
     const symbol = currency === "INR" ? "₹" : (currency ?? "");
-    if (max && max !== min) return `${symbol}${min.toLocaleString("en-IN")}-${max.toLocaleString("en-IN")}/month`;
+    if (max && max !== min)
+        return `${symbol}${min.toLocaleString("en-IN")}-${max.toLocaleString("en-IN")}/month`;
     return `${symbol}${min.toLocaleString("en-IN")}/month`;
 }
 
-function buildShareMessage(title: string, details: ShareDetails, fullUrl: string): string {
+function buildShareMessage(
+    title: string,
+    details: ShareDetails,
+    fullUrl: string,
+): string {
     const location = buildLocation(details.mode, details.city);
-    const duration = buildDuration(details.durationMonths, details.durationWeeks);
-    const stipend = buildStipend(details.stipendMin, details.stipendMax, details.currency);
+    const duration = buildDuration(
+        details.durationMonths,
+        details.durationWeeks,
+    );
+    const stipend = buildStipend(
+        details.stipendMin,
+        details.stipendMax,
+        details.currency,
+    );
     const skills = details.skillTagsRaw.join(", ");
 
     return [
@@ -55,7 +70,9 @@ function buildShareMessage(title: string, details: ShareDetails, fullUrl: string
         ``,
         `Apply here:`,
         fullUrl,
-    ].filter((l) => l !== null).join("\n");
+    ]
+        .filter((l) => l !== null)
+        .join("\n");
 }
 
 // Share menu for a listing — copy link + intents to WhatsApp / LinkedIn /
@@ -169,8 +186,12 @@ https://www.spiderskill.com/home/listings/cmq3htcoj0005hmvh66tg1xzm
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => {
-                            void navigator.clipboard.writeText(shareMessage).catch(() => { });
-                            toast.success("Post text copied — paste it into your LinkedIn post");
+                            void navigator.clipboard
+                                .writeText(shareMessage)
+                                .catch(() => {});
+                            toast.success(
+                                "Post text copied — paste it into your LinkedIn post",
+                            );
                             setOpen(false);
                         }}
                         className="w-full flex items-center gap-2 text-left px-2 py-1.5 rounded-sm text-[12.5px] hover:bg-accent cursor-pointer"

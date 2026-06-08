@@ -14,7 +14,6 @@ import {
     PiHouseFill,
     PiMapPin,
     PiSealCheckFill,
-    PiSparkleFill,
     PiUserFill,
 } from "react-icons/pi";
 import { cn } from "@/src/lib/utils";

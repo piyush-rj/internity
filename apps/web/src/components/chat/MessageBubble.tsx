@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Pencil } from "lucide-react";
 import { IoCheckmarkCircle, IoCheckmarkCircleOutline } from "react-icons/io5";
 import { cn } from "@/src/lib/utils";
@@ -17,11 +18,12 @@ export function MessageBubble({
     peerReadDate: Date | null;
     onStartEdit?: (message: Bubble) => void;
 }) {
+    const [now] = useState(() => Date.now());
     const isMine = message.senderId === ownId;
     const pending = !!message.clientId;
     const createdAt = new Date(message.createdAt);
     const edited = !pending && !!message.editedAt;
-    const withinEditWindow = Date.now() - createdAt.getTime() <= 60 * 60 * 1000;
+    const withinEditWindow = now - createdAt.getTime() <= 60 * 60 * 1000;
     const canEdit = isMine && !pending && !!onStartEdit && withinEditWindow;
     const readByPeer =
         isMine &&
