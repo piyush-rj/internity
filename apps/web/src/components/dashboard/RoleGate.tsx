@@ -18,6 +18,7 @@ const EMPLOYER_ONLY_PREFIXES = [
     "/home/employer",
     "/home/plans",
     "/home/explore-plans",
+    "/home/drafts",
 ];
 
 // Routes only students should reach. An employer who lands here gets the same

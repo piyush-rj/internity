@@ -110,6 +110,8 @@ export type ListingListFilters = {
     city?: string;
     mode?: WorkMode;
     jobTitle?: JobTitle;
+    // Comma-separated job titles (e.g. recommended roles); matches any of them.
+    jobTitles?: string;
     skills?: string;
     stipendMin?: number;
     durationMax?: number;

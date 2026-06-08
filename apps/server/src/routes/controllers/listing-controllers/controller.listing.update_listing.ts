@@ -44,10 +44,10 @@ const Body = z.object({
     screeningQuestions: ScreeningQuestionsSchema.optional(),
     currency: z.string().optional(),
     // Stipend stays compulsory on update — `optional` lets callers omit
-    // the field entirely (no change), but if it IS sent it must be a
-    // non-negative number, not null.
-    stipendMin: z.number().int().min(0, "Stipend is required.").optional(),
-    stipendMax: z.number().int().min(0).nullable().optional(),
+    // the field entirely (no change), but if it IS sent it must be greater
+    // than 0 (unpaid roles are not allowed), not null.
+    stipendMin: z.number().int().min(1, "Stipend cannot be 0.").optional(),
+    stipendMax: z.number().int().min(1).nullable().optional(),
     durationMonths: z.number().int().nullable().optional(),
     durationWeeks: z.number().int().min(0).nullable().optional(),
     startDate: z.coerce.date().nullable().optional(),

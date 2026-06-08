@@ -50,9 +50,10 @@ const Body = z
         skillTagsRaw: z.array(z.string()).default([]),
         screeningQuestions: ScreeningQuestionsSchema.default([]),
         currency: z.string().optional(),
-        // Stipend is compulsory on create. Pass 0 explicitly for unpaid roles.
-        stipendMin: z.number().int().min(0, "Stipend is required."),
-        stipendMax: z.number().int().min(0).nullable().optional(),
+        // Stipend is compulsory and must be greater than 0 (unpaid roles are
+        // not allowed).
+        stipendMin: z.number().int().min(1, "Stipend cannot be 0."),
+        stipendMax: z.number().int().min(1).nullable().optional(),
         durationMonths: z.number().int().nullable().optional(),
         durationWeeks: z.number().int().min(0).nullable().optional(),
         startDate: z.coerce.date().nullable().optional(),

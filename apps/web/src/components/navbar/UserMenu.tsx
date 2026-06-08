@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import { useEffect, useRef, useState, type ComponentType } from "react";
+import { Plus, Users } from "lucide-react";
 import { createClient } from "@/src/lib/supabase/client";
 import { AddEmailDialog } from "@/src/components/auth/AddEmailDialog";
 import {
@@ -18,7 +18,16 @@ import { cn } from "@/src/lib/utils";
 import { useMeStore } from "@/src/store/useMeStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
-const items = [
+type MenuItem = {
+    Icon: ComponentType<{ className?: string }>;
+    label: string;
+    href: string;
+};
+
+// "My applications" and "Saved" are student-only routes (see RoleGate), so the
+// menu is role-aware: admins live in the /admin shell, employers don't have a
+// student feed, and only students get applications/saved.
+const STUDENT_ITEMS: MenuItem[] = [
     { Icon: HomeIcon, label: "Dashboard", href: "/home/dashboard" },
     {
         Icon: BriefcaseIcon,
@@ -29,6 +38,25 @@ const items = [
     { Icon: UserIcon, label: "Profile", href: "/home/profile" },
     { Icon: SlidersIcon, label: "Settings", href: "/home/settings" },
 ];
+
+const EMPLOYER_ITEMS: MenuItem[] = [
+    { Icon: HomeIcon, label: "Dashboard", href: "/home/dashboard" },
+    { Icon: Users, label: "My applicants", href: "/home/applicants" },
+    { Icon: UserIcon, label: "Profile", href: "/home/profile" },
+    { Icon: SlidersIcon, label: "Settings", href: "/home/settings" },
+];
+
+const ADMIN_ITEMS: MenuItem[] = [
+    { Icon: HomeIcon, label: "Admin dashboard", href: "/admin" },
+];
+
+function menuItemsFor(
+    me: { isAdmin: boolean; role: string } | null,
+): MenuItem[] {
+    if (me?.isAdmin) return ADMIN_ITEMS;
+    if (me?.role === "EMPLOYER") return EMPLOYER_ITEMS;
+    return STUDENT_ITEMS;
+}
 
 export function UserMenu() {
     const session = useUserSessionStore((s) => s.session);
@@ -146,7 +174,7 @@ export function UserMenu() {
                         <div className="mx-2 h-px bg-border" />
 
                         <div className="py-1">
-                            {items.map(({ Icon, label, href }) => (
+                            {menuItemsFor(me).map(({ Icon, label, href }) => (
                                 <a
                                     key={label}
                                     href={href}

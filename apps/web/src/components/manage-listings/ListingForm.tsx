@@ -42,6 +42,9 @@ import { cn } from "@/src/lib/utils";
 
 type StartMode = "IMMEDIATE" | "LATER";
 
+// Exported so the drafts feature can persist/restore the exact form state.
+export type ListingFormState = FormState;
+
 type FormState = {
     title: string;
     jobTitle: JobTitle | "";
@@ -186,6 +189,8 @@ export const ListingForm = forwardRef(function ListingForm(
         requireAuth = false,
         onAuthRequired,
         draftKey,
+        initialState,
+        onSaveDraft,
     }: {
         // Absent for the signed-out (requireAuth) preview, where no listing is
         // actually created until after sign-up + company setup.
@@ -201,14 +206,34 @@ export const ListingForm = forwardRef(function ListingForm(
         // localStorage key for draft persistence (restore on mount, clear on
         // successful create). Only applies in create mode.
         draftKey?: string;
+        // Seed the form from a saved DB draft (create mode only).
+        initialState?: ListingFormState | null;
+        // When set, renders a "Save as draft" button that hands the current
+        // (possibly incomplete) form state back to the caller — no validation.
+        onSaveDraft?: (state: ListingFormState) => void | Promise<void>;
     },
     ref: ForwardedRef<ListingFormHandle>,
 ) {
     const isEdit = !!initial;
     const [form, setForm] = useState<FormState>(() =>
-        initial ? fromListing(initial) : empty,
+        initial
+            ? fromListing(initial)
+            : initialState
+              ? { ...empty, ...initialState }
+              : empty,
     );
     const [saving, setSaving] = useState(false);
+    const [savingDraft, setSavingDraft] = useState(false);
+
+    async function handleSaveDraft() {
+        if (!onSaveDraft) return;
+        setSavingDraft(true);
+        try {
+            await onSaveDraft(form);
+        } finally {
+            setSavingDraft(false);
+        }
+    }
 
     // Restore a saved draft after mount (not in the initial state) so the
     // server-rendered empty form and the first client render match — restoring
@@ -336,11 +361,15 @@ export const ListingForm = forwardRef(function ListingForm(
             return;
         }
         if (form.stipendMin === null) {
-            toast.error("Stipend is required — enter 0 if the role is unpaid.");
+            toast.error("Stipend is required.");
             return;
         }
-        if (form.stipendMin < 0) {
-            toast.error("Stipend can't be negative.");
+        if (form.stipendMin <= 0) {
+            toast.error("Stipend cannot be 0.");
+            return;
+        }
+        if (form.stipendMax !== null && form.stipendMax <= 0) {
+            toast.error("Stipend cannot be 0.");
             return;
         }
         if (form.stipendMax !== null && form.stipendMax < form.stipendMin) {
@@ -734,11 +763,22 @@ export const ListingForm = forwardRef(function ListingForm(
             </Section>
 
             <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+                {onSaveDraft && (
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleSaveDraft}
+                        disabled={saving || savingDraft}
+                        className="h-10 px-4 text-[13px] cursor-pointer"
+                    >
+                        {savingDraft ? "Saving…" : "Save as draft"}
+                    </Button>
+                )}
                 <Button
                     type="button"
                     variant="exec-dark"
                     onClick={submit}
-                    disabled={saving}
+                    disabled={saving || savingDraft}
                     className="h-10 px-4 text-[13px] cursor-pointer"
                 >
                     {saving

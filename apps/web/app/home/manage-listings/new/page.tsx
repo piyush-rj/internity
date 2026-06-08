@@ -1,8 +1,9 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import {
     AlertTriangle,
     ArrowLeft,
@@ -14,12 +15,28 @@ import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import {
     ListingForm,
     type ListingFormHandle,
+    type ListingFormState,
 } from "@/src/components/manage-listings/ListingForm";
 import { PostListingInstructions } from "@/src/components/manage-listings/PostListingInstructions";
 import { TemplatePicker } from "@/src/components/manage-listings/TemplatePicker";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
+import { draftApi } from "@/src/lib/api";
+import { ApiClientError } from "@/src/lib/apiClient";
+import { jobTitleLabel } from "@/src/lib/catalog/jobTitles";
+
+// Best-effort display title for a saved draft, from whatever the founder has
+// filled so far.
+function draftTitleFrom(state: ListingFormState): string {
+    const explicit = state.title?.trim();
+    if (explicit) return explicit;
+    if (state.jobTitle === "CUSTOM" && state.customJobTitle?.trim()) {
+        return state.customJobTitle.trim();
+    }
+    if (state.jobTitle) return jobTitleLabel(state.jobTitle);
+    return "Untitled draft";
+}
 
 // Shared localStorage key for the in-progress listing. A signed-out visitor's
 // draft is stashed here on the gated Post, then restored once they're back on
@@ -65,17 +82,73 @@ export default function NewListingPage() {
     );
 }
 
-// Signed-in employer flow: needs a company to post under. Identical to the
-// original behaviour, plus draft restore/clear via DRAFT_KEY so a listing
-// drafted while signed-out is recovered here.
+// Signed-in employer flow: needs a company to post under. Supports the
+// founder "Save draft" feature — load a draft via ?draft=<id>, save the
+// current form as a draft, and delete the draft once it's posted. Also keeps
+// the localStorage restore (DRAFT_KEY) for the signed-out -> sign-up flow, but
+// only when not editing a DB draft (so it can't clobber a loaded draft).
 function AuthedNewListing() {
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const draftIdParam = searchParams?.get("draft") ?? null;
+
     const { memberships, loading } = useMyEmployer();
     const company = memberships[0]?.company ?? null;
     const status = company?.verificationStatus ?? null;
     const formRef = useRef<ListingFormHandle | null>(null);
 
-    if (loading) {
+    const [draftId, setDraftId] = useState<string | null>(draftIdParam);
+    const [draftState, setDraftState] = useState<ListingFormState | null>(null);
+    const [draftLoading, setDraftLoading] = useState(!!draftIdParam);
+
+    useEffect(() => {
+        if (!draftIdParam) return;
+        let cancelled = false;
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setDraftLoading(true);
+        draftApi
+            .get(draftIdParam)
+            .then((res) => {
+                if (cancelled) return;
+                setDraftState(res.draft.data as unknown as ListingFormState);
+                setDraftId(res.draft.id);
+            })
+            .catch(() => {
+                if (!cancelled) toast.error("Couldn't load that draft.");
+            })
+            .finally(() => {
+                if (!cancelled) setDraftLoading(false);
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [draftIdParam]);
+
+    async function handleSaveDraft(state: ListingFormState) {
+        const title = draftTitleFrom(state);
+        const data = state as unknown as Record<string, unknown>;
+        try {
+            if (draftId) {
+                await draftApi.update(draftId, { title, data });
+            } else {
+                const res = await draftApi.create({
+                    title,
+                    companyId: company?.id ?? null,
+                    data,
+                });
+                setDraftId(res.draft.id);
+            }
+            toast.success("Draft saved.");
+        } catch (err) {
+            toast.error(
+                err instanceof ApiClientError
+                    ? err.message
+                    : "Couldn't save draft.",
+            );
+        }
+    }
+
+    if (loading || draftLoading) {
         return (
             <div className="rounded-lg border border-border bg-card p-6">
                 <FormSkeleton />
@@ -96,8 +169,21 @@ function AuthedNewListing() {
             <ListingForm
                 ref={formRef}
                 companyId={company.id}
-                draftKey={DRAFT_KEY}
-                onCreated={(id) => router.push(`/home/listings/${id}`)}
+                draftKey={draftId ? undefined : DRAFT_KEY}
+                initialState={draftState}
+                onSaveDraft={handleSaveDraft}
+                onCreated={async (id) => {
+                    if (draftId) {
+                        // The draft became a real listing — remove it. Failure
+                        // is non-fatal; it can be cleared from the drafts list.
+                        try {
+                            await draftApi.remove(draftId);
+                        } catch {
+                            /* ignore */
+                        }
+                    }
+                    router.push(`/home/listings/${id}`);
+                }}
             />
         </div>
     );

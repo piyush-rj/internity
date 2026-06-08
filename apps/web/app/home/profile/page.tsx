@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { BasicsSection } from "@/src/components/profile-page/BasicsSection";
 import { CertificationsSection } from "@/src/components/profile-page/CertificationsSection";
 import { EducationSection } from "@/src/components/profile-page/EducationSection";
@@ -23,7 +23,16 @@ export default function ProfilePage() {
 
 function StudentProfile() {
     const { profile, loading, refetch } = useMyProfile();
+    const refetchMe = useMeStore((s) => s.refetch);
     const [currentStep, setCurrentStep] = useState<StepKey>("summary");
+
+    // Refresh both the student profile AND the global `me` row on every save.
+    // `me` carries interestedJobTitles + completion flags that drive the
+    // dashboard and the "Recommended internships" feed — without this they'd
+    // stay stale until a full page reload.
+    const handleSaved = useCallback(async () => {
+        await Promise.all([refetch(), refetchMe()]);
+    }, [refetch, refetchMe]);
 
     function handleStepClick(step: StepKey) {
         setCurrentStep(step);
@@ -58,34 +67,34 @@ function StudentProfile() {
                             {/* Basics: editable section card */}
                             <BasicsSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
 
                             <EducationSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
                             <SkillsSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
                             <ProjectsSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
                             <LanguagesSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
                             {/* Optional sections last — they don't count
                                 toward profile completion. */}
                             <ExperienceSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
                             <CertificationsSection
                                 profile={profile}
-                                onSaved={refetch}
+                                onSaved={handleSaved}
                             />
                         </>
                     )}

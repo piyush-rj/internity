@@ -31,6 +31,9 @@ const Query = z.object({
     city: z.string().optional(),
     mode: z.enum(["REMOTE", "HYBRID", "ONSITE"]).optional(),
     jobTitle: z.enum(JOB_TITLE_VALUES).optional(),
+    // Comma-separated list of job titles — used by the student's
+    // "Recommended internships" feed to match several related roles at once.
+    jobTitles: z.string().optional(),
     skills: z.string().optional(),
     stipendMin: z.coerce.number().int().optional(),
     durationMax: z.coerce.number().int().optional(),
@@ -68,7 +71,18 @@ export default async function listListings(
             ],
         };
         if (q.mode) where.mode = q.mode as WorkMode;
-        if (q.jobTitle) where.jobTitle = q.jobTitle as JobTitle;
+        if (q.jobTitles) {
+            const allowed = new Set<string>(JOB_TITLE_VALUES);
+            const titles = q.jobTitles
+                .split(",")
+                .map((t) => t.trim())
+                .filter((t) => allowed.has(t));
+            if (titles.length > 0) {
+                where.jobTitle = { in: titles as JobTitle[] };
+            }
+        } else if (q.jobTitle) {
+            where.jobTitle = q.jobTitle as JobTitle;
+        }
         if (q.city) where.city = { contains: q.city, mode: "insensitive" };
         if (q.q && q.q.trim()) {
             const needle = q.q.trim();

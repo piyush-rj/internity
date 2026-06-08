@@ -50,6 +50,7 @@ model User {
   companyMemberships CompanyMember[]
   listingsPosted     Listing[]          @relation("ListingPostedBy")
   listingsTakenDown  Listing[]          @relation("ListingTakenDownBy")
+  listingDrafts      ListingDraft[]
   applications       Application[]
   savedListings      SavedListing[]
   assets             Asset[]
@@ -283,12 +284,34 @@ model Company {
   members              CompanyMember[]
   invitations          CompanyInvitation[]
   listings             Listing[]
+  listingDrafts        ListingDraft[]
   activeFor            User[]                @relation("UserActiveCompany")
   payments             Payment[]
   cancellationRequests CancellationRequest[]
   freePostingGrants    FreePostingGrant[]
 
   @@index([verificationStatus, submittedAt])
+}
+
+// A founder's saved-but-not-posted listing. Holds the post-listing form state
+// as a JSON blob (drafts are intentionally partial, so it isn't validated as a
+// full listing). Private to the creating user; capped at 10 per user in the
+// API. companyId is the company the draft was started under (nullable so the
+// draft survives if that company is removed).
+model ListingDraft {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+
+  title String @default("Untitled draft")
+  data  Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, updatedAt])
 }
 
 model FreePostingGrant {

@@ -127,6 +127,12 @@ const employerNav: NavSet = {
             href: "/home/manage-listings",
         },
         {
+            key: "drafts",
+            label: "Drafts",
+            icon: PiFileTextFill,
+            href: "/home/drafts",
+        },
+        {
             key: "applicants",
             label: "Applicants",
             icon: PiUsersFill,
