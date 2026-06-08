@@ -270,17 +270,19 @@ export const ListingForm = forwardRef(function ListingForm(
                     prev.skillTags,
                     t.skillTags,
                 ),
-                // Templates only carry plain-text questions; we wrap
-                // them as SHORT-type when seeding into the editor.
+                // Autofill seeds a single Yes/No screening question rather than
+                // the template's own list — keep it to the one most useful for
+                // founders to filter on.
                 screeningQuestions: take(
                     prev.screeningQuestions.some((q) => q.q.trim()),
                     prev.screeningQuestions,
-                    (t.screeningQuestions ?? [])
-                        .slice(0, MAX_SCREENING_QUESTIONS)
-                        .map<ScreeningQuestion>((q) => ({
-                            q,
-                            type: "SHORT",
-                        })),
+                    [
+                        {
+                            q: "Can you join immediately?",
+                            type: "YES_NO",
+                            idealAnswer: null,
+                        },
+                    ],
                 ),
             };
         });
@@ -664,7 +666,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 </Field>
                 <Field
                     label="Stipend (per month)"
-                    hint="Pick a preset or type your own amount. Enter 0 if the role is unpaid."
+                    hint="Pick a preset or type your own amount."
                     required
                 >
                     <StipendPicker

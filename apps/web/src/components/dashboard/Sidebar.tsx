@@ -335,6 +335,11 @@ export function SidebarBody({
                                             onClick={onNavClick}
                                         />
                                     ))}
+                                    {role === "EMPLOYER" && (
+                                        <OfferLetterLink
+                                            onNavigate={onNavigate}
+                                        />
+                                    )}
                                 </div>
                             </>
                         )}
@@ -434,15 +439,16 @@ const NavItem = memo(function NavItem({
     );
 });
 
+// Reference offer-letter template — lives in a Google Doc, opened in a new
+// tab rather than an in-app route. Surfaced under the Platform section for
+// employers (see OfferLetterLink below).
+const OFFER_LETTER_TEMPLATE_URL =
+    "https://docs.google.com/document/d/10f7rp7IKgqtXVNagux3H5nVVmMnVJ22wPn03mcF2sZE/edit?tab=t.0";
+
 // "Company" section under the employer workspace nav. Always-expanded group
 // of company destinations. The Dashboard link is owner-only (founder /
 // co-founder) — everyone else sees the other three. Company role + id come
 // from the caller's first membership, mirroring /home/company.
-// Reference offer-letter template — lives in a Google Doc, opened in a new
-// tab rather than an in-app route.
-const OFFER_LETTER_TEMPLATE_URL =
-    "https://docs.google.com/document/d/10f7rp7IKgqtXVNagux3H5nVVmMnVJ22wPn03mcF2sZE/edit?tab=t.0";
-
 const COMPANY_LINKS: ReadonlyArray<{
     sub: string;
     label: string;
@@ -450,8 +456,6 @@ const COMPANY_LINKS: ReadonlyArray<{
     adminOnly?: boolean;
     // Custom internal href — overrides the default /home/company/:sub path.
     href?: string;
-    // When set, opens this external URL in a new tab.
-    externalHref?: string;
 }> = [
     {
         sub: "dashboard",
@@ -459,22 +463,34 @@ const COMPANY_LINKS: ReadonlyArray<{
         icon: PiSquaresFourFill,
         adminOnly: true,
     },
-    { sub: "profile", label: "Profile", icon: PiBuildingsFill },
+    { sub: "profile", label: "Company Profile", icon: PiBuildingsFill },
     { sub: "listings", label: "Listings", icon: PiBriefcaseFill },
     { sub: "members", label: "Members", icon: PiUsersFill },
     {
         sub: "plans",
-        label: "Plans",
+        label: "My Plans",
         icon: PiCurrencyInrFill,
         href: "/home/plans",
     },
-    {
-        sub: "offer-letter",
-        label: "Offer Letter template",
-        icon: PiFileTextFill,
-        externalHref: OFFER_LETTER_TEMPLATE_URL,
-    },
 ];
+
+// External "Offer Letter template" link, rendered in the Platform section for
+// employers. Opens the reference Google Doc in a new tab.
+function OfferLetterLink({ onNavigate }: { onNavigate?: () => void }) {
+    return (
+        <a
+            href={OFFER_LETTER_TEMPLATE_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => onNavigate?.()}
+            className="flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium text-muted-foreground hover:text-foreground/80 transition-colors"
+        >
+            <PiFileTextFill className="h-4 w-4 shrink-0 text-neutral-500" />
+            <span className="flex-1">Offer Letter template</span>
+            <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+        </a>
+    );
+}
 
 function CompanySection({
     pathname,
@@ -517,24 +533,6 @@ function CompanySection({
                           pathname.startsWith(l.href + "/")
                         : activeSub === l.sub;
                     const dest = l.href ?? `/home/company/${l.sub}`;
-
-                    // External reference links open in a new tab.
-                    if (l.externalHref) {
-                        return (
-                            <a
-                                key={l.sub}
-                                href={l.externalHref}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={() => onNavigate?.()}
-                                className="flex items-center gap-3 rounded-sm px-2 py-1.5 text-[12.5px] font-medium text-muted-foreground hover:text-foreground/80 transition-colors"
-                            >
-                                <Icon className="h-4 w-4 shrink-0 text-neutral-500" />
-                                <span className="flex-1">{l.label}</span>
-                                <ArrowUpRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                            </a>
-                        );
-                    }
 
                     return (
                         <Link
