@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ApplyDialog } from "@/src/components/listings/ApplyCard";
 import { ShareMenu } from "@/src/components/listings/ShareMenu";
 import {
     PiBookmarkSimple,
@@ -214,10 +215,20 @@ function ListingCard({
                         </div>
                         <div className="self-stretch sm:self-auto flex items-center gap-2">
                             <ShareMenu
-                                url={`/home/listings/${listing.id}`}
+                                url={`/listings/${listing.id}`}
                                 title={listing.title}
                                 company={listing.company.name}
                                 onlyLogo
+                                listing={{
+                                    mode: listing.mode,
+                                    city: listing.city,
+                                    durationMonths: listing.durationMonths,
+                                    durationWeeks: listing.durationWeeks,
+                                    stipendMin: listing.stipendMin,
+                                    stipendMax: listing.stipendMax,
+                                    currency: listing.currency,
+                                    skillTagsRaw: listing.skillTagsRaw,
+                                }}
                             />
                             <ApplyCta
                                 listing={listing}
@@ -244,6 +255,7 @@ function ApplyCta({
     closed: boolean;
     from?: string;
 }) {
+    const [applyOpen, setApplyOpen] = useState(false);
     const href = `/home/listings/${listing.id}${from ? `?from=${from}` : ""}`;
     if (closed) {
         return (
@@ -264,12 +276,28 @@ function ApplyCta({
         );
     }
     return (
-        <Link
-            href={href}
-            className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors transform duration-250"
-        >
-            Apply now
-        </Link>
+        <>
+            <Link
+                href={href}
+                className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium border border-border bg-background hover:bg-secondary transition-colors"
+            >
+                Show more
+            </Link>
+            <button
+                type="button"
+                onClick={() => setApplyOpen(true)}
+                className="inline-flex w-full sm:w-auto items-center justify-center h-9 px-4 rounded-md text-[12.5px] font-medium text-white bg-orange-500 hover:bg-orange-600 shadow-sm shadow-orange-500/20 transition-colors"
+            >
+                Apply now
+            </button>
+            <ApplyDialog
+                open={applyOpen}
+                onClose={() => setApplyOpen(false)}
+                listingId={listing.id}
+                screeningQuestions={listing.screeningQuestions}
+                onApplied={() => {}}
+            />
+        </>
     );
 }
 

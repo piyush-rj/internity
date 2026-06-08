@@ -46,10 +46,13 @@ export function filtersFromSearchParams(
     const skills = sp.get("skills")?.trim();
     if (skills) filters.skills = skills;
 
-    const stipendMin = sp.get("stipendMin");
-    if (stipendMin && Number.isFinite(Number(stipendMin))) {
-        filters.stipendMin = Number(stipendMin);
+    const minSalary = sp.get("minSalary");
+    if (minSalary && Number.isFinite(Number(minSalary))) {
+        filters.minSalary = Number(minSalary);
     }
+
+    const currency = sp.get("currency")?.trim();
+    if (currency) filters.currency = currency;
 
     const durationMax = sp.get("durationMax");
     if (durationMax && Number.isFinite(Number(durationMax))) {

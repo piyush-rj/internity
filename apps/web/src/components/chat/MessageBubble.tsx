@@ -21,7 +21,8 @@ export function MessageBubble({
     const pending = !!message.clientId;
     const createdAt = new Date(message.createdAt);
     const edited = !pending && !!message.editedAt;
-    const canEdit = isMine && !pending && !!onStartEdit;
+    const withinEditWindow = Date.now() - createdAt.getTime() <= 60 * 60 * 1000;
+    const canEdit = isMine && !pending && !!onStartEdit && withinEditWindow;
     const readByPeer =
         isMine &&
         !pending &&

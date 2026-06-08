@@ -48,6 +48,10 @@ export function ListingsBoard({
     // Directly from DB — now accurate because the gate always consumes free
     // slots first (even for premium companies) before using the paid plan.
     const freeListingUsed = company?.freeListingUsed ?? false;
+    const remainingGranted = (company?.freePostingGrants ?? []).reduce(
+        (sum, g) => sum + (g.grantedPostings - g.usedPostings),
+        0,
+    );
     const [filters, setFilters] = useState<MyListingsFilters>(
         emptyMyListingsFilters,
     );
@@ -71,7 +75,7 @@ export function ListingsBoard({
                 <div
                     className={cn(
                         "rounded-lg border px-4 py-3 flex items-start gap-3",
-                        freeListingUsed
+                        freeListingUsed && remainingGranted === 0
                             ? "border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900"
                             : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900",
                     )}
@@ -79,13 +83,13 @@ export function ListingsBoard({
                     <Crown
                         className={cn(
                             "h-4 w-4 shrink-0 mt-0.5",
-                            freeListingUsed
+                            freeListingUsed && remainingGranted === 0
                                 ? "text-rose-500"
                                 : "text-amber-500",
                         )}
                     />
                     <div className="flex-1 min-w-0">
-                        {freeListingUsed ? (
+                        {freeListingUsed && remainingGranted === 0 ? (
                             <>
                                 <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
                                     Free listing used
@@ -95,10 +99,20 @@ export function ListingsBoard({
                                     Subscribe to a plan to post more.
                                 </p>
                             </>
+                        ) : freeListingUsed && remainingGranted > 0 ? (
+                            <>
+                                <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
+                                    {remainingGranted} free listing{remainingGranted !== 1 ? "s" : ""} available
+                                </p>
+                                <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
+                                    Your company has been granted {remainingGranted} free listing{remainingGranted !== 1 ? "s" : ""} to use.
+                                    Subscribe for unlimited posts.
+                                </p>
+                            </>
                         ) : (
                             <>
                                 <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
-                                    1 free listing available
+                                    {1 + remainingGranted} free listing{1 + remainingGranted !== 1 ? "s" : ""} available
                                 </p>
                                 <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
                                     Your company gets one free listing to start.
@@ -110,7 +124,7 @@ export function ListingsBoard({
                             href="/home/explore-plans"
                             className={cn(
                                 "mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium hover:underline",
-                                freeListingUsed
+                                freeListingUsed && remainingGranted === 0
                                     ? "text-rose-700 dark:text-rose-300"
                                     : "text-amber-700 dark:text-amber-300",
                             )}

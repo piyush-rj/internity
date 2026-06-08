@@ -101,6 +101,16 @@ export function ListingDetail({
                                     url={`/listings/${listing.id}`}
                                     title={formatListingTitle(listing.title)}
                                     company={listing.company.name}
+                                    listing={{
+                                        mode: listing.mode,
+                                        city: listing.city,
+                                        durationMonths: listing.durationMonths,
+                                        durationWeeks: listing.durationWeeks,
+                                        stipendMin: listing.stipendMin,
+                                        stipendMax: listing.stipendMax,
+                                        currency: listing.currency,
+                                        skillTagsRaw: listing.skillTagsRaw,
+                                    }}
                                 />
                                 <ReportListingButton listingId={listing.id} />
                             </div>

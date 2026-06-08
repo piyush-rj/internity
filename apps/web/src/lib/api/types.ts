@@ -211,6 +211,7 @@ export type Company = {
     premiumUntil: string | null;
     activePlanCode: string | null;
     freeListingUsed: boolean;
+    freePostingGrants?: { grantedPostings: number; usedPostings: number }[];
 };
 
 export type CompanyMember = {

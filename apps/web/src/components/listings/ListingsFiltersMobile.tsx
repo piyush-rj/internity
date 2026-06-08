@@ -12,7 +12,8 @@ const FILTER_PARAMS = [
     "mode",
     "jobTitle",
     "skills",
-    "stipendMin",
+    "currency",
+    "minSalary",
     "partTime",
     "applied",
 ] as const;

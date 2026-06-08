@@ -35,7 +35,8 @@ const Query = z.object({
     // "Recommended internships" feed to match several related roles at once.
     jobTitles: z.string().optional(),
     skills: z.string().optional(),
-    stipendMin: z.coerce.number().int().optional(),
+    minSalary: z.coerce.number().int().optional(),
+    currency: z.string().optional(),
     durationMax: z.coerce.number().int().optional(),
     partTime: z.enum(["true", "false"]).optional(),
     page: z.coerce.number().int().min(1).default(1),
@@ -102,8 +103,9 @@ export default async function listListings(
                 { skillTagsRaw: { has: needle.toLowerCase() } },
             ];
         }
-        if (q.stipendMin !== undefined)
-            where.stipendMax = { gte: q.stipendMin };
+        if (q.minSalary !== undefined)
+            where.stipendMax = { gte: q.minSalary };
+        if (q.currency) where.currency = q.currency;
         if (q.durationMax !== undefined) {
             where.durationMonths = { lte: q.durationMax };
         }

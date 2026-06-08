@@ -14,7 +14,11 @@ export default async function getMyEmployerProfile(
             }),
             prisma.companyMember.findMany({
                 where: { userId: req.user!.id },
-                include: { company: true },
+                include: {
+                    company: {
+                        include: { freePostingGrants: true },
+                    },
+                },
             }),
         ]);
         api.ok({ profile, memberships });

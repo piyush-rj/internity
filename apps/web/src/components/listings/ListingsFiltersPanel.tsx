@@ -20,7 +20,8 @@ type Filters = {
     // `q` param, which the server matches against title + customJobTitle.
     customJobTitle: string;
     skills: string[];
-    stipendMin: string;
+    currency: string;
+    minSalary: string;
     partTime: boolean;
     applied: AppliedFilter;
 };
@@ -31,10 +32,18 @@ const EMPTY: Filters = {
     jobTitle: "",
     customJobTitle: "",
     skills: [],
-    stipendMin: "",
+    currency: "",
+    minSalary: "",
     partTime: false,
     applied: "",
 };
+
+const CURRENCIES = [
+    { value: "INR", label: "₹ INR" },
+    { value: "USD", label: "$ USD" },
+    { value: "EUR", label: "€ EUR" },
+    { value: "GBP", label: "£ GBP" },
+];
 
 const JOB_TITLE_VALUES = new Set<JobTitle>([
     ...JOB_TITLES.map((j) => j.value),
@@ -59,7 +68,8 @@ function fromParams(sp: URLSearchParams | null): Filters {
             .split(",")
             .map((s) => s.trim())
             .filter(Boolean),
-        stipendMin: sp.get("stipendMin") ?? "",
+        currency: sp.get("currency") ?? "",
+        minSalary: sp.get("minSalary") ?? "",
         partTime: sp.get("partTime") === "true",
         applied,
     };
@@ -74,7 +84,8 @@ function toQueryString(f: Filters): string {
         params.set("q", f.customJobTitle.trim());
     }
     if (f.skills.length > 0) params.set("skills", f.skills.join(","));
-    if (f.stipendMin.trim()) params.set("stipendMin", f.stipendMin.trim());
+    if (f.currency) params.set("currency", f.currency);
+    if (f.minSalary.trim()) params.set("minSalary", f.minSalary.trim());
     if (f.partTime) params.set("partTime", "true");
     if (f.applied) params.set("applied", f.applied);
     return params.toString();
@@ -86,7 +97,8 @@ function countActive(f: Filters): number {
     if (f.remote) n++;
     if (f.jobTitle) n++;
     if (f.skills.length > 0) n++;
-    if (f.stipendMin.trim()) n++;
+    if (f.currency) n++;
+    if (f.minSalary.trim()) n++;
     if (f.partTime) n++;
     if (f.applied) n++;
     return n;
@@ -261,12 +273,27 @@ export function ListingsFiltersPanel({
                     />
                 </div>
 
-                <Field label="Min stipend" hint="₹ per month">
+                <Field label="Currency">
+                    <select
+                        value={filters.currency}
+                        onChange={(e) => set("currency", e.target.value)}
+                        className={cn(inputCls, "appearance-none pr-8 cursor-pointer")}
+                    >
+                        <option value="">Any currency</option>
+                        {CURRENCIES.map((c) => (
+                            <option key={c.value} value={c.value}>
+                                {c.label}
+                            </option>
+                        ))}
+                    </select>
+                </Field>
+
+                <Field label="Min salary" hint="per month">
                     <input
                         type="number"
                         min={0}
-                        value={filters.stipendMin}
-                        onChange={(e) => set("stipendMin", e.target.value)}
+                        value={filters.minSalary}
+                        onChange={(e) => set("minSalary", e.target.value)}
                         placeholder="10000"
                         className={inputCls}
                     />

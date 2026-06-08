@@ -109,7 +109,7 @@ export function ApplyCard({
     );
 }
 
-function ApplyDialog({
+export function ApplyDialog({
     open,
     onClose,
     listingId,

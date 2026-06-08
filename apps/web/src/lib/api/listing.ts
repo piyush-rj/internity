@@ -113,7 +113,8 @@ export type ListingListFilters = {
     // Comma-separated job titles (e.g. recommended roles); matches any of them.
     jobTitles?: string;
     skills?: string;
-    stipendMin?: number;
+    minSalary?: number;
+    currency?: string;
     durationMax?: number;
     partTime?: "true" | "false";
     page?: number;

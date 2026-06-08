@@ -274,6 +274,15 @@ export class ChatSocket {
             });
             return;
         }
+        const ONE_HOUR_MS = 60 * 60 * 1000;
+        if (Date.now() - existing.createdAt.getTime() > ONE_HOUR_MS) {
+            ws.send({
+                type: MESSAGE_TYPE.ERROR,
+                code: SOCKET_ERROR_CODE.FORBIDDEN,
+                message: "Messages can only be edited within 1 hour of sending.",
+            });
+            return;
+        }
 
         const updated = await SocketDbService.updateMessageBody(
             messageId,
