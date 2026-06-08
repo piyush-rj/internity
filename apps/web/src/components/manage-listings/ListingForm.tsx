@@ -146,17 +146,61 @@ function fromListing(l: Listing): FormState {
     };
 }
 
+// Persist / restore an in-progress new listing as a plain FormState blob in
+// localStorage. Used so a signed-out visitor who fills the form and is asked to
+// sign up gets their entries back when they return. Merged onto `empty` so a
+// stored draft from an older form shape can't leave required keys undefined.
+function readDraft(key: string): FormState | null {
+    if (typeof window === "undefined") return null;
+    try {
+        const raw = window.localStorage.getItem(key);
+        if (!raw) return null;
+        return { ...empty, ...(JSON.parse(raw) as Partial<FormState>) };
+    } catch {
+        return null;
+    }
+}
+function writeDraft(key: string, form: FormState) {
+    if (typeof window === "undefined") return;
+    try {
+        window.localStorage.setItem(key, JSON.stringify(form));
+    } catch {
+        /* quota / disabled storage — drafting is best-effort */
+    }
+}
+function clearDraft(key: string) {
+    if (typeof window === "undefined") return;
+    try {
+        window.localStorage.removeItem(key);
+    } catch {
+        /* ignore */
+    }
+}
+
 export const ListingForm = forwardRef(function ListingForm(
     {
         companyId,
         initial,
         onCreated,
         onSaved,
+        requireAuth = false,
+        onAuthRequired,
+        draftKey,
     }: {
-        companyId: string;
+        // Absent for the signed-out (requireAuth) preview, where no listing is
+        // actually created until after sign-up + company setup.
+        companyId?: string;
         initial?: Listing | null;
         onCreated?: (id: string) => void | Promise<void>;
         onSaved?: (listing: Listing) => void | Promise<void>;
+        // When true, a valid submit doesn't hit the API — it saves the draft
+        // (if draftKey is set) and calls onAuthRequired so the caller can open
+        // the sign-up dialog.
+        requireAuth?: boolean;
+        onAuthRequired?: () => void;
+        // localStorage key for draft persistence (restore on mount, clear on
+        // successful create). Only applies in create mode.
+        draftKey?: string;
     },
     ref: ForwardedRef<ListingFormHandle>,
 ) {
@@ -165,6 +209,18 @@ export const ListingForm = forwardRef(function ListingForm(
         initial ? fromListing(initial) : empty,
     );
     const [saving, setSaving] = useState(false);
+
+    // Restore a saved draft after mount (not in the initial state) so the
+    // server-rendered empty form and the first client render match — restoring
+    // in useState would cause a hydration mismatch on the input values.
+    const draftRestored = useRef(false);
+    useEffect(() => {
+        if (isEdit || !draftKey || draftRestored.current) return;
+        draftRestored.current = true;
+        const d = readDraft(draftKey);
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        if (d) setForm(d);
+    }, [isEdit, draftKey]);
 
     function set<K extends keyof FormState>(k: K, v: FormState[K]) {
         setForm((f) => ({ ...f, [k]: v }));
@@ -345,6 +401,18 @@ export const ListingForm = forwardRef(function ListingForm(
             return;
         }
 
+        // Signed-out preview: the form is valid, but there's no account/company
+        // to post under yet. Stash the draft and hand off to the sign-up gate.
+        if (requireAuth) {
+            if (draftKey) writeDraft(draftKey, form);
+            onAuthRequired?.();
+            return;
+        }
+
+        // Past this point we're creating/updating for real, which needs a
+        // company to attribute the listing to.
+        if (!companyId) return;
+
         const input: ListingInput = {
             companyId,
             title: titleTrimmed,
@@ -395,6 +463,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 await onSaved?.(listing);
             } else {
                 const { listing } = await listingApi.create(input);
+                if (draftKey) clearDraft(draftKey);
                 await onCreated?.(listing.id);
             }
         } catch (err) {

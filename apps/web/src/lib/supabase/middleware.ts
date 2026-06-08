@@ -10,7 +10,11 @@ const PROTECTED_PREFIXES = ["/home", "/admin"];
 // signed-out visitors can browse them read-only. The internships list is
 // open; clicking through to a listing (/home/listings/:id) stays gated, so
 // any apply/save action still funnels through the sign-in dialog.
-const PUBLIC_EXCEPTIONS = ["/home/internships"];
+//
+// The new-listing form is also open so a prospective employer can fill it out
+// before committing; the Post action validates and then funnels through the
+// sign-up dialog (the draft is preserved across sign-up).
+const PUBLIC_EXCEPTIONS = ["/home/internships", "/home/manage-listings/new"];
 
 function isProtected(pathname: string): boolean {
     if (PUBLIC_EXCEPTIONS.includes(pathname)) return false;

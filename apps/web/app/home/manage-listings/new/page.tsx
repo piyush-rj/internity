@@ -8,6 +8,7 @@ import {
     ArrowLeft,
     ArrowRight,
     ShieldCheck,
+    Sparkles,
 } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
 import {
@@ -17,55 +18,43 @@ import {
 import { PostListingInstructions } from "@/src/components/manage-listings/PostListingInstructions";
 import { TemplatePicker } from "@/src/components/manage-listings/TemplatePicker";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
+import { useAuthDialog } from "@/src/store/useAuthDialog";
+
+// Shared localStorage key for the in-progress listing. A signed-out visitor's
+// draft is stashed here on the gated Post, then restored once they're back on
+// this page signed-in (after sign-up + company setup).
+const DRAFT_KEY = "listing-draft:new";
 
 export default function NewListingPage() {
-    const router = useRouter();
-    const { memberships, loading } = useMyEmployer();
-    const company = memberships[0]?.company ?? null;
-    const status = company?.verificationStatus ?? null;
-    const formRef = useRef<ListingFormHandle | null>(null);
+    const initialized = useUserSessionStore((s) => s.initialized);
+    const signedIn = useUserSessionStore((s) => !!s.session?.user?.id);
 
     return (
         <EmptySection
             title="Post a new listing"
             description="Share an internship with students across India."
         >
-            <Link
-                href="/home/manage-listings"
-                className="inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
-            >
-                <ArrowLeft className="h-3.5 w-3.5" />
-                Back to my listings
-            </Link>
+            {signedIn && (
+                <Link
+                    href="/home/manage-listings"
+                    className="inline-flex items-center gap-1 text-[12.5px] font-medium text-muted-foreground hover:text-foreground"
+                >
+                    <ArrowLeft className="h-3.5 w-3.5" />
+                    Back to my listings
+                </Link>
+            )}
 
             <section className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
                 <div className="min-w-0">
-                    {loading ? (
+                    {!initialized ? (
                         <div className="rounded-lg border border-border bg-card p-6">
                             <FormSkeleton />
                         </div>
-                    ) : !company ? (
-                        <div className="rounded-lg border border-border bg-card p-6">
-                            <NoCompany />
-                        </div>
+                    ) : signedIn ? (
+                        <AuthedNewListing />
                     ) : (
-                        <div className="space-y-4">
-                            {status !== "APPROVED" && (
-                                <VerificationBanner status={status} />
-                            )}
-                            <TemplatePicker
-                                onPick={(t) =>
-                                    formRef.current?.applyTemplate(t)
-                                }
-                            />
-                            <ListingForm
-                                ref={formRef}
-                                companyId={company.id}
-                                onCreated={(id) =>
-                                    router.push(`/home/listings/${id}`)
-                                }
-                            />
-                        </div>
+                        <PublicNewListing />
                     )}
                 </div>
                 <div className="lg:sticky lg:top-20 lg:self-start lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto [&::-webkit-scrollbar]:hidden scrollbar-none">
@@ -73,6 +62,82 @@ export default function NewListingPage() {
                 </div>
             </section>
         </EmptySection>
+    );
+}
+
+// Signed-in employer flow: needs a company to post under. Identical to the
+// original behaviour, plus draft restore/clear via DRAFT_KEY so a listing
+// drafted while signed-out is recovered here.
+function AuthedNewListing() {
+    const router = useRouter();
+    const { memberships, loading } = useMyEmployer();
+    const company = memberships[0]?.company ?? null;
+    const status = company?.verificationStatus ?? null;
+    const formRef = useRef<ListingFormHandle | null>(null);
+
+    if (loading) {
+        return (
+            <div className="rounded-lg border border-border bg-card p-6">
+                <FormSkeleton />
+            </div>
+        );
+    }
+    if (!company) {
+        return (
+            <div className="rounded-lg border border-border bg-card p-6">
+                <NoCompany />
+            </div>
+        );
+    }
+    return (
+        <div className="space-y-4">
+            {status !== "APPROVED" && <VerificationBanner status={status} />}
+            <TemplatePicker
+                onPick={(t) => formRef.current?.applyTemplate(t)}
+            />
+            <ListingForm
+                ref={formRef}
+                companyId={company.id}
+                draftKey={DRAFT_KEY}
+                onCreated={(id) => router.push(`/home/listings/${id}`)}
+            />
+        </div>
+    );
+}
+
+// Signed-out flow: the full form is fillable (templates + autofill work, they
+// run client-side). Post validates, saves the draft, and opens the sign-up
+// dialog with this page as the return destination.
+function PublicNewListing() {
+    const openDialog = useAuthDialog((s) => s.openDialog);
+    const formRef = useRef<ListingFormHandle | null>(null);
+    return (
+        <div className="space-y-4">
+            <SignUpToPostBanner />
+            <TemplatePicker
+                onPick={(t) => formRef.current?.applyTemplate(t)}
+            />
+            <ListingForm
+                ref={formRef}
+                requireAuth
+                draftKey={DRAFT_KEY}
+                onAuthRequired={() => openDialog("/home/manage-listings/new")}
+            />
+        </div>
+    );
+}
+
+function SignUpToPostBanner() {
+    return (
+        <div className="flex items-start gap-2.5 rounded-lg border border-sky-200 bg-sky-50 px-3.5 py-2.5 text-[12.5px] text-sky-900">
+            <Sparkles className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span>
+                Fill out your listing now — when you hit{" "}
+                <strong className="font-semibold">Post listing</strong>,
+                we&rsquo;ll ask you to create a free account to publish it. Your
+                entries are saved.
+            </span>
+        </div>
     );
 }
 
