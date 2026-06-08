@@ -92,9 +92,7 @@ function AuthedNewListing() {
     return (
         <div className="space-y-4">
             {status !== "APPROVED" && <VerificationBanner status={status} />}
-            <TemplatePicker
-                onPick={(t) => formRef.current?.applyTemplate(t)}
-            />
+            <TemplatePicker onPick={(t) => formRef.current?.applyTemplate(t)} />
             <ListingForm
                 ref={formRef}
                 companyId={company.id}
@@ -114,9 +112,7 @@ function PublicNewListing() {
     return (
         <div className="space-y-4">
             <SignUpToPostBanner />
-            <TemplatePicker
-                onPick={(t) => formRef.current?.applyTemplate(t)}
-            />
+            <TemplatePicker onPick={(t) => formRef.current?.applyTemplate(t)} />
             <ListingForm
                 ref={formRef}
                 requireAuth
