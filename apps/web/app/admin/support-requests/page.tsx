@@ -1,7 +1,14 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+    Suspense,
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2, Search } from "lucide-react";
 import { ConversationView } from "@/src/components/chat/ConversationView";
@@ -21,7 +28,6 @@ type UserSearchResult = {
     companyName: string | null;
     conversationId: string | null;
 };
-
 
 export default function SupportRequestsPage() {
     return (
@@ -137,7 +143,9 @@ function SupportRequestsView() {
             .finally(() => setLoading(false));
     }
 
-    useEffect(() => { refresh(); }, []);
+    useEffect(() => {
+        refresh();
+    }, []);
 
     // sync activeId on same-page navigation
     useEffect(() => {
@@ -364,13 +372,15 @@ function AdminSearchBox({
                     type="search"
                     value={value}
                     onChange={(e) => onChange(e.target.value)}
-                    onFocus={() => value.trim() && results.length > 0 && onClose()}
+                    onFocus={() =>
+                        value.trim() && results.length > 0 && onClose()
+                    }
                     placeholder="Search by name, email, company…"
                     className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
                 />
             </label>
 
-            {open && (value.trim().length > 0) && (
+            {open && value.trim().length > 0 && (
                 <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-lg border border-border bg-white shadow-lg overflow-hidden">
                     {results.length === 0 ? (
                         <div className="px-4 py-3 text-[12.5px] text-muted-foreground">
@@ -386,19 +396,27 @@ function AdminSearchBox({
                                         onClick={() => onSelect(u)}
                                         className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/50 transition-colors"
                                     >
-                                        <UserAvatar name={u.name} image={u.image} size={32} />
+                                        <UserAvatar
+                                            name={u.name}
+                                            image={u.image}
+                                            size={32}
+                                        />
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center gap-1.5">
                                                 <span className="text-[13px] font-medium truncate">
                                                     {u.name ?? "Unknown"}
                                                 </span>
-                                                <span className={cn(
-                                                    "shrink-0 inline-flex items-center h-4.5 px-1.5 rounded-full text-[10px] font-medium",
-                                                    u.role === "STUDENT"
-                                                        ? "bg-blue-50 text-blue-600 border border-blue-200"
-                                                        : "bg-orange-50 text-orange-600 border border-orange-200",
-                                                )}>
-                                                    {u.role === "STUDENT" ? "Student" : "Founder"}
+                                                <span
+                                                    className={cn(
+                                                        "shrink-0 inline-flex items-center h-4.5 px-1.5 rounded-full text-[10px] font-medium",
+                                                        u.role === "STUDENT"
+                                                            ? "bg-blue-50 text-blue-600 border border-blue-200"
+                                                            : "bg-orange-50 text-orange-600 border border-orange-200",
+                                                    )}
+                                                >
+                                                    {u.role === "STUDENT"
+                                                        ? "Student"
+                                                        : "Founder"}
                                                 </span>
                                             </div>
                                             <div className="text-[11.5px] text-muted-foreground truncate">
@@ -407,11 +425,17 @@ function AdminSearchBox({
                                                     : (u.email ?? "")}
                                             </div>
                                         </div>
-                                        <span className={cn(
-                                            "shrink-0 text-[10.5px] font-medium",
-                                            u.conversationId ? "text-green-600" : "text-muted-foreground",
-                                        )}>
-                                            {u.conversationId ? "Open chat" : "New chat"}
+                                        <span
+                                            className={cn(
+                                                "shrink-0 text-[10.5px] font-medium",
+                                                u.conversationId
+                                                    ? "text-green-600"
+                                                    : "text-muted-foreground",
+                                            )}
+                                        >
+                                            {u.conversationId
+                                                ? "Open chat"
+                                                : "New chat"}
                                         </span>
                                     </button>
                                 </li>
@@ -424,14 +448,34 @@ function AdminSearchBox({
     );
 }
 
-function UserAvatar({ name, image, size }: { name: string | null; image: string | null; size: number }) {
+function UserAvatar({
+    name,
+    image,
+    size,
+}: {
+    name: string | null;
+    image: string | null;
+    size: number;
+}) {
     const initial = (name ?? "U")[0]?.toUpperCase() ?? "U";
     return (
-        <span className="relative rounded-full overflow-hidden shrink-0 ring-1 ring-border" style={{ width: size, height: size }}>
+        <span
+            className="relative rounded-full overflow-hidden shrink-0 ring-1 ring-border"
+            style={{ width: size, height: size }}
+        >
             {image ? (
-                <Image src={image} alt={name ?? "user"} fill unoptimized className="object-cover" />
+                <Image
+                    src={image}
+                    alt={name ?? "user"}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                />
             ) : (
-                <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white font-semibold" style={{ fontSize: size * 0.35 }}>
+                <span
+                    className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white font-semibold"
+                    style={{ fontSize: size * 0.35 }}
+                >
                     {initial}
                 </span>
             )}

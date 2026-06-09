@@ -25,7 +25,9 @@ export default async function adminInitiateConversation(
         }
 
         if (target.role === "ADMIN") {
-            throw new InvalidRequest("Cannot open an admin thread with another admin");
+            throw new InvalidRequest(
+                "Cannot open an admin thread with another admin",
+            );
         }
 
         // Mirror the same upsert logic as start_admin_conversation:

@@ -16,7 +16,11 @@ router.get("/conversations", listConversations);
 router.post("/conversations", startConversation);
 router.post("/admin-conversation", startAdminConversation);
 router.get("/admin/search-users", requireAdmin, adminSearchUsers);
-router.post("/admin/conversations/:userId", requireAdmin, adminInitiateConversation);
+router.post(
+    "/admin/conversations/:userId",
+    requireAdmin,
+    adminInitiateConversation,
+);
 router.get("/conversations/:conversation_id/messages", listMessages);
 router.post("/conversations/:conversation_id/read", markConversationRead);
 router.get("/unread-count", unreadCount);

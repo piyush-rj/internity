@@ -294,9 +294,7 @@ export function MyListingCard({
                                         confirmLabel: "Pause hiring",
                                     });
                                     if (ok)
-                                        run("pause", () =>
-                                            onPause(listing.id),
-                                        );
+                                        run("pause", () => onPause(listing.id));
                                 }}
                                 disabled={!!busy}
                                 className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
@@ -329,9 +327,7 @@ export function MyListingCard({
                                         confirmLabel: "Close listing",
                                     });
                                     if (ok)
-                                        run("close", () =>
-                                            onClose(listing.id),
-                                        );
+                                        run("close", () => onClose(listing.id));
                                 }}
                                 disabled={!!busy}
                                 className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
@@ -386,8 +382,7 @@ function ApplicantImpactNote({
             <span>
                 This listing has{" "}
                 <strong className="font-semibold">
-                    {applicants}{" "}
-                    {applicants === 1 ? "applicant" : "applicants"}
+                    {applicants} {applicants === 1 ? "applicant" : "applicants"}
                 </strong>
                 . {note}
             </span>

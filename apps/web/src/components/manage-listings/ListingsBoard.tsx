@@ -50,7 +50,7 @@ export function ListingsBoard({
     // without requiring a full page reload.
     useEffect(() => {
         refetchEmployer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const isPremium = company?.isPremium ?? false;
     // Directly from DB — now accurate because the gate always consumes free
