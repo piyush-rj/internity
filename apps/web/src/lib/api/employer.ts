@@ -139,6 +139,7 @@ export const employerApi = {
         api.get<{
             profile: EmployerProfile | null;
             memberships: (CompanyMember & { company: Company })[];
+            listingQuota: { remaining: number | null; total: number | null } | null;
         }>("/employer/me"),
     create: (input: EmployerProfileInput) =>
         api.post<{ profile: EmployerProfile }>("/employer/me", input),

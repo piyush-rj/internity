@@ -9,6 +9,7 @@ import { EmployerVerificationPill } from "@/src/components/navbar/EmployerVerifi
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { useMeStore } from "@/src/store/useMeStore";
+import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { cn } from "@/src/lib/utils";
 import Image from "next/image";
@@ -25,6 +26,8 @@ export function NavBar({
     const role = useMeStore((s) => s.me?.role ?? null);
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const { listingQuota } = useMyEmployer();
+    const showDial = role === "EMPLOYER" && listingQuota !== null;
 
     useEffect(() => {
         if (!floatOnScroll) return;
@@ -123,6 +126,11 @@ export function NavBar({
                         <>
                             <ProfileCompletionPill />
                             <EmployerVerificationPill />
+                            {showDial && (
+                                <div className="hidden md:flex items-center">
+                                    <ListingQuotaDial remaining={listingQuota!.remaining} total={listingQuota!.total} />
+                                </div>
+                            )}
                             {role === "EMPLOYER" && (
                                 <Link
                                     href="/home/manage-listings/new"
@@ -237,6 +245,52 @@ export function NavBar({
                 </div>
             )}
         </header>
+    );
+}
+
+function ListingQuotaDial({ remaining, total }: { remaining: number | null; total: number | null }) {
+    const unlimited = remaining === null || total === null;
+    const r = 13;
+    const stroke = 3;
+    const size = (r + stroke) * 2;
+    const circ = 2 * Math.PI * r;
+    const progress = unlimited ? 1 : total > 0 ? Math.min(1, Math.max(0, remaining / total)) : 0;
+    const offset = circ * (1 - progress);
+    const color = unlimited
+        ? "#22c55e"
+        : remaining === 0
+        ? "#ef4444"
+        : remaining <= total! * 0.3
+        ? "#f97316"
+        : "#22c55e";
+    const tooltip = unlimited
+        ? "Unlimited listings available"
+        : remaining === 1
+        ? "1 listing slot remaining"
+        : remaining === 0
+        ? "No listing slots remaining"
+        : `${remaining} listing slots remaining`;
+    return (
+        <div className="group relative flex items-center justify-center cursor-default" style={{ width: size, height: size }}>
+            <svg width={size} height={size} style={{ transform: "rotate(-90deg)" }}>
+                <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="#e5e7eb" strokeWidth={stroke} />
+                <circle
+                    cx={size / 2} cy={size / 2} r={r}
+                    fill="none" stroke={color} strokeWidth={stroke}
+                    strokeDasharray={circ} strokeDashoffset={offset}
+                    strokeLinecap="round"
+                />
+            </svg>
+            <span className="absolute font-bold tabular-nums" style={{ color, lineHeight: 1, fontSize: unlimited ? 11 : 8 }}>
+                {unlimited ? "∞" : `${remaining}/${total}`}
+            </span>
+            <div className="pointer-events-none absolute top-full mt-2 left-1/2 -translate-x-1/2 z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-150">
+                <div className="relative whitespace-nowrap rounded-md bg-neutral-900 px-2.5 py-1.5 text-[11px] font-medium text-white shadow-lg">
+                    <span className="absolute -top-1 left-1/2 -translate-x-1/2 border-4 border-transparent border-b-neutral-900" />
+                    {tooltip}
+                </div>
+            </div>
+        </div>
     );
 }
 

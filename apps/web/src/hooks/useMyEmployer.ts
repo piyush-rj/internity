@@ -12,9 +12,12 @@ import { ApiClientError } from "@/src/lib/apiClient";
 
 export type EmployerMembership = CompanyMember & { company: Company };
 
+export type ListingQuota = { remaining: number | null; total: number | null } | null;
+
 export type EmployerState = {
     profile: EmployerProfile | null;
     memberships: EmployerMembership[];
+    listingQuota: ListingQuota;
     loading: boolean;
     error: ApiClientError | Error | null;
     refetch: () => Promise<void>;
@@ -23,6 +26,7 @@ export type EmployerState = {
 type EmployerStore = {
     profile: EmployerProfile | null;
     memberships: EmployerMembership[];
+    listingQuota: ListingQuota;
     loading: boolean;
     initialized: boolean;
     error: ApiClientError | Error | null;
@@ -44,6 +48,7 @@ export const useEmployerStore = create<EmployerStore>((set, get) => {
             set({
                 profile: data.profile,
                 memberships: data.memberships,
+                listingQuota: data.listingQuota,
                 loading: false,
                 initialized: true,
             });
@@ -70,6 +75,7 @@ export const useEmployerStore = create<EmployerStore>((set, get) => {
     return {
         profile: null,
         memberships: [],
+        listingQuota: null,
         loading: false,
         initialized: false,
         error: null,
@@ -82,6 +88,7 @@ export const useEmployerStore = create<EmployerStore>((set, get) => {
             set({
                 profile: null,
                 memberships: [],
+                listingQuota: null,
                 loading: false,
                 initialized: false,
                 error: null,
@@ -92,6 +99,7 @@ export const useEmployerStore = create<EmployerStore>((set, get) => {
 export function useMyEmployer(): EmployerState {
     const profile = useEmployerStore((s) => s.profile);
     const memberships = useEmployerStore((s) => s.memberships);
+    const listingQuota = useEmployerStore((s) => s.listingQuota);
     const loading = useEmployerStore((s) => s.loading);
     const initialized = useEmployerStore((s) => s.initialized);
     const error = useEmployerStore((s) => s.error);
@@ -108,6 +116,7 @@ export function useMyEmployer(): EmployerState {
     return {
         profile,
         memberships,
+        listingQuota,
         loading: loading || !initialized,
         error,
         refetch,

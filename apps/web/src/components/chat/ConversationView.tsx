@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { X } from "lucide-react";
+import { cn } from "@/src/lib/utils";
 import { chatApi, type ConversationListItem } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { MESSAGE_TYPE } from "types";
@@ -269,6 +271,15 @@ export function ConversationView({
                 </div>
             )}
 
+            {!peerDeleted && !editing && meRole && (
+                <SuggestedReplies
+                    meRole={meRole}
+                    isAdminThread={conversation?.isAdminThread ?? false}
+                    peerRole={conversation?.peerRole ?? null}
+                    onSelect={(text: string) => setDraft(text)}
+                />
+            )}
+
             <Composer
                 draft={draft}
                 onDraftChange={setDraft}
@@ -281,6 +292,120 @@ export function ConversationView({
                 editing={!!editing}
                 onCancelEdit={handleCancelEdit}
             />
+        </div>
+    );
+}
+
+// key = `${myRole}_${peerRole}` e.g. "STUDENT_EMPLOYER", "ADMIN_STUDENT"
+const SUGGESTIONS: Record<string, string[]> = {
+    STUDENT_EMPLOYER: [
+        "Thanks for reaching out! I'm really interested.",
+        "Could you tell me more about the day-to-day responsibilities?",
+        "I'd love to learn more about the team culture.",
+        "When can we schedule a call to discuss further?",
+    ],
+    STUDENT_ADMIN: [
+        "Hi! I need some help with my application.",
+        "I'm having trouble with my profile setup.",
+        "Could you help me find the right internship?",
+    ],
+    EMPLOYER_STUDENT: [
+        "Thanks for applying! Your profile looks impressive.",
+        "We'd like to schedule a quick interview with you.",
+        "Could you walk us through a recent project you worked on?",
+        "What's your availability for a quick intro call?",
+    ],
+    EMPLOYER_ADMIN: [
+        "Hi! I need help setting up our company listing.",
+        "I'm having trouble reviewing incoming applications.",
+        "Could you help us find the right candidates?",
+    ],
+    ADMIN_STUDENT: [
+        "Hi! How can we help you today?",
+        "Thanks for reaching out. Could you share more details?",
+        "We'll look into this and get back to you shortly.",
+        "Your issue has been noted — we're on it!",
+    ],
+    ADMIN_EMPLOYER: [
+        "Hi! How can we assist you today?",
+        "Thanks for reaching out. What seems to be the issue?",
+        "We'll prioritise this and follow up with you soon.",
+        "Could you provide more details about your listing?",
+    ],
+};
+
+function resolveSuggestionKey(
+    meRole: string,
+    isAdminThread: boolean,
+    peerRole: string | null,
+): string {
+    if (isAdminThread) {
+        if (meRole === "ADMIN") {
+            // admin viewing a user's support thread — peerRole tells us who they are
+            const peer = peerRole === "EMPLOYER" ? "EMPLOYER" : "STUDENT";
+            return `ADMIN_${peer}`;
+        }
+        // non-admin talking to SpiderSkill
+        return `${meRole}_ADMIN`;
+    }
+    // regular student <-> employer thread
+    if (meRole === "STUDENT") return "STUDENT_EMPLOYER";
+    if (meRole === "EMPLOYER") return "EMPLOYER_STUDENT";
+    return "";
+}
+
+function SuggestedReplies({
+    meRole,
+    isAdminThread,
+    peerRole,
+    onSelect,
+}: {
+    meRole: string;
+    isAdminThread: boolean;
+    peerRole: string | null;
+    onSelect: (text: string) => void;
+}) {
+    const [dismissed, setDismissed] = useState(false);
+    const key = resolveSuggestionKey(meRole, isAdminThread, peerRole);
+    const items = SUGGESTIONS[key] ?? [];
+    if (items.length === 0 || dismissed) return null;
+
+    return (
+        <div className="px-3 pt-2 pb-1.5 border-t border-neutral-200 bg-white shrink-0">
+            <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1">
+                    <span className="text-orange-500 text-[11px]">✦</span>
+                    <span className="text-[11px] font-semibold text-orange-500">
+                        Suggested replies
+                    </span>
+                </div>
+                <button
+                    type="button"
+                    onClick={() => setDismissed(true)}
+                    aria-label="Dismiss suggested replies"
+                    className="h-5 w-5 inline-flex items-center justify-center rounded-full text-muted-foreground hover:bg-neutral-100 hover:text-foreground transition-colors cursor-pointer"
+                >
+                    <X className="h-3 w-3" />
+                </button>
+            </div>
+            <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-none">
+                {items.map((text) => (
+                    <button
+                        key={text}
+                        type="button"
+                        onClick={() => onSelect(text)}
+                        className={cn(
+                            "shrink-0 whitespace-nowrap",
+                            "h-8 px-3 rounded-full border border-orange-300",
+                            "text-[12px] text-foreground/80",
+                            "hover:bg-orange-50 hover:border-orange-400 hover:text-foreground",
+                            "transition-colors cursor-pointer",
+                        )}
+                    >
+                        {text}
+                    </button>
+                ))}
+            </div>
         </div>
     );
 }
