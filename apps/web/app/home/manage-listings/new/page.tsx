@@ -92,7 +92,7 @@ function AuthedNewListing() {
     const searchParams = useSearchParams();
     const draftIdParam = searchParams?.get("draft") ?? null;
 
-    const { memberships, loading } = useMyEmployer();
+    const { memberships, loading, refetch: refetchEmployer } = useMyEmployer();
     const company = memberships[0]?.company ?? null;
     const status = company?.verificationStatus ?? null;
     const formRef = useRef<ListingFormHandle | null>(null);
@@ -182,6 +182,8 @@ function AuthedNewListing() {
                             /* ignore */
                         }
                     }
+                    // Refresh quota so the navbar dial reflects the new count.
+                    refetchEmployer();
                     router.push(`/home/listings/${id}`);
                 }}
             />

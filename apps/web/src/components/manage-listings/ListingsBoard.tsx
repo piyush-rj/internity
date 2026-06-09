@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Crown, Plus } from "lucide-react";
 import { EmptySection } from "@/src/components/dashboard/EmptySection";
@@ -42,8 +42,15 @@ export function ListingsBoard({
         remove,
     } = useMyListings({ scope, companyId });
 
-    const { memberships } = useMyEmployer();
+    const { memberships, refetch: refetchEmployer } = useMyEmployer();
     const company = memberships[0]?.company ?? null;
+
+    // Always refetch employer data on mount so grants/revocations are reflected
+    // without requiring a full page reload.
+    useEffect(() => {
+        refetchEmployer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
     const isPremium = company?.isPremium ?? false;
     // Directly from DB — now accurate because the gate always consumes free
     // slots first (even for premium companies) before using the paid plan.
