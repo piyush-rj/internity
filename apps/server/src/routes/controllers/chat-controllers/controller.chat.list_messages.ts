@@ -15,14 +15,16 @@ export default async function listMessages(
     try {
         const conv = await prisma.conversation.findUnique({
             where: { id: req.params.conversation_id as string },
-            select: { id: true, studentId: true, recruiterId: true },
+            select: { id: true, studentId: true, recruiterId: true, isAdminThread: true },
         });
         if (!conv) throw new NotFound();
 
-        if (
-            conv.studentId !== req.user!.id &&
-            conv.recruiterId !== req.user!.id
-        ) {
+        const isAdmin = req.user!.role === "ADMIN";
+        const isParticipant =
+            conv.studentId === req.user!.id ||
+            conv.recruiterId === req.user!.id;
+
+        if (!isParticipant && !(isAdmin && conv.isAdminThread)) {
             throw new Forbidden("Not a participant in this conversation");
         }
 

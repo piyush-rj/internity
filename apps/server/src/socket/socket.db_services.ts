@@ -1,11 +1,13 @@
 import { prisma } from "../db.ts";
 import type { Conversation, ConversationRead, Message, User } from "../db.ts";
+import { ADMIN_EMAIL_SET } from "../config/config.ts";
 
 export type { Conversation, ConversationRead, Message, User };
 
 // minimal conversation shape with participant ids for authorisation
 export type ConversationParticipants = {
     id: string;
+    isAdminThread: boolean;
     studentId: string;
     recruiterId: string;
     student: { deletedAt: Date | null };
@@ -20,12 +22,28 @@ export class SocketDbService {
             where: { id: conversationId },
             select: {
                 id: true,
+                isAdminThread: true,
                 studentId: true,
                 recruiterId: true,
                 student: { select: { deletedAt: true } },
                 recruiter: { select: { deletedAt: true } },
             },
         });
+    }
+
+    static async getAdminUserIds(): Promise<string[]> {
+        const adminEmails = Array.from(ADMIN_EMAIL_SET);
+        const [byRole, byEmail] = await Promise.all([
+            prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } }),
+            adminEmails.length > 0
+                ? prisma.user.findMany({
+                      where: { email: { in: adminEmails } },
+                      select: { id: true },
+                  })
+                : Promise.resolve([] as { id: string }[]),
+        ]);
+        const ids = new Set([...byRole, ...byEmail].map((r) => r.id));
+        return Array.from(ids);
     }
 
     static createMessage(
@@ -133,17 +151,28 @@ export class SocketDbService {
 
     // returns user ids that share a conversation with the given user
     static async getConversationPeerUserIds(userId: string): Promise<string[]> {
-        const rows = await prisma.conversation.findMany({
-            where: {
-                OR: [{ studentId: userId }, { recruiterId: userId }],
-            },
-            select: { studentId: true, recruiterId: true },
-        });
+        const [rows, adminIds] = await Promise.all([
+            prisma.conversation.findMany({
+                where: {
+                    OR: [{ studentId: userId }, { recruiterId: userId }],
+                },
+                select: { studentId: true, recruiterId: true, isAdminThread: true },
+            }),
+            // if this user has an admin thread, all admins are their peers
+            prisma.conversation
+                .findFirst({
+                    where: { studentId: userId, isAdminThread: true },
+                    select: { id: true },
+                })
+                .then((found) => (found ? SocketDbService.getAdminUserIds() : [])),
+        ]);
         const peers = new Set<string>();
         for (const r of rows) {
-            if (r.studentId !== userId) peers.add(r.studentId);
-            if (r.recruiterId !== userId) peers.add(r.recruiterId);
+            // skip self-referential admin thread slots
+            if (r.studentId !== userId && !r.isAdminThread) peers.add(r.studentId);
+            if (r.recruiterId !== userId && !r.isAdminThread) peers.add(r.recruiterId);
         }
+        for (const id of adminIds) peers.add(id);
         return Array.from(peers);
     }
 }

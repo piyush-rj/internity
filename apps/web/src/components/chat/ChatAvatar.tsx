@@ -8,10 +8,12 @@ export function ChatAvatar({
     name,
     image,
     size,
+    contain,
 }: {
     name: string | null;
     image: string | null;
     size: "sm" | "lg";
+    contain?: boolean;
 }) {
     const sizeCls =
         size === "lg" ? "h-16 w-16 text-[20px]" : "h-9 w-9 text-[12px]";
@@ -20,6 +22,7 @@ export function ChatAvatar({
         <span
             className={cn(
                 "relative rounded-full overflow-hidden shrink-0 ring-1 ring-border",
+                contain && "bg-white",
                 sizeCls,
             )}
         >
@@ -29,7 +32,7 @@ export function ChatAvatar({
                     alt={name ?? "user"}
                     fill
                     unoptimized
-                    className="object-cover"
+                    className={contain ? "object-contain object-[center_58%]" : "object-cover"}
                 />
             ) : (
                 <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white font-semibold">

@@ -117,7 +117,9 @@ export async function requireAuth(
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            role: isAdminUser({ role: user.role, email: user.email })
+                ? ("ADMIN" as UserRole)
+                : user.role,
         };
         next();
     } catch (err) {

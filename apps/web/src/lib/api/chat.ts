@@ -17,6 +17,9 @@ export const chatApi = {
     start_conversation: (applicationId: string) =>
         api.post<{ id: string }>("/chat/conversations", { applicationId }),
 
+    start_admin_conversation: () =>
+        api.post<{ id: string }>("/chat/admin-conversation"),
+
     mark_read: (conversationId: string) =>
         api.post<{ readAt: string }>(
             `/chat/conversations/${conversationId}/read`,

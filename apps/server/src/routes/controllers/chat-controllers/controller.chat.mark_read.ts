@@ -19,11 +19,13 @@ export default async function markConversationRead(
 
     const conv = await prisma.conversation.findUnique({
         where: { id: conversationId },
-        select: { id: true, studentId: true, recruiterId: true },
+        select: { id: true, studentId: true, recruiterId: true, isAdminThread: true },
     });
     if (!conv) throw new NotFound("Conversation not found");
 
-    if (conv.studentId !== userId && conv.recruiterId !== userId) {
+    const isAdmin = req.user!.role === "ADMIN";
+    const isParticipant = conv.studentId === userId || conv.recruiterId === userId;
+    if (!isParticipant && !(isAdmin && conv.isAdminThread)) {
         throw new Forbidden("Not a participant");
     }
 
@@ -34,10 +36,22 @@ export default async function markConversationRead(
         update: { lastReadAt: now },
     });
 
-    const participants =
-        conv.studentId === conv.recruiterId
-            ? [conv.studentId]
-            : [conv.studentId, conv.recruiterId];
+    // Admin threads broadcast to the non-admin participant + all admins
+    let participants: string[];
+    if (conv.isAdminThread) {
+        const adminIds = await prisma.user
+            .findMany({ where: { role: "ADMIN" }, select: { id: true } })
+            .then((rows) => rows.map((r) => r.id));
+        participants = [conv.studentId, ...adminIds].filter(
+            (id, i, arr) => arr.indexOf(id) === i,
+        );
+    } else {
+        participants =
+            conv.studentId === conv.recruiterId
+                ? [conv.studentId]
+                : [conv.studentId, conv.recruiterId];
+    }
+
     manager.sendToUsers(participants, {
         type: MESSAGE_TYPE.CONVERSATION_READ,
         conversationId,

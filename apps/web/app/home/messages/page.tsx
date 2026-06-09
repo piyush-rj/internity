@@ -69,6 +69,14 @@ function MessagesView() {
         refresh();
     }, [refresh]);
 
+    // sync activeId when the URL changes (handles same-page navigation from sidebar)
+    useEffect(() => {
+        if (requestedId) {
+            setActiveId(requestedId);
+            refresh();
+        }
+    }, [requestedId, refresh]);
+
     // escape closes the active conversation
     useEffect(() => {
         function onKey(e: KeyboardEvent) {
@@ -128,6 +136,7 @@ function MessagesView() {
         const roles: string[] = [];
         let hasCustom = false;
         for (const c of conversations) {
+            if (c.isAdminThread) continue;
             if (c.listingTitle) {
                 if (!seen.has(c.listingTitle)) {
                     seen.add(c.listingTitle);

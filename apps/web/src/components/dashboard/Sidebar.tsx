@@ -2,7 +2,7 @@
 import { memo, useCallback, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, MessageCircle } from "lucide-react";
 import { cn } from "@/src/lib/utils";
 import { SparklesIcon } from "@/src/components/dashboard/icons";
 import {
@@ -25,6 +25,8 @@ import type { UserRole } from "@/src/lib/api";
 import { useMeStore } from "@/src/store/useMeStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
+import { useRouter } from "next/navigation";
+import { chatApi } from "@/src/lib/api";
 import { selectTotalUnread, useChatStore } from "@/src/store/useChatStore";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { canManageCompany } from "@/src/lib/catalog/companyRoles";
@@ -365,6 +367,10 @@ export function SidebarBody({
                                       />
                                   ))}
                         </div>
+
+                        {initialized && role !== "ADMIN" && (
+                            <ContactSupportButton onNavigate={onNavigate} />
+                        )}
                     </nav>
                 </>
             )}
@@ -396,6 +402,51 @@ function SectionLabel({
             )}
         >
             {children}
+        </div>
+    );
+}
+
+function ContactSupportButton({
+    onNavigate,
+}: {
+    onNavigate?: () => void;
+}) {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+
+    async function handleClick() {
+        if (loading) return;
+        setLoading(true);
+        try {
+            const { id } = await chatApi.start_admin_conversation();
+            onNavigate?.();
+            router.push(`/home/messages?cid=${encodeURIComponent(id)}`);
+        } catch {
+            // silently fall back to the messages page
+            onNavigate?.();
+            router.push("/home/messages");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <div className="mt-6">
+            <SectionLabel>Support</SectionLabel>
+            <button
+                type="button"
+                onClick={handleClick}
+                disabled={loading}
+                className={cn(
+                    "w-full flex items-center gap-3 px-2 py-1.5 rounded-md",
+                    "text-[13px] font-medium text-muted-foreground",
+                    "hover:bg-secondary hover:text-foreground transition-colors",
+                    "disabled:opacity-50 cursor-pointer",
+                )}
+            >
+                <MessageCircle className="h-4 w-4 shrink-0 text-orange-500" />
+                <span className="truncate">Contact SpiderSkill</span>
+            </button>
         </div>
     );
 }

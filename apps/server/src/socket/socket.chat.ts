@@ -179,8 +179,13 @@ export class ChatSocket {
             return;
         }
 
-        const participants = this.participantIds(conv);
-        if (!participants.includes(ws.user.id)) {
+        const isAdmin = ws.user.role === "ADMIN";
+        const baseParticipants = this.participantIds(conv);
+        const isParticipant =
+            baseParticipants.includes(ws.user.id) ||
+            (isAdmin && conv.isAdminThread);
+
+        if (!isParticipant) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
                 code: SOCKET_ERROR_CODE.FORBIDDEN,
@@ -189,20 +194,20 @@ export class ChatSocket {
             return;
         }
 
-        // Refuse to deliver into a dead inbox — the other side won't ever
-        // read it and the sender deserves to know that up front rather than
-        // sending into a void.
-        const peerDeleted =
-            ws.user.id === conv.studentId
-                ? conv.recruiter.deletedAt
-                : conv.student.deletedAt;
-        if (peerDeleted) {
-            ws.send({
-                type: MESSAGE_TYPE.ERROR,
-                code: SOCKET_ERROR_CODE.FORBIDDEN,
-                message: "This person deleted their account.",
-            });
-            return;
+        // For regular threads, refuse if the peer has deleted their account.
+        if (!conv.isAdminThread) {
+            const peerDeleted =
+                ws.user.id === conv.studentId
+                    ? conv.recruiter.deletedAt
+                    : conv.student.deletedAt;
+            if (peerDeleted) {
+                ws.send({
+                    type: MESSAGE_TYPE.ERROR,
+                    code: SOCKET_ERROR_CODE.FORBIDDEN,
+                    message: "This person deleted their account.",
+                });
+                return;
+            }
         }
 
         const msg = await SocketDbService.createMessage(
@@ -215,7 +220,18 @@ export class ChatSocket {
             msg.createdAt,
         );
 
-        manager.sendToUsers(participants, {
+        // Admin threads fan out to the non-admin user + every admin user.
+        let recipients: string[];
+        if (conv.isAdminThread) {
+            const adminIds = await SocketDbService.getAdminUserIds();
+            recipients = [conv.studentId, ...adminIds].filter(
+                (id, i, arr) => arr.indexOf(id) === i,
+            );
+        } else {
+            recipients = baseParticipants;
+        }
+
+        manager.sendToUsers(recipients, {
             type: MESSAGE_TYPE.MESSAGE_CREATED,
             clientId,
             message: {
@@ -245,8 +261,9 @@ export class ChatSocket {
             return;
         }
 
-        const participants = this.participantIds(conv);
-        if (!participants.includes(ws.user.id)) {
+        const isAdminEdit = ws.user.role === "ADMIN" && conv.isAdminThread;
+        const editParticipants = this.participantIds(conv);
+        if (!editParticipants.includes(ws.user.id) && !isAdminEdit) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
                 code: SOCKET_ERROR_CODE.FORBIDDEN,
@@ -291,7 +308,17 @@ export class ChatSocket {
             new Date(),
         );
 
-        manager.sendToUsers(participants, {
+        let editRecipients: string[];
+        if (conv.isAdminThread) {
+            const adminIds = await SocketDbService.getAdminUserIds();
+            editRecipients = [conv.studentId, ...adminIds].filter(
+                (id, i, arr) => arr.indexOf(id) === i,
+            );
+        } else {
+            editRecipients = editParticipants;
+        }
+
+        manager.sendToUsers(editRecipients, {
             type: MESSAGE_TYPE.MESSAGE_UPDATED,
             message: {
                 id: updated.id,
@@ -318,8 +345,9 @@ export class ChatSocket {
             return;
         }
 
-        const participants = this.participantIds(conv);
-        if (!participants.includes(ws.user.id)) {
+        const isAdminMarkRead = ws.user.role === "ADMIN" && conv.isAdminThread;
+        const readParticipants = this.participantIds(conv);
+        if (!readParticipants.includes(ws.user.id) && !isAdminMarkRead) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
                 code: SOCKET_ERROR_CODE.FORBIDDEN,
@@ -335,7 +363,17 @@ export class ChatSocket {
             now,
         );
 
-        manager.sendToUsers(participants, {
+        let readRecipients: string[];
+        if (conv.isAdminThread) {
+            const adminIds = await SocketDbService.getAdminUserIds();
+            readRecipients = [conv.studentId, ...adminIds].filter(
+                (id, i, arr) => arr.indexOf(id) === i,
+            );
+        } else {
+            readRecipients = readParticipants;
+        }
+
+        manager.sendToUsers(readRecipients, {
             type: MESSAGE_TYPE.CONVERSATION_READ,
             conversationId,
             readerId: ws.user.id,

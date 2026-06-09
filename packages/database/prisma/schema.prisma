@@ -528,6 +528,9 @@ model Conversation {
   recruiterId String
   recruiter   User   @relation("RecruiterConversations", fields: [recruiterId], references: [id], onDelete: Cascade)
 
+  // When true, studentId === recruiterId and this thread is shared by all admins.
+  isAdminThread Boolean @default(false)
+
   lastMessageAt DateTime @default(now())
 
   createdAt DateTime @default(now())

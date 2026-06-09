@@ -35,6 +35,11 @@ export type ConversationPeer = {
 export type ConversationListItem = {
     id: string;
     /**
+     * True for admin ↔ user threads. The peer is the virtual "SpiderSkill Team"
+     * for non-admin viewers; the real user for admin viewers.
+     */
+    isAdminThread: boolean;
+    /**
      * Most recent Application pinned to this thread. Null only in the
      * degenerate case where every application has been deleted but the
      * thread still has messages.
@@ -57,4 +62,6 @@ export type ConversationListItem = {
     unreadCount: number;
     /** ISO-8601. Most recent message the peer has acknowledged. */
     peerLastReadAt: string | null;
+    /** STUDENT | EMPLOYER | ADMIN — populated for admin-thread peers; null otherwise. */
+    peerRole: string | null;
 };

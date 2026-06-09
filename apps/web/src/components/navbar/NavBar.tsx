@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Menu, X } from "lucide-react";
+import { Briefcase, Menu, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
 import { UserMenu } from "@/src/components/navbar/UserMenu";
 import { ProfileCompletionPill } from "@/src/components/navbar/ProfileCompletionPill";
 import { EmployerVerificationPill } from "@/src/components/navbar/EmployerVerificationPill";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
+import { useMeStore } from "@/src/store/useMeStore";
 import { ChevronRight } from "../base/HeroComponents/glyphs";
 import { cn } from "@/src/lib/utils";
 import Image from "next/image";
@@ -21,6 +22,7 @@ export function NavBar({
 }) {
     const session = useUserSessionStore((s) => s.session);
     const openDialog = useAuthDialog((s) => s.openDialog);
+    const role = useMeStore((s) => s.me?.role ?? null);
     const [scrolled, setScrolled] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -121,17 +123,44 @@ export function NavBar({
                         <>
                             <ProfileCompletionPill />
                             <EmployerVerificationPill />
+                            {role === "EMPLOYER" && (
+                                <Link
+                                    href="/home/manage-listings/new"
+                                    className={cn(
+                                        "hidden md:inline-flex items-center gap-2 h-8.5 pl-1 pr-3.5 rounded-full",
+                                        "bg-orange-50 border border-orange-200 text-orange-500",
+                                        "text-[13px] font-medium hover:bg-orange-100 transition-colors",
+                                    )}
+                                >
+                                    <PostInternshipIcon />
+                                    Post an internship
+                                </Link>
+                            )}
                             <UserMenu />
                         </>
                     ) : (
-                        <Button
-                            variant={"exec-dark"}
-                            onClick={handleSignin}
-                            className="inline-flex items-center text-[13px] h-8.5 px-3! cursor-pointer"
-                        >
-                            Sign in
-                            <ChevronRight className="h-3 w-3" />
-                        </Button>
+                        <>
+                            <button
+                                type="button"
+                                onClick={handleSignin}
+                                className={cn(
+                                    "hidden md:inline-flex items-center gap-2 h-8.5 pl-1 pr-3.5 rounded-full",
+                                    "bg-orange-50 border border-orange-200 text-orange-500",
+                                    "text-[13px] font-medium hover:bg-orange-100 transition-colors cursor-pointer",
+                                )}
+                            >
+                                <PostInternshipIcon />
+                                Post an internship
+                            </button>
+                            <Button
+                                variant={"exec-dark"}
+                                onClick={handleSignin}
+                                className="inline-flex items-center text-[13px] h-8.5 px-3! cursor-pointer"
+                            >
+                                Sign in
+                                <ChevronRight className="h-3 w-3" />
+                            </Button>
+                        </>
                     )}
                     <button
                         type="button"
@@ -183,9 +212,39 @@ export function NavBar({
                                 {item.label}
                             </Link>
                         ))}
+                        <div className="mt-1 pt-1 border-t border-border">
+                            {session?.user && role === "EMPLOYER" ? (
+                                <Link
+                                    href="/home/manage-listings/new"
+                                    onClick={() => setMobileOpen(false)}
+                                    className="flex items-center gap-2 rounded-md px-3 py-2.5 text-[14px] font-medium text-orange-500 hover:bg-orange-50 transition-colors"
+                                >
+                                    <Briefcase className="h-4 w-4" />
+                                    Post an internship
+                                </Link>
+                            ) : !session?.user ? (
+                                <button
+                                    type="button"
+                                    onClick={handleSignin}
+                                    className="flex w-full items-center gap-2 rounded-md px-3 py-2.5 text-[14px] font-medium text-orange-500 hover:bg-orange-50 transition-colors cursor-pointer"
+                                >
+                                    <Briefcase className="h-4 w-4" />
+                                    Post an internship
+                                </button>
+                            ) : null}
+                        </div>
                     </nav>
                 </div>
             )}
         </header>
+    );
+}
+
+function PostInternshipIcon() {
+    return (
+        <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-orange-500 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-50" />
+            <Briefcase className="relative h-3.5 w-3.5 text-white" />
+        </span>
     );
 }

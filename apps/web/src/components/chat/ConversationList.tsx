@@ -73,6 +73,7 @@ function ConversationRow({
     );
     const hasUnread = !active && unread > 0;
     const isDeleted = !!item.peer.deletedAt;
+    const isAdminPeer = item.peer.id === "SPIDERSKILL_ADMIN";
     return (
         <li>
             <button
@@ -87,7 +88,8 @@ function ConversationRow({
                 <div className="flex items-center gap-3">
                     <PeerAvatar
                         name={isDeleted ? null : item.peer.name}
-                        image={isDeleted ? null : item.peer.image}
+                        image={isDeleted ? null : isAdminPeer ? "/app-logos/logo.png" : item.peer.image}
+                        contain={isAdminPeer && !isDeleted}
                     />
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
@@ -105,7 +107,7 @@ function ConversationRow({
                                         ? "Deleted account"
                                         : (item.peer.name ?? "Unknown")}
                                 </span>
-                                {!isDeleted && item.applicationStatus && (
+                                {!isDeleted && !item.isAdminThread && item.applicationStatus && (
                                     <ApplicationStatusBadge status={item.applicationStatus} />
                                 )}
                             </div>
@@ -144,20 +146,22 @@ function ConversationRow({
 function PeerAvatar({
     name,
     image,
+    contain,
 }: {
     name: string | null;
     image: string | null;
+    contain?: boolean;
 }) {
     const initial = (name ?? "U")[0]?.toUpperCase() ?? "U";
     return (
-        <span className="relative h-12 w-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border">
+        <span className={cn("relative h-12 w-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border", contain && "bg-white")}>
             {image ? (
                 <Image
                     src={image}
                     alt={name ?? "user"}
                     fill
                     unoptimized
-                    className="object-cover"
+                    className={contain ? "object-contain object-[center_58%]" : "object-cover"}
                 />
             ) : (
                 <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white text-[13px] font-semibold">

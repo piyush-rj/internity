@@ -6,6 +6,8 @@ import type { ConversationPeer } from "types";
 import { usePresenceStore } from "@/src/store/usePresenceStore";
 import { ChatAvatar } from "./ChatAvatar";
 
+const ADMIN_PEER_ID = "SPIDERSKILL_ADMIN";
+
 // sticky top bar with peer avatar, name, and live presence
 export function ConversationHeader({
     peer,
@@ -35,13 +37,15 @@ export function ConversationHeader({
           }
         : peer;
     const isDeleted = !!peer.deletedAt;
+    const isAdminPeer = peer.id === ADMIN_PEER_ID;
     return (
         <header className="h-15 px-4 flex items-center gap-3 border-b border-border bg-white shrink-0">
             {onBack && <BackButton onClick={onBack} />}
             <ChatAvatar
                 name={isDeleted ? "?" : peer.name}
-                image={isDeleted ? null : peer.image}
+                image={isDeleted ? null : isAdminPeer ? "/app-logos/logo.png" : peer.image}
                 size="sm"
+                contain={isAdminPeer}
             />
             <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -60,6 +64,11 @@ export function ConversationHeader({
                 {isDeleted ? (
                     <div className="text-[11px] leading-tight text-muted-foreground truncate">
                         This person deleted their account
+                    </div>
+                ) : isAdminPeer ? (
+                    <div className="flex items-center gap-1.5 text-[11px] leading-tight text-muted-foreground">
+                        <span className="h-1.5 w-1.5 rounded-full bg-orange-400" />
+                        SpiderSkill support team
                     </div>
                 ) : (
                     <PresenceSubtitle peer={peerWithLivePresence} />

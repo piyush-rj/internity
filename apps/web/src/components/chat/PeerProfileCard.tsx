@@ -17,12 +17,14 @@ export function PeerProfileCard({
 }) {
     if (!peer) return null;
     const isDeleted = !!peer.deletedAt;
+    const isAdminPeer = peer.id === "SPIDERSKILL_ADMIN";
     return (
         <div className="flex flex-col items-center text-center px-6 pt-8 pb-6">
             <ChatAvatar
                 name={isDeleted ? "?" : peer.name}
-                image={isDeleted ? null : peer.image}
+                image={isDeleted ? null : isAdminPeer ? "/app-logos/logo.png" : peer.image}
                 size="lg"
+                contain={isAdminPeer}
             />
             <h2
                 className={cn(

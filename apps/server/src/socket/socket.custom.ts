@@ -1,6 +1,7 @@
 import type { WebSocket } from "ws";
 import { verifyToken } from "../core/jwt.ts";
 import type { UserRole } from "../db.ts";
+import { isAdminUser } from "../config/config.ts";
 import { SocketDbService, type User } from "./socket.db_services.ts";
 import {
     ClientMessage,
@@ -159,7 +160,9 @@ export class CustomWS {
             id: user.id,
             name: user.name,
             email: user.email,
-            role: user.role,
+            role: isAdminUser({ role: user.role, email: user.email })
+                ? ("ADMIN" as UserRole)
+                : user.role,
         };
         this.send({ type: MESSAGE_TYPE.CONNECTED, userId: user.id });
         return this._user;

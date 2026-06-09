@@ -14,6 +14,7 @@ import {
     PiTagFill,
     PiUsersFill,
     PiPaperPlaneTiltFill,
+    PiChatCircleTextFill,
 } from "react-icons/pi";
 import { GiTie } from "react-icons/gi";
 import { cn } from "@/src/lib/utils";
@@ -87,6 +88,12 @@ const NAV: Item[] = [
         label: "Allow Postings",
         icon: PiPaperPlaneTiltFill,
         href: "/admin/allow-postings",
+    },
+    {
+        key: "support-requests",
+        label: "Support Requests",
+        icon: PiChatCircleTextFill,
+        href: "/admin/support-requests",
     },
 ];
 
