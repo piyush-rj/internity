@@ -40,6 +40,7 @@ export type ConversationListItem = {
      * thread still has messages.
      */
     applicationId: string | null;
+    applicationStatus: string | null;
     listingId: string | null;
     listingTitle: string | null;
     companyName: string | null;

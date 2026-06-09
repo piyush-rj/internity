@@ -62,19 +62,14 @@ export function PeerProfileCard({
 
 // builds the subtitle for the peer profile card
 export function buildPeerSubtitle({
-    peerEmail,
     listingTitle,
     companyName,
     otherRolesCount,
-    viewerRole,
 }: {
-    peerEmail: string | null;
     listingTitle: string | null;
     companyName: string | null;
     otherRolesCount: number;
-    viewerRole: string | null;
 }): string | null {
-    if (viewerRole === "EMPLOYER" && peerEmail) return peerEmail;
     const parts = [listingTitle, companyName].filter((v): v is string => !!v);
     if (parts.length === 0) return null;
     const base = parts.join(" · ");

@@ -90,20 +90,25 @@ function ConversationRow({
                         image={isDeleted ? null : item.peer.image}
                     />
                     <div className="min-w-0 flex-1">
-                        <div className="flex items-baseline justify-between gap-2">
-                            <span
-                                className={cn(
-                                    "text-[14px] truncate font-semibold",
-                                    isDeleted && "text-muted-foreground italic",
-                                    !isDeleted &&
-                                        hasUnread &&
-                                        "text-foreground",
+                        <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <span
+                                    className={cn(
+                                        "text-[14px] truncate font-semibold",
+                                        isDeleted && "text-muted-foreground italic",
+                                        !isDeleted &&
+                                            hasUnread &&
+                                            "text-foreground",
+                                    )}
+                                >
+                                    {isDeleted
+                                        ? "Deleted account"
+                                        : (item.peer.name ?? "Unknown")}
+                                </span>
+                                {!isDeleted && item.applicationStatus && (
+                                    <ApplicationStatusBadge status={item.applicationStatus} />
                                 )}
-                            >
-                                {isDeleted
-                                    ? "Deleted account"
-                                    : (item.peer.name ?? "Unknown")}
-                            </span>
+                            </div>
                             <span className="text-[10.5px] text-muted-foreground shrink-0">
                                 {formatRelative(item.lastMessageAt)}
                             </span>
@@ -159,6 +164,48 @@ function PeerAvatar({
                     {initial}
                 </span>
             )}
+        </span>
+    );
+}
+
+const STATUS_CONFIG: Record<string, { label: string; className: string }> = {
+    APPLIED: {
+        label: "Applied",
+        className: "bg-blue-50 text-blue-600 border border-blue-200",
+    },
+    SHORTLISTED: {
+        label: "Shortlisted",
+        className: "bg-orange-50 text-orange-600 border border-orange-200",
+    },
+    INTERVIEW: {
+        label: "Interview",
+        className: "bg-purple-50 text-purple-600 border border-purple-200",
+    },
+    HIRED: {
+        label: "Hired",
+        className: "bg-green-50 text-green-600 border border-green-200",
+    },
+    REJECTED: {
+        label: "Rejected",
+        className: "bg-red-50 text-red-500 border border-red-200",
+    },
+    WITHDRAWN: {
+        label: "Withdrawn",
+        className: "bg-neutral-100 text-neutral-500 border border-neutral-200",
+    },
+};
+
+function ApplicationStatusBadge({ status }: { status: string }) {
+    const cfg = STATUS_CONFIG[status];
+    if (!cfg) return null;
+    return (
+        <span
+            className={cn(
+                "inline-flex items-center h-5 px-2 rounded-full text-[10.5px] font-medium",
+                cfg.className,
+            )}
+        >
+            {cfg.label}
         </span>
     );
 }

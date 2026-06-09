@@ -218,11 +218,9 @@ export function ConversationView({
                 <PeerProfileCard
                     peer={peer}
                     subtitle={buildPeerSubtitle({
-                        peerEmail: peer?.email ?? null,
                         listingTitle: conversation?.listingTitle ?? null,
                         companyName: conversation?.companyName ?? null,
                         otherRolesCount: conversation?.otherRolesCount ?? 0,
-                        viewerRole: meRole,
                     })}
                     viewProfileHref={viewProfileHref}
                 />

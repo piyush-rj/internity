@@ -24,6 +24,8 @@ export default function MessagesPage() {
     );
 }
 
+const CUSTOM_ROLE_SENTINEL = "__custom__";
+
 function MessagesView() {
     const socket = useWebSocket();
     const router = useRouter();
@@ -40,6 +42,7 @@ function MessagesView() {
     const [activeId, setActiveId] = useState<string | null>(requestedId);
     const [filter, setFilter] = useState<ChatFilter>("all");
     const [query, setQuery] = useState("");
+    const [roleFilter, setRoleFilter] = useState<string | null>(null);
 
     const refresh = useCallback(() => {
         chatApi
@@ -120,11 +123,36 @@ function MessagesView() {
         [unreadByConv],
     );
 
+    const uniqueRoles = useMemo(() => {
+        const seen = new Set<string>();
+        const roles: string[] = [];
+        let hasCustom = false;
+        for (const c of conversations) {
+            if (c.listingTitle) {
+                if (!seen.has(c.listingTitle)) {
+                    seen.add(c.listingTitle);
+                    roles.push(c.listingTitle);
+                }
+            } else {
+                hasCustom = true;
+            }
+        }
+        if (hasCustom) roles.push(CUSTOM_ROLE_SENTINEL);
+        return roles;
+    }, [conversations]);
+
     const filteredConversations = useMemo(() => {
         const q = query.trim().toLowerCase();
         return conversations.filter((c) => {
             if (filter === "unread") {
                 if (unreadCountFor(c.id, c.unreadCount) <= 0) return false;
+            }
+            if (roleFilter) {
+                if (roleFilter === CUSTOM_ROLE_SENTINEL) {
+                    if (c.listingTitle !== null) return false;
+                } else if (c.listingTitle !== roleFilter) {
+                    return false;
+                }
             }
             if (q) {
                 const haystack =
@@ -133,7 +161,7 @@ function MessagesView() {
             }
             return true;
         });
-    }, [conversations, filter, query, unreadCountFor]);
+    }, [conversations, filter, query, roleFilter, unreadCountFor]);
 
     const totalUnread = useMemo(
         () =>
@@ -175,6 +203,29 @@ function MessagesView() {
                         />
                     </div>
                     <SearchInput value={query} onChange={setQuery} />
+                    {uniqueRoles.length > 0 && (
+                        <select
+                            value={roleFilter ?? ""}
+                            onChange={(e) =>
+                                setRoleFilter(e.target.value || null)
+                            }
+                            className={cn(
+                                "w-full h-9 px-3 rounded-full text-[13px] outline-none",
+                                "bg-secondary/60 text-foreground",
+                                "focus:ring-2 focus:ring-foreground/10",
+                                "appearance-none cursor-pointer",
+                            )}
+                        >
+                            <option value="">All roles</option>
+                            {uniqueRoles.map((role) => (
+                                <option key={role} value={role}>
+                                    {role === CUSTOM_ROLE_SENTINEL
+                                        ? "Custom role"
+                                        : role}
+                                </option>
+                            ))}
+                        </select>
+                    )}
                 </header>
 
                 {error && (

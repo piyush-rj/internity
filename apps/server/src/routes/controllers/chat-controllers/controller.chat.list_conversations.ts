@@ -51,6 +51,7 @@ export default async function listConversations(
                 orderBy: { appliedAt: "desc" },
                 select: {
                     id: true,
+                    status: true,
                     listing: {
                         select: {
                             id: true,
@@ -91,6 +92,7 @@ export default async function listConversations(
             return {
                 id: c.id,
                 applicationId: c.applications[0]?.id ?? null,
+                applicationStatus: c.applications[0]?.status ?? null,
                 listingId: primary?.id ?? null,
                 listingTitle: primary?.title ?? null,
                 companyName: primary?.company.name ?? null,
