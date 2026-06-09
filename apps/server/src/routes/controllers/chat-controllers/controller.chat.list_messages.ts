@@ -15,7 +15,12 @@ export default async function listMessages(
     try {
         const conv = await prisma.conversation.findUnique({
             where: { id: req.params.conversation_id as string },
-            select: { id: true, studentId: true, recruiterId: true, isAdminThread: true },
+            select: {
+                id: true,
+                studentId: true,
+                recruiterId: true,
+                isAdminThread: true,
+            },
         });
         if (!conv) throw new NotFound();
 

@@ -32,7 +32,11 @@ export function ChatAvatar({
                     alt={name ?? "user"}
                     fill
                     unoptimized
-                    className={contain ? "object-contain object-[center_58%]" : "object-cover"}
+                    className={
+                        contain
+                            ? "object-contain object-[center_58%]"
+                            : "object-cover"
+                    }
                 />
             ) : (
                 <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white font-semibold">

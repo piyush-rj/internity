@@ -24,7 +24,13 @@ export default async function listConversations(
     const conversations = await prisma.conversation.findMany({
         where: isAdmin
             ? // Admins see all admin threads plus any regular threads they're in
-              { OR: [{ isAdminThread: true }, { studentId: userId }, { recruiterId: userId }] }
+              {
+                  OR: [
+                      { isAdminThread: true },
+                      { studentId: userId },
+                      { recruiterId: userId },
+                  ],
+              }
             : // Non-admins see their own threads (incl. their admin thread)
               { OR: [{ studentId: userId }, { recruiterId: userId }] },
         orderBy: { lastMessageAt: "desc" },
@@ -122,7 +128,8 @@ export default async function listConversations(
 
                 const peerUserId = isAdmin ? c.studentId : null;
                 const peerLastRead = peerUserId
-                    ? (c.reads.find((r) => r.userId === peerUserId)?.lastReadAt ?? null)
+                    ? (c.reads.find((r) => r.userId === peerUserId)
+                          ?.lastReadAt ?? null)
                     : null;
 
                 return {

@@ -43,7 +43,13 @@ export function ConversationHeader({
             {onBack && <BackButton onClick={onBack} />}
             <ChatAvatar
                 name={isDeleted ? "?" : peer.name}
-                image={isDeleted ? null : isAdminPeer ? "/app-logos/logo.png" : peer.image}
+                image={
+                    isDeleted
+                        ? null
+                        : isAdminPeer
+                          ? "/app-logos/logo.png"
+                          : peer.image
+                }
                 size="sm"
                 contain={isAdminPeer}
             />

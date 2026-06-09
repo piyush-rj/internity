@@ -30,7 +30,9 @@ function SupportRequestsView() {
     const clearUnread = useChatStore((s) => s.clearUnread);
     const unreadByConv = useChatStore((s) => s.unreadByConv);
 
-    const [conversations, setConversations] = useState<ConversationListItem[]>([]);
+    const [conversations, setConversations] = useState<ConversationListItem[]>(
+        [],
+    );
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeId, setActiveId] = useState<string | null>(requestedId);
@@ -48,7 +50,8 @@ function SupportRequestsView() {
                 );
                 setConversations(adminRows);
                 setActiveId((curr) => {
-                    if (curr && adminRows.some((c) => c.id === curr)) return curr;
+                    if (curr && adminRows.some((c) => c.id === curr))
+                        return curr;
                     return null;
                 });
             })
@@ -69,6 +72,7 @@ function SupportRequestsView() {
     // sync activeId on same-page navigation
     useEffect(() => {
         if (requestedId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveId(requestedId);
             refresh();
         }
@@ -150,7 +154,10 @@ function SupportRequestsView() {
                         Support Requests
                     </h1>
                     <SearchInput value={query} onChange={setQuery} />
-                    <RoleFilterTabs value={roleFilter} onChange={setRoleFilter} />
+                    <RoleFilterTabs
+                        value={roleFilter}
+                        onChange={setRoleFilter}
+                    />
                 </header>
 
                 {error && (
@@ -167,11 +174,14 @@ function SupportRequestsView() {
                         unreadCountFor={unreadCountFor}
                         onSelect={setActiveId}
                     />
-                    {!loading && !error && filteredConversations.length === 0 && conversations.length > 0 && (
-                        <div className="px-6 py-8 text-center text-[12.5px] text-muted-foreground">
-                            No matches.
-                        </div>
-                    )}
+                    {!loading &&
+                        !error &&
+                        filteredConversations.length === 0 &&
+                        conversations.length > 0 && (
+                            <div className="px-6 py-8 text-center text-[12.5px] text-muted-foreground">
+                                No matches.
+                            </div>
+                        )}
                 </div>
             </aside>
 
@@ -186,7 +196,9 @@ function SupportRequestsView() {
                     <ConversationView
                         key={activeId}
                         conversationId={activeId}
-                        conversation={conversations.find((c) => c.id === activeId) ?? null}
+                        conversation={
+                            conversations.find((c) => c.id === activeId) ?? null
+                        }
                         socket={socket}
                         onBack={() => setActiveId(null)}
                     />
@@ -282,7 +294,10 @@ function SupportConversationList({
         return (
             <div className="flex flex-col gap-1.5 p-3">
                 {Array.from({ length: 4 }).map((_, i) => (
-                    <div key={i} className="h-14 w-full rounded-md bg-secondary/60 animate-pulse" />
+                    <div
+                        key={i}
+                        className="h-14 w-full rounded-md bg-secondary/60 animate-pulse"
+                    />
                 ))}
             </div>
         );
@@ -337,17 +352,23 @@ function SupportConversationRow({
                 )}
             >
                 <div className="flex items-center gap-3">
-                    <PeerAvatar name={isDeleted ? null : item.peer.name} image={isDeleted ? null : item.peer.image} />
+                    <PeerAvatar
+                        name={isDeleted ? null : item.peer.name}
+                        image={isDeleted ? null : item.peer.image}
+                    />
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-1.5 min-w-0">
                                 <span
                                     className={cn(
                                         "text-[14px] truncate font-semibold",
-                                        isDeleted && "text-muted-foreground italic",
+                                        isDeleted &&
+                                            "text-muted-foreground italic",
                                     )}
                                 >
-                                    {isDeleted ? "Deleted account" : (item.peer.name ?? "Unknown")}
+                                    {isDeleted
+                                        ? "Deleted account"
+                                        : (item.peer.name ?? "Unknown")}
                                 </span>
                                 {!isDeleted && item.peerRole && (
                                     <RoleBadge role={item.peerRole} />
@@ -385,12 +406,24 @@ function SupportConversationRow({
     );
 }
 
-function PeerAvatar({ name, image }: { name: string | null; image: string | null }) {
+function PeerAvatar({
+    name,
+    image,
+}: {
+    name: string | null;
+    image: string | null;
+}) {
     const initial = (name ?? "U")[0]?.toUpperCase() ?? "U";
     return (
         <span className="relative h-12 w-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border">
             {image ? (
-                <Image src={image} alt={name ?? "user"} fill unoptimized className="object-cover" />
+                <Image
+                    src={image}
+                    alt={name ?? "user"}
+                    fill
+                    unoptimized
+                    className="object-cover"
+                />
             ) : (
                 <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white text-[13px] font-semibold">
                     {initial}

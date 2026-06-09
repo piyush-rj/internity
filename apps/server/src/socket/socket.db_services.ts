@@ -34,7 +34,10 @@ export class SocketDbService {
     static async getAdminUserIds(): Promise<string[]> {
         const adminEmails = Array.from(ADMIN_EMAIL_SET);
         const [byRole, byEmail] = await Promise.all([
-            prisma.user.findMany({ where: { role: "ADMIN" }, select: { id: true } }),
+            prisma.user.findMany({
+                where: { role: "ADMIN" },
+                select: { id: true },
+            }),
             adminEmails.length > 0
                 ? prisma.user.findMany({
                       where: { email: { in: adminEmails } },
@@ -156,7 +159,11 @@ export class SocketDbService {
                 where: {
                     OR: [{ studentId: userId }, { recruiterId: userId }],
                 },
-                select: { studentId: true, recruiterId: true, isAdminThread: true },
+                select: {
+                    studentId: true,
+                    recruiterId: true,
+                    isAdminThread: true,
+                },
             }),
             // if this user has an admin thread, all admins are their peers
             prisma.conversation
@@ -164,13 +171,17 @@ export class SocketDbService {
                     where: { studentId: userId, isAdminThread: true },
                     select: { id: true },
                 })
-                .then((found) => (found ? SocketDbService.getAdminUserIds() : [])),
+                .then((found) =>
+                    found ? SocketDbService.getAdminUserIds() : [],
+                ),
         ]);
         const peers = new Set<string>();
         for (const r of rows) {
             // skip self-referential admin thread slots
-            if (r.studentId !== userId && !r.isAdminThread) peers.add(r.studentId);
-            if (r.recruiterId !== userId && !r.isAdminThread) peers.add(r.recruiterId);
+            if (r.studentId !== userId && !r.isAdminThread)
+                peers.add(r.studentId);
+            if (r.recruiterId !== userId && !r.isAdminThread)
+                peers.add(r.recruiterId);
         }
         for (const id of adminIds) peers.add(id);
         return Array.from(peers);

@@ -1,5 +1,9 @@
 import type { Request, Response } from "express";
-import { InvalidRequest, ResponseWriter, handleApiError } from "../../../utils/api-response.ts";
+import {
+    InvalidRequest,
+    ResponseWriter,
+    handleApiError,
+} from "../../../utils/api-response.ts";
 import { prisma } from "../../../db.ts";
 
 // idempotently starts or returns the shared admin thread for the caller.

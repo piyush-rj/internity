@@ -12,7 +12,10 @@ import { ApiClientError } from "@/src/lib/apiClient";
 
 export type EmployerMembership = CompanyMember & { company: Company };
 
-export type ListingQuota = { remaining: number | null; total: number | null } | null;
+export type ListingQuota = {
+    remaining: number | null;
+    total: number | null;
+} | null;
 
 export type EmployerState = {
     profile: EmployerProfile | null;

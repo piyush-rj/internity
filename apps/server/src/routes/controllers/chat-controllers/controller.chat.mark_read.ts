@@ -19,12 +19,18 @@ export default async function markConversationRead(
 
     const conv = await prisma.conversation.findUnique({
         where: { id: conversationId },
-        select: { id: true, studentId: true, recruiterId: true, isAdminThread: true },
+        select: {
+            id: true,
+            studentId: true,
+            recruiterId: true,
+            isAdminThread: true,
+        },
     });
     if (!conv) throw new NotFound("Conversation not found");
 
     const isAdmin = req.user!.role === "ADMIN";
-    const isParticipant = conv.studentId === userId || conv.recruiterId === userId;
+    const isParticipant =
+        conv.studentId === userId || conv.recruiterId === userId;
     if (!isParticipant && !(isAdmin && conv.isAdminThread)) {
         throw new Forbidden("Not a participant");
     }

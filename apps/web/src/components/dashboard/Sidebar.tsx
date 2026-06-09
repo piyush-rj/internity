@@ -406,11 +406,7 @@ function SectionLabel({
     );
 }
 
-function ContactSupportButton({
-    onNavigate,
-}: {
-    onNavigate?: () => void;
-}) {
+function ContactSupportButton({ onNavigate }: { onNavigate?: () => void }) {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
 

@@ -72,6 +72,7 @@ function MessagesView() {
     // sync activeId when the URL changes (handles same-page navigation from sidebar)
     useEffect(() => {
         if (requestedId) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveId(requestedId);
             refresh();
         }

@@ -88,7 +88,13 @@ function ConversationRow({
                 <div className="flex items-center gap-3">
                     <PeerAvatar
                         name={isDeleted ? null : item.peer.name}
-                        image={isDeleted ? null : isAdminPeer ? "/app-logos/logo.png" : item.peer.image}
+                        image={
+                            isDeleted
+                                ? null
+                                : isAdminPeer
+                                  ? "/app-logos/logo.png"
+                                  : item.peer.image
+                        }
                         contain={isAdminPeer && !isDeleted}
                     />
                     <div className="min-w-0 flex-1">
@@ -97,7 +103,8 @@ function ConversationRow({
                                 <span
                                     className={cn(
                                         "text-[14px] truncate font-semibold",
-                                        isDeleted && "text-muted-foreground italic",
+                                        isDeleted &&
+                                            "text-muted-foreground italic",
                                         !isDeleted &&
                                             hasUnread &&
                                             "text-foreground",
@@ -107,9 +114,13 @@ function ConversationRow({
                                         ? "Deleted account"
                                         : (item.peer.name ?? "Unknown")}
                                 </span>
-                                {!isDeleted && !item.isAdminThread && item.applicationStatus && (
-                                    <ApplicationStatusBadge status={item.applicationStatus} />
-                                )}
+                                {!isDeleted &&
+                                    !item.isAdminThread &&
+                                    item.applicationStatus && (
+                                        <ApplicationStatusBadge
+                                            status={item.applicationStatus}
+                                        />
+                                    )}
                             </div>
                             <span className="text-[10.5px] text-muted-foreground shrink-0">
                                 {formatRelative(item.lastMessageAt)}
@@ -154,14 +165,23 @@ function PeerAvatar({
 }) {
     const initial = (name ?? "U")[0]?.toUpperCase() ?? "U";
     return (
-        <span className={cn("relative h-12 w-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border", contain && "bg-white")}>
+        <span
+            className={cn(
+                "relative h-12 w-12 rounded-full overflow-hidden shrink-0 ring-1 ring-border",
+                contain && "bg-white",
+            )}
+        >
             {image ? (
                 <Image
                     src={image}
                     alt={name ?? "user"}
                     fill
                     unoptimized
-                    className={contain ? "object-contain object-[center_58%]" : "object-cover"}
+                    className={
+                        contain
+                            ? "object-contain object-[center_58%]"
+                            : "object-cover"
+                    }
                 />
             ) : (
                 <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white text-[13px] font-semibold">

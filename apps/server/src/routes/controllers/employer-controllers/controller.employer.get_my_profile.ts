@@ -17,7 +17,9 @@ export default async function getMyEmployerProfile(
                 where: { userId: req.user!.id },
                 include: {
                     company: {
-                        include: { freePostingGrants: { where: { isActive: true } } },
+                        include: {
+                            freePostingGrants: { where: { isActive: true } },
+                        },
                     },
                 },
             }),
@@ -25,7 +27,10 @@ export default async function getMyEmployerProfile(
 
         // Compute listing quota for the primary company.
         const primaryCompany = memberships[0]?.company ?? null;
-        let listingQuota: { remaining: number | null; total: number | null } | null = null;
+        let listingQuota: {
+            remaining: number | null;
+            total: number | null;
+        } | null = null;
 
         if (primaryCompany) {
             const grants = primaryCompany.freePostingGrants ?? [];
@@ -34,7 +39,10 @@ export default async function getMyEmployerProfile(
                 (sum, g) => sum + (g.grantedPostings - g.usedPostings),
                 0,
             );
-            const grantsTotal = grants.reduce((sum, g) => sum + g.grantedPostings, 0);
+            const grantsTotal = grants.reduce(
+                (sum, g) => sum + g.grantedPostings,
+                0,
+            );
 
             if (primaryCompany.isPremium && primaryCompany.activePlanCode) {
                 const plan = PLANS[primaryCompany.activePlanCode] ?? null;
@@ -50,12 +58,19 @@ export default async function getMyEmployerProfile(
                             companyId: primaryCompany.id,
                             closedAt: null,
                             takenDownAt: null,
-                            OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+                            OR: [
+                                { expiresAt: null },
+                                { expiresAt: { gt: now } },
+                            ],
                         },
                     });
-                    const premiumRemaining = Math.max(0, planLimit - activeListings);
+                    const premiumRemaining = Math.max(
+                        0,
+                        planLimit - activeListings,
+                    );
                     listingQuota = {
-                        remaining: freeRemaining + grantsRemaining + premiumRemaining,
+                        remaining:
+                            freeRemaining + grantsRemaining + premiumRemaining,
                         total: 1 + grantsTotal + planLimit,
                     };
                 }

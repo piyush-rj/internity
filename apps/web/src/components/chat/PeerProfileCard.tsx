@@ -22,7 +22,13 @@ export function PeerProfileCard({
         <div className="flex flex-col items-center text-center px-6 pt-8 pb-6">
             <ChatAvatar
                 name={isDeleted ? "?" : peer.name}
-                image={isDeleted ? null : isAdminPeer ? "/app-logos/logo.png" : peer.image}
+                image={
+                    isDeleted
+                        ? null
+                        : isAdminPeer
+                          ? "/app-logos/logo.png"
+                          : peer.image
+                }
                 size="lg"
                 contain={isAdminPeer}
             />
