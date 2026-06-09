@@ -26,6 +26,22 @@ export const chatApi = {
         ),
 
     unread_count: () => api.get<{ count: number }>("/chat/unread-count"),
+
+    admin_search_users: (q: string) =>
+        api.get<{
+            users: {
+                id: string;
+                name: string | null;
+                email: string | null;
+                image: string | null;
+                role: string;
+                companyName: string | null;
+                conversationId: string | null;
+            }[];
+        }>("/chat/admin/search-users", { q }),
+
+    admin_initiate_conversation: (userId: string) =>
+        api.post<{ id: string }>(`/chat/admin/conversations/${userId}`),
 };
 
 export type { ChatMessage, ConversationListItem };

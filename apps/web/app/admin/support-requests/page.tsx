@@ -1,9 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { ConversationView } from "@/src/components/chat/ConversationView";
 import { chatApi, type ConversationListItem } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
@@ -11,6 +11,17 @@ import { useWebSocket } from "@/src/hooks/useWebSocket";
 import { useChatStore } from "@/src/store/useChatStore";
 import { MESSAGE_TYPE } from "types";
 import { cn } from "@/src/lib/utils";
+
+type UserSearchResult = {
+    id: string;
+    name: string | null;
+    email: string | null;
+    image: string | null;
+    role: string;
+    companyName: string | null;
+    conversationId: string | null;
+};
+
 
 export default function SupportRequestsPage() {
     return (
@@ -38,8 +49,69 @@ function SupportRequestsView() {
     const [activeId, setActiveId] = useState<string | null>(requestedId);
     const [roleFilter, setRoleFilter] = useState<RoleFilter>("all");
     const [query, setQuery] = useState("");
+    const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+    const [searchLoading, setSearchLoading] = useState(false);
+    const [searchOpen, setSearchOpen] = useState(false);
+    const [initiating, setInitiating] = useState(false);
+    const searchWrapperRef = useRef<HTMLDivElement>(null);
 
-    const refresh = useCallback(() => {
+    // Debounced server search
+    useEffect(() => {
+        const q = query.trim();
+        if (!q) {
+            // eslint-disable-next-line react-hooks/set-state-in-effect
+            setSearchResults([]);
+            setSearchOpen(false);
+            return;
+        }
+        const t = setTimeout(() => {
+            setSearchLoading(true);
+            chatApi
+                .admin_search_users(q)
+                .then((res) => {
+                    setSearchResults(res.users);
+                    setSearchOpen(true);
+                })
+                .catch(() => {})
+                .finally(() => setSearchLoading(false));
+        }, 300);
+        return () => clearTimeout(t);
+    }, [query]);
+
+    // Close dropdown on outside click
+    useEffect(() => {
+        function onDocClick(e: MouseEvent) {
+            if (
+                searchWrapperRef.current &&
+                !searchWrapperRef.current.contains(e.target as Node)
+            ) {
+                setSearchOpen(false);
+            }
+        }
+        document.addEventListener("mousedown", onDocClick);
+        return () => document.removeEventListener("mousedown", onDocClick);
+    }, []);
+
+    async function handleSelectUser(user: UserSearchResult) {
+        setSearchOpen(false);
+        setQuery("");
+        if (user.conversationId) {
+            setActiveId(user.conversationId);
+            return;
+        }
+        setInitiating(true);
+        try {
+            const { id } = await chatApi.admin_initiate_conversation(user.id);
+            refresh();
+            setActiveId(id);
+        } catch {
+            // ignore
+        } finally {
+            setInitiating(false);
+        }
+    }
+
+    function refresh() {
         chatApi
             .list_conversations()
             .then((rows) => {
@@ -63,11 +135,9 @@ function SupportRequestsView() {
                 );
             })
             .finally(() => setLoading(false));
-    }, []);
+    }
 
-    useEffect(() => {
-        refresh();
-    }, [refresh]);
+    useEffect(() => { refresh(); }, []);
 
     // sync activeId on same-page navigation
     useEffect(() => {
@@ -76,7 +146,7 @@ function SupportRequestsView() {
             setActiveId(requestedId);
             refresh();
         }
-    }, [requestedId, refresh]);
+    }, [requestedId]);
 
     useEffect(() => {
         function onKey(e: KeyboardEvent) {
@@ -121,7 +191,7 @@ function SupportRequestsView() {
                 return next;
             });
         });
-    }, [socket, refresh]);
+    }, [socket]);
 
     const unreadCountFor = useCallback(
         (id: string, fallback: number) => unreadByConv[id] ?? fallback,
@@ -129,16 +199,11 @@ function SupportRequestsView() {
     );
 
     const filteredConversations = useMemo(() => {
-        const q = query.trim().toLowerCase();
         return conversations.filter((c) => {
             if (roleFilter !== "all" && c.peerRole !== roleFilter) return false;
-            if (q) {
-                const haystack = (c.peer.name ?? "").toLowerCase();
-                if (!haystack.includes(q)) return false;
-            }
             return true;
         });
-    }, [conversations, roleFilter, query]);
+    }, [conversations, roleFilter]);
 
     return (
         <div className="flex h-[calc(100vh-3.25rem)] min-h-0">
@@ -153,7 +218,17 @@ function SupportRequestsView() {
                     <h1 className="text-[22px] font-bold tracking-tight">
                         Support Requests
                     </h1>
-                    <SearchInput value={query} onChange={setQuery} />
+                    <AdminSearchBox
+                        value={query}
+                        onChange={setQuery}
+                        results={searchResults}
+                        loading={searchLoading}
+                        open={searchOpen}
+                        initiating={initiating}
+                        wrapperRef={searchWrapperRef}
+                        onSelect={handleSelectUser}
+                        onClose={() => setSearchOpen(false)}
+                    />
                     <RoleFilterTabs
                         value={roleFilter}
                         onChange={setRoleFilter}
@@ -250,30 +325,117 @@ function RoleFilterTabs({
     );
 }
 
-function SearchInput({
+function AdminSearchBox({
     value,
     onChange,
+    results,
+    loading,
+    open,
+    initiating,
+    wrapperRef,
+    onSelect,
+    onClose,
 }: {
     value: string;
     onChange: (v: string) => void;
+    results: UserSearchResult[];
+    loading: boolean;
+    open: boolean;
+    initiating: boolean;
+    wrapperRef: React.RefObject<HTMLDivElement | null>;
+    onSelect: (user: UserSearchResult) => void;
+    onClose: () => void;
 }) {
     return (
-        <label
-            className={cn(
-                "flex items-center gap-2 h-9 px-3 rounded-full",
-                "bg-secondary/60 text-[13px]",
-                "focus-within:ring-2 focus-within:ring-foreground/10",
+        <div ref={wrapperRef} className="relative">
+            <label
+                className={cn(
+                    "flex items-center gap-2 h-9 px-3 rounded-full",
+                    "bg-secondary/60 text-[13px]",
+                    "focus-within:ring-2 focus-within:ring-foreground/10",
+                )}
+            >
+                {loading || initiating ? (
+                    <Loader2 className="h-3.5 w-3.5 text-muted-foreground shrink-0 animate-spin" />
+                ) : (
+                    <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                )}
+                <input
+                    type="search"
+                    value={value}
+                    onChange={(e) => onChange(e.target.value)}
+                    onFocus={() => value.trim() && results.length > 0 && onClose()}
+                    placeholder="Search by name, email, company…"
+                    className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
+                />
+            </label>
+
+            {open && (value.trim().length > 0) && (
+                <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-lg border border-border bg-white shadow-lg overflow-hidden">
+                    {results.length === 0 ? (
+                        <div className="px-4 py-3 text-[12.5px] text-muted-foreground">
+                            No users found.
+                        </div>
+                    ) : (
+                        <ul>
+                            {results.map((u) => (
+                                <li key={u.id}>
+                                    <button
+                                        type="button"
+                                        onMouseDown={(e) => e.preventDefault()}
+                                        onClick={() => onSelect(u)}
+                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-left hover:bg-secondary/50 transition-colors"
+                                    >
+                                        <UserAvatar name={u.name} image={u.image} size={32} />
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-1.5">
+                                                <span className="text-[13px] font-medium truncate">
+                                                    {u.name ?? "Unknown"}
+                                                </span>
+                                                <span className={cn(
+                                                    "shrink-0 inline-flex items-center h-4.5 px-1.5 rounded-full text-[10px] font-medium",
+                                                    u.role === "STUDENT"
+                                                        ? "bg-blue-50 text-blue-600 border border-blue-200"
+                                                        : "bg-orange-50 text-orange-600 border border-orange-200",
+                                                )}>
+                                                    {u.role === "STUDENT" ? "Student" : "Founder"}
+                                                </span>
+                                            </div>
+                                            <div className="text-[11.5px] text-muted-foreground truncate">
+                                                {u.companyName
+                                                    ? `${u.companyName}${u.email ? ` · ${u.email}` : ""}`
+                                                    : (u.email ?? "")}
+                                            </div>
+                                        </div>
+                                        <span className={cn(
+                                            "shrink-0 text-[10.5px] font-medium",
+                                            u.conversationId ? "text-green-600" : "text-muted-foreground",
+                                        )}>
+                                            {u.conversationId ? "Open chat" : "New chat"}
+                                        </span>
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
             )}
-        >
-            <Search className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <input
-                type="search"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder="Search"
-                className="flex-1 bg-transparent outline-none placeholder:text-muted-foreground"
-            />
-        </label>
+        </div>
+    );
+}
+
+function UserAvatar({ name, image, size }: { name: string | null; image: string | null; size: number }) {
+    const initial = (name ?? "U")[0]?.toUpperCase() ?? "U";
+    return (
+        <span className="relative rounded-full overflow-hidden shrink-0 ring-1 ring-border" style={{ width: size, height: size }}>
+            {image ? (
+                <Image src={image} alt={name ?? "user"} fill unoptimized className="object-cover" />
+            ) : (
+                <span className="flex h-full w-full items-center justify-center bg-linear-to-br from-pink-400 to-violet-500 text-white font-semibold" style={{ fontSize: size * 0.35 }}>
+                    {initial}
+                </span>
+            )}
+        </span>
     );
 }
 
