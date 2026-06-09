@@ -2,38 +2,26 @@
 
 import { useState } from "react";
 import { Filter, X } from "lucide-react";
-import { useSearchParams } from "next/navigation";
 import { MobileNavDrawer } from "@/src/components/dashboard/MobileNavDrawer";
-import { ListingsFiltersPanel } from "@/src/components/listings/ListingsFiltersPanel";
+import {
+    MyListingsFilterPanel,
+    countActive,
+    type MyListingsFilters,
+} from "@/src/components/manage-listings/MyListingsFilterPanel";
 import { cn } from "@/src/lib/utils";
 
-const FILTER_PARAMS = [
-    "city",
-    "mode",
-    "skills",
-    "currency",
-    "minSalary",
-    "partTime",
-    "applied",
-] as const;
-
-function countActiveFromParams(sp: URLSearchParams | null): number {
-    if (!sp) return 0;
-    let n = 0;
-    for (const key of FILTER_PARAMS) {
-        const v = sp.get(key);
-        if (v && v.trim()) n++;
-    }
-    // Job titles + custom roles are one logical "role" filter.
-    if (sp.get("jobTitles")?.trim() || sp.get("customRole")?.trim()) n++;
-    return n;
-}
-
-// mobile-only trigger that opens the filters panel inside a right-side drawer
-export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
+// Mobile-only trigger that opens the "My listings" filter panel in a right-side
+// drawer — mirrors the internships browse page. Same controlled filters; no
+// behaviour change, just where the panel lives on small screens.
+export function MyListingsFiltersMobile({
+    filters,
+    onChange,
+}: {
+    filters: MyListingsFilters;
+    onChange: (next: MyListingsFilters) => void;
+}) {
     const [open, setOpen] = useState(false);
-    const sp = useSearchParams();
-    const activeCount = countActiveFromParams(sp);
+    const activeCount = countActive(filters);
 
     return (
         <>
@@ -50,7 +38,7 @@ export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
                 )}
             >
                 <Filter className="h-3.5 w-3.5 text-brand" />
-                Filter results
+                Filters
                 {activeCount > 0 && (
                     <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-md bg-brand text-white text-[10.5px] font-semibold tabular-nums">
                         {activeCount}
@@ -70,11 +58,7 @@ export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
                         : 360,
                 )}
             >
-                <header className="flex items-center justify-between gap-2 h-13 px-4 border-b border-border shrink-0">
-                    <div className="inline-flex items-center gap-2 text-[14px] font-semibold">
-                        <Filter className="h-4 w-4 text-brand" />
-                        Filter results
-                    </div>
+                <div className="flex items-center justify-end h-13 px-3 border-b border-border shrink-0">
                     <button
                         type="button"
                         onClick={() => setOpen(false)}
@@ -83,10 +67,11 @@ export function ListingsFiltersMobile({ basePath }: { basePath: string }) {
                     >
                         <X className="h-4 w-4" />
                     </button>
-                </header>
+                </div>
                 <div className="flex-1 overflow-y-auto p-3">
-                    <ListingsFiltersPanel
-                        basePath={basePath}
+                    <MyListingsFilterPanel
+                        filters={filters}
+                        onChange={onChange}
                         onApplied={() => setOpen(false)}
                     />
                 </div>

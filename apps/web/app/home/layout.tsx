@@ -30,7 +30,10 @@ export default function DashboardLayout({
                         <Suspense fallback={null}>
                             <Topbar />
                         </Suspense>
-                        <main className="flex-1 bg-neutral-50">
+                        {/* Clip stray horizontal overflow on mobile so pages
+                            can't drift sideways; restored to visible at lg so
+                            desktop sticky panels keep working. */}
+                        <main className="flex-1 bg-neutral-50 overflow-x-clip lg:overflow-x-visible">
                             <div className="mx-auto max-w-6xl px-6 pt-4 empty:hidden">
                                 <TakedownBanner />
                             </div>

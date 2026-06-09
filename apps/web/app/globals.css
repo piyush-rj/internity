@@ -143,6 +143,35 @@ body {
   }
 }
 
+/* Pulsing green glow for the "Autofill details" button — draws the eye to the
+   one-click prefill. */
+.autofill-glow {
+  animation: autofill-glow 1.8s ease-in-out infinite;
+}
+
+@keyframes autofill-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(34, 197, 94, 0.15),
+      0 0 5px 0 rgba(34, 197, 94, 0.25);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px rgba(34, 197, 94, 0.12),
+      0 0 14px 2px rgba(34, 197, 94, 0.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .autofill-glow {
+    animation: none;
+    box-shadow:
+      0 0 0 3px rgba(34, 197, 94, 0.12),
+      0 0 8px 0 rgba(34, 197, 94, 0.3);
+  }
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);

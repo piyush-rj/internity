@@ -538,7 +538,7 @@ export const ListingForm = forwardRef(function ListingForm(
                                 onClick={() =>
                                     applyTemplate(matchingTemplate, true)
                                 }
-                                className="h-10 px-3 text-[12.5px] cursor-pointer shrink-0"
+                                className="h-10 px-3 text-[12.5px] cursor-pointer shrink-0 border-green-400 text-green-700 hover:border-green-500 hover:bg-green-50 shadow-sm shadow-green-200"
                                 title={`Replace description, perks, skills, and screening questions with the ${matchingTemplate.label} defaults.`}
                             >
                                 <Wand2 className="h-3.5 w-3.5" />

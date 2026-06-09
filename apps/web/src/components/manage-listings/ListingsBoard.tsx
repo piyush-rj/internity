@@ -11,6 +11,7 @@ import {
     emptyMyListingsFilters,
     type MyListingsFilters,
 } from "@/src/components/manage-listings/MyListingsFilterPanel";
+import { MyListingsFiltersMobile } from "@/src/components/manage-listings/MyListingsFiltersMobile";
 import { useMyListings } from "@/src/hooks/useMyListings";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
 import { cn } from "@/src/lib/utils";
@@ -72,7 +73,8 @@ export function ListingsBoard({
         filters.q.trim().length > 0 ||
         filters.statuses.size > 0 ||
         filters.modes.size > 0 ||
-        filters.jobTitle !== "" ||
+        filters.jobTitles.size > 0 ||
+        filters.customRoles.length > 0 ||
         filters.applicants !== "any";
 
     return (
@@ -150,6 +152,10 @@ export function ListingsBoard({
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
                 <div className="min-w-0 space-y-3">
+                    <MyListingsFiltersMobile
+                        filters={filters}
+                        onChange={setFilters}
+                    />
                     <header className="flex items-center justify-between gap-3 px-1">
                         <div className="text-[13px] font-medium">
                             All listings
@@ -189,7 +195,7 @@ export function ListingsBoard({
                         </ul>
                     )}
                 </div>
-                <aside className="lg:sticky lg:top-20 lg:self-start">
+                <aside className="hidden lg:block lg:sticky lg:top-20 lg:self-start">
                     <MyListingsFilterPanel
                         filters={filters}
                         onChange={setFilters}

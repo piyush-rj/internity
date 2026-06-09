@@ -517,8 +517,8 @@ const COMPANY_LINKS: ReadonlyArray<{
         adminOnly: true,
     },
     { sub: "profile", label: "Company Profile", icon: PiBuildingsFill },
-    { sub: "listings", label: "Listings", icon: PiBriefcaseFill },
-    { sub: "members", label: "Members", icon: PiUsersFill },
+    { sub: "listings", label: "Company Listings", icon: PiBriefcaseFill },
+    { sub: "members", label: "Team Members", icon: PiUsersFill },
     {
         sub: "plans",
         label: "My Plans",

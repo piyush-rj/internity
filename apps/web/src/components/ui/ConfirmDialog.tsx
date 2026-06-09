@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { AlertTriangle, X } from "lucide-react";
 import { Button } from "@/src/components/ui/button";
@@ -9,7 +9,7 @@ import { cn } from "@/src/lib/utils";
 export type ConfirmDialogProps = {
     open: boolean;
     title: string;
-    description?: string;
+    description?: ReactNode;
     confirmLabel?: string;
     cancelLabel?: string;
     variant?: "default" | "destructive";
@@ -93,14 +93,14 @@ export function ConfirmDialog({
                 </header>
 
                 {description && (
-                    <p
+                    <div
                         className={cn(
                             "px-5 pb-4 text-[12.5px] text-muted-foreground leading-relaxed",
                             isDestructive ? "pl-17" : "",
                         )}
                     >
                         {description}
-                    </p>
+                    </div>
                 )}
 
                 <footer className="flex items-center justify-end gap-2 px-5 py-3 border-t border-border">

@@ -163,7 +163,7 @@ export function Topbar() {
                 </button>
                 <nav
                     aria-label="Breadcrumb"
-                    className="flex items-center gap-2 min-w-0"
+                    className="hidden md:flex items-center gap-2 min-w-0"
                 >
                     <button
                         type="button"
@@ -360,8 +360,9 @@ export function Topbar() {
                         {primaryCta && (
                             <Link
                                 href={primaryCta.href}
+                                aria-label={primaryCta.label}
                                 className={cn(
-                                    "hidden sm:inline-flex items-center gap-1.5 h-8.5 px-2.5",
+                                    "inline-flex shrink-0 items-center gap-1.5 h-8.5 px-2.5",
                                     "rounded-md bg-neutral-900",
                                     "text-[12px] font-medium text-white",
                                     "transition-colors",

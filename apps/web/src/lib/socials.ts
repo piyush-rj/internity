@@ -1,5 +1,5 @@
 import type { IconType } from "react-icons";
-import { FaInstagram, FaLinkedin } from "react-icons/fa6";
+import { FaEnvelope, FaInstagram, FaLinkedin } from "react-icons/fa6";
 
 export type SocialLink = {
     label: string;
@@ -19,5 +19,10 @@ export const SOCIAL_LINKS: SocialLink[] = [
         label: "SpiderSkill on Instagram",
         href: "https://www.instagram.com/spiderskill_?igsh=MTB5Z3huOGZ2bjJtdQ==",
         Icon: FaInstagram,
+    },
+    {
+        label: "Email SpiderSkill",
+        href: "mailto:info@spiderskill.com",
+        Icon: FaEnvelope,
     },
 ];

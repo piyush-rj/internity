@@ -34,6 +34,9 @@ const Query = z.object({
     // Comma-separated list of job titles — used by the student's
     // "Recommended internships" feed to match several related roles at once.
     jobTitles: z.string().optional(),
+    // Free-text custom role — OR-combined with jobTitles, matched against the
+    // listing title + custom job-title.
+    customRole: z.string().optional(),
     skills: z.string().optional(),
     minSalary: z.coerce.number().int().optional(),
     currency: z.string().optional(),
@@ -72,16 +75,40 @@ export default async function listListings(
             ],
         };
         if (q.mode) where.mode = q.mode as WorkMode;
-        if (q.jobTitles) {
-            const allowed = new Set<string>(JOB_TITLE_VALUES);
-            const titles = q.jobTitles
-                .split(",")
-                .map((t) => t.trim())
-                .filter((t) => allowed.has(t));
-            if (titles.length > 0) {
-                where.jobTitle = { in: titles as JobTitle[] };
-            }
+
+        // Role filter: predefined titles (jobTitles, may include CUSTOM) and an
+        // optional free-text custom role are OR-combined — a listing shows if
+        // its role is any of the picked titles, OR its title/customJobTitle
+        // matches the typed text. When custom text is present, CUSTOM is
+        // dropped from the plain IN set so the text drives the match (rather
+        // than blanket-matching every custom-role listing).
+        const allowed = new Set<string>(JOB_TITLE_VALUES);
+        const titles = (q.jobTitles ?? "")
+            .split(",")
+            .map((t) => t.trim())
+            .filter((t) => t !== "CUSTOM" && allowed.has(t));
+        // Custom roles are newline-joined free text; each is matched against
+        // the title + customJobTitle.
+        const customRoles = (q.customRole ?? "")
+            .split("\n")
+            .map((t) => t.trim())
+            .filter(Boolean)
+            .slice(0, 20);
+
+        const roleOr: Prisma.ListingWhereInput[] = [];
+        if (titles.length > 0) {
+            roleOr.push({ jobTitle: { in: titles as JobTitle[] } });
+        }
+        for (const role of customRoles) {
+            roleOr.push({ title: { contains: role, mode: "insensitive" } });
+            roleOr.push({
+                customJobTitle: { contains: role, mode: "insensitive" },
+            });
+        }
+        if (roleOr.length > 0) {
+            (where.AND as Prisma.ListingWhereInput[]).push({ OR: roleOr });
         } else if (q.jobTitle) {
+            // Back-compat: legacy single jobTitle param.
             where.jobTitle = q.jobTitle as JobTitle;
         }
         if (q.city) where.city = { contains: q.city, mode: "insensitive" };

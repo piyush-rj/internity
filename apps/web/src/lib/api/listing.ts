@@ -112,6 +112,9 @@ export type ListingListFilters = {
     jobTitle?: JobTitle;
     // Comma-separated job titles (e.g. recommended roles); matches any of them.
     jobTitles?: string;
+    // Free-text custom role; OR-combined with jobTitles, matched against the
+    // listing title + custom job-title.
+    customRole?: string;
     skills?: string;
     minSalary?: number;
     currency?: string;

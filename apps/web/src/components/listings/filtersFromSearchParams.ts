@@ -1,4 +1,4 @@
-import type { JobTitle, ListingListFilters, WorkMode } from "@/src/lib/api";
+import type { ListingListFilters, WorkMode } from "@/src/lib/api";
 
 const JOB_TITLES_LIST = [
     "AI",
@@ -8,9 +8,12 @@ const JOB_TITLES_LIST = [
     "QA",
     "DESIGN",
     "PRODUCT",
+    "RESEARCHER",
     "MARKETING",
     "CONTENT",
+    "VIDEO",
     "SALES",
+    "SOCIAL",
     "DATA",
     "HR",
     "CUSTOM",
@@ -38,10 +41,17 @@ export function filtersFromSearchParams(
         filters.mode = mode as WorkMode;
     }
 
-    const jobTitle = sp.get("jobTitle");
-    if (jobTitle && (JOB_TITLES_LIST as readonly string[]).includes(jobTitle)) {
-        filters.jobTitle = jobTitle as JobTitle;
-    }
+    // Multi-select job titles (comma-separated). Falls back to the legacy
+    // single `jobTitle` param for old URLs. Server matches ANY of them.
+    const jobTitlesRaw = sp.get("jobTitles") ?? sp.get("jobTitle") ?? "";
+    const jobTitles = jobTitlesRaw
+        .split(",")
+        .map((s) => s.trim())
+        .filter((s) => (JOB_TITLES_LIST as readonly string[]).includes(s));
+    if (jobTitles.length > 0) filters.jobTitles = jobTitles.join(",");
+
+    const customRole = sp.get("customRole")?.trim();
+    if (customRole) filters.customRole = customRole;
 
     const skills = sp.get("skills")?.trim();
     if (skills) filters.skills = skills;

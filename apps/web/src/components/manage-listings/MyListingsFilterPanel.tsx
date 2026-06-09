@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { Filter, Search, X } from "lucide-react";
 import type { JobTitle, WorkMode } from "@/src/lib/api";
-import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
+import { JobTitleMultiSelect } from "@/src/components/listings/JobTitleMultiSelect";
 import { cn } from "@/src/lib/utils";
 import type { MyListing } from "@/src/hooks/useMyListings";
 
@@ -49,7 +49,10 @@ export type MyListingsFilters = {
     q: string;
     statuses: Set<MyListingsStatus>;
     modes: Set<WorkMode>;
-    jobTitle: JobTitle | "";
+    // Multiple roles — a listing matching ANY selected title is shown.
+    jobTitles: Set<JobTitle>;
+    // Free-text custom roles, OR-matched against title + custom job-title.
+    customRoles: string[];
     applicants: MyListingsApplicantsFilter;
     sort: MyListingsSortKey;
 };
@@ -59,18 +62,19 @@ export function emptyMyListingsFilters(): MyListingsFilters {
         q: "",
         statuses: new Set<MyListingsStatus>(),
         modes: new Set<WorkMode>(),
-        jobTitle: "",
+        jobTitles: new Set<JobTitle>(),
+        customRoles: [],
         applicants: "any",
         sort: "created_desc",
     };
 }
 
-function countActive(f: MyListingsFilters): number {
+export function countActive(f: MyListingsFilters): number {
     let n = 0;
     if (f.q.trim()) n++;
     if (f.statuses.size > 0) n++;
     if (f.modes.size > 0) n++;
-    if (f.jobTitle) n++;
+    if (f.jobTitles.size > 0 || f.customRoles.length > 0) n++;
     if (f.applicants !== "any") n++;
     return n;
 }
@@ -111,8 +115,26 @@ export function MyListingsFilterPanel({
             return { ...d, modes: next };
         });
     }
-    function setJobTitle(v: JobTitle | "") {
-        setDraft((d) => ({ ...d, jobTitle: v }));
+    function toggleJobTitle(v: JobTitle) {
+        setDraft((d) => {
+            const next = new Set(d.jobTitles);
+            if (next.has(v)) next.delete(v);
+            else next.add(v);
+            return { ...d, jobTitles: next };
+        });
+    }
+    function addCustomRole(text: string) {
+        setDraft((d) =>
+            d.customRoles.some((r) => r.toLowerCase() === text.toLowerCase())
+                ? d
+                : { ...d, customRoles: [...d.customRoles, text] },
+        );
+    }
+    function removeCustomRole(text: string) {
+        setDraft((d) => ({
+            ...d,
+            customRoles: d.customRoles.filter((r) => r !== text),
+        }));
     }
     function setApplicants(v: MyListingsApplicantsFilter) {
         setDraft((d) => ({ ...d, applicants: v }));
@@ -198,24 +220,14 @@ export function MyListingsFilterPanel({
                 </Field>
 
                 <Field label="Role">
-                    <select
-                        value={draft.jobTitle}
-                        onChange={(e) =>
-                            setJobTitle(e.target.value as JobTitle | "")
-                        }
-                        className={cn(
-                            inputCls,
-                            "appearance-none pr-8 cursor-pointer",
-                        )}
-                    >
-                        <option value="">Any role</option>
-                        {JOB_TITLES.map((o) => (
-                            <option key={o.value} value={o.value}>
-                                {o.label}
-                            </option>
-                        ))}
-                        <option value="CUSTOM">Other / Custom</option>
-                    </select>
+                    <JobTitleMultiSelect
+                        inputClassName={inputCls}
+                        selected={[...draft.jobTitles]}
+                        onToggle={toggleJobTitle}
+                        customRoles={draft.customRoles}
+                        onAddCustomRole={addCustomRole}
+                        onRemoveCustomRole={removeCustomRole}
+                    />
                 </Field>
 
                 <Field label="Status">
@@ -294,7 +306,20 @@ export function applyMyListingsFilters(
             if (!filters.statuses.has(s)) return false;
         }
         if (filters.modes.size > 0 && !filters.modes.has(it.mode)) return false;
-        if (filters.jobTitle && it.jobTitle !== filters.jobTitle) return false;
+
+        // Role filter: predefined titles + free-text custom roles, OR-combined.
+        const customRoles = filters.customRoles
+            .map((r) => r.trim().toLowerCase())
+            .filter(Boolean);
+        if (filters.jobTitles.size > 0 || customRoles.length > 0) {
+            const matchesRole =
+                it.jobTitle != null && filters.jobTitles.has(it.jobTitle);
+            const hay = [it.title, it.customJobTitle ?? ""]
+                .join(" ")
+                .toLowerCase();
+            const matchesCustom = customRoles.some((r) => hay.includes(r));
+            if (!matchesRole && !matchesCustom) return false;
+        }
         const applicants = it._count?.applications ?? 0;
         if (filters.applicants === "with" && applicants === 0) return false;
         if (filters.applicants === "without" && applicants > 0) return false;

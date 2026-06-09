@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { AlertTriangle, ChevronRight, Pencil, Trash2 } from "lucide-react";
+import {
+    AlertTriangle,
+    ChevronRight,
+    Pencil,
+    Trash2,
+    Users,
+} from "lucide-react";
 import {
     PiBriefcase,
     PiClock,
@@ -266,9 +272,32 @@ export function MyListingCard({
                             <Button
                                 type="button"
                                 variant="exec-light"
-                                onClick={() =>
-                                    run("pause", () => onPause(listing.id))
-                                }
+                                onClick={async () => {
+                                    const ok = await confirm({
+                                        title: `Pause hiring for "${formatListingTitle(listing.title)}"?`,
+                                        description: (
+                                            <>
+                                                <p>
+                                                    This listing will be hidden
+                                                    from students and stop
+                                                    receiving new applications.
+                                                    You can unpause it anytime.
+                                                </p>
+                                                {applicants > 0 && (
+                                                    <ApplicantImpactNote
+                                                        applicants={applicants}
+                                                        note="Their applications stay intact — only new applications are paused."
+                                                    />
+                                                )}
+                                            </>
+                                        ),
+                                        confirmLabel: "Pause hiring",
+                                    });
+                                    if (ok)
+                                        run("pause", () =>
+                                            onPause(listing.id),
+                                        );
+                                }}
                                 disabled={!!busy}
                                 className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                             >
@@ -277,9 +306,33 @@ export function MyListingCard({
                             <Button
                                 type="button"
                                 variant="exec-light"
-                                onClick={() =>
-                                    run("close", () => onClose(listing.id))
-                                }
+                                onClick={async () => {
+                                    const ok = await confirm({
+                                        title: `Close "${formatListingTitle(listing.title)}"?`,
+                                        description: (
+                                            <>
+                                                <p>
+                                                    Closing stops new
+                                                    applications and removes
+                                                    this listing from public
+                                                    browse. You can reopen it
+                                                    later.
+                                                </p>
+                                                {applicants > 0 && (
+                                                    <ApplicantImpactNote
+                                                        applicants={applicants}
+                                                        note="Their applications stay intact — closing only stops new ones."
+                                                    />
+                                                )}
+                                            </>
+                                        ),
+                                        confirmLabel: "Close listing",
+                                    });
+                                    if (ok)
+                                        run("close", () =>
+                                            onClose(listing.id),
+                                        );
+                                }}
                                 disabled={!!busy}
                                 className="h-9 px-3.5 text-[12.5px] rounded-md cursor-pointer"
                             >
@@ -315,6 +368,30 @@ export function MyListingCard({
             )}
             <ConfirmDialog {...dialogProps} />
         </article>
+    );
+}
+
+// Highlighted callout inside Pause/Close confirmations, surfacing how many
+// applicants the listing has and reassuring that their applications persist.
+function ApplicantImpactNote({
+    applicants,
+    note,
+}: {
+    applicants: number;
+    note: string;
+}) {
+    return (
+        <div className="mt-3 flex items-start gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-[12px] text-amber-900">
+            <Users className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+            <span>
+                This listing has{" "}
+                <strong className="font-semibold">
+                    {applicants}{" "}
+                    {applicants === 1 ? "applicant" : "applicants"}
+                </strong>
+                . {note}
+            </span>
+        </div>
     );
 }
 

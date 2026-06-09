@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Filter, Search, X } from "lucide-react";
 import { CityCombobox } from "@/src/components/ui/CityCombobox";
 import { TagsInput } from "@/src/components/ui/TagsInput";
+import { JobTitleMultiSelect } from "@/src/components/listings/JobTitleMultiSelect";
 import type { JobTitle } from "@/src/lib/api";
 import { JOB_TITLES } from "@/src/lib/catalog/jobTitles";
 import { skillSuggestions } from "@/src/lib/catalog/skills";
@@ -15,10 +16,12 @@ type AppliedFilter = "" | "applied" | "not_applied";
 type Filters = {
     city: string;
     remote: boolean;
-    jobTitle: JobTitle | "";
-    // Free-text role name, only used when jobTitle === "CUSTOM". Sent as the
-    // `q` param, which the server matches against title + customJobTitle.
-    customJobTitle: string;
+    // Multiple job titles — listings matching ANY of them are shown. Sent as a
+    // comma-separated `jobTitles` param.
+    jobTitles: JobTitle[];
+    // Free-text custom roles (newline-joined into the `customRole` param). Each
+    // is OR-matched against the listing title + custom job-title.
+    customRoles: string[];
     skills: string[];
     currency: string;
     minSalary: string;
@@ -29,8 +32,8 @@ type Filters = {
 const EMPTY: Filters = {
     city: "",
     remote: false,
-    jobTitle: "",
-    customJobTitle: "",
+    jobTitles: [],
+    customRoles: [],
     skills: [],
     currency: "",
     minSalary: "",
@@ -50,10 +53,31 @@ const JOB_TITLE_VALUES = new Set<JobTitle>([
     "CUSTOM",
 ]);
 
+function parseJobTitles(sp: URLSearchParams): JobTitle[] {
+    // Prefer the multi `jobTitles` param; fall back to the legacy single
+    // `jobTitle` so old shared/bookmarked URLs still work. CUSTOM is excluded —
+    // custom roles are free text now (the `customRole` param).
+    const raw = sp.get("jobTitles") ?? sp.get("jobTitle") ?? "";
+    return raw
+        .split(",")
+        .map((s) => s.trim())
+        .filter(
+            (s): s is JobTitle =>
+                s !== "CUSTOM" && JOB_TITLE_VALUES.has(s as JobTitle),
+        );
+}
+
+function parseCustomRoles(sp: URLSearchParams): string[] {
+    // Newline-joined in the URL (role text is single-line, so it never
+    // contains a newline — safe, unlike comma).
+    return (sp.get("customRole") ?? "")
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean);
+}
+
 function fromParams(sp: URLSearchParams | null): Filters {
     if (!sp) return EMPTY;
-    const jt = sp.get("jobTitle") as JobTitle | null;
-    const validJt = jt && JOB_TITLE_VALUES.has(jt) ? jt : "";
     const appliedRaw = sp.get("applied");
     const applied: AppliedFilter =
         appliedRaw === "applied" || appliedRaw === "not_applied"
@@ -62,8 +86,8 @@ function fromParams(sp: URLSearchParams | null): Filters {
     return {
         city: sp.get("city") ?? "",
         remote: sp.get("mode") === "REMOTE",
-        jobTitle: validJt,
-        customJobTitle: validJt === "CUSTOM" ? (sp.get("q") ?? "") : "",
+        jobTitles: parseJobTitles(sp),
+        customRoles: parseCustomRoles(sp),
         skills: (sp.get("skills") ?? "")
             .split(",")
             .map((s) => s.trim())
@@ -79,9 +103,9 @@ function toQueryString(f: Filters): string {
     const params = new URLSearchParams();
     if (f.city.trim()) params.set("city", f.city.trim());
     if (f.remote) params.set("mode", "REMOTE");
-    if (f.jobTitle) params.set("jobTitle", f.jobTitle);
-    if (f.jobTitle === "CUSTOM" && f.customJobTitle.trim()) {
-        params.set("q", f.customJobTitle.trim());
+    if (f.jobTitles.length > 0) params.set("jobTitles", f.jobTitles.join(","));
+    if (f.customRoles.length > 0) {
+        params.set("customRole", f.customRoles.join("\n"));
     }
     if (f.skills.length > 0) params.set("skills", f.skills.join(","));
     if (f.currency) params.set("currency", f.currency);
@@ -95,13 +119,19 @@ function countActive(f: Filters): number {
     let n = 0;
     if (f.city.trim()) n++;
     if (f.remote) n++;
-    if (f.jobTitle) n++;
+    if (f.jobTitles.length > 0 || f.customRoles.length > 0) n++;
     if (f.skills.length > 0) n++;
     if (f.currency) n++;
     if (f.minSalary.trim()) n++;
     if (f.partTime) n++;
     if (f.applied) n++;
     return n;
+}
+
+// Skill suggestions key off a single predefined role; use the first selected
+// non-custom title (CUSTOM has no suggestion set).
+function firstPredefinedJobTitle(titles: JobTitle[]): JobTitle | null {
+    return titles.find((t) => t !== "CUSTOM") ?? null;
 }
 
 // vertical filter sidebar for the listings browse page. Selections are held
@@ -186,54 +216,55 @@ export function ListingsFiltersPanel({
                     </select>
                 </Field>
 
-                <Field label="Job title">
-                    <select
-                        value={filters.jobTitle}
-                        onChange={(e) =>
-                            set("jobTitle", e.target.value as JobTitle | "")
+                <Field label="Job titles" hint="Pick one or more">
+                    <JobTitleMultiSelect
+                        inputClassName={inputCls}
+                        selected={filters.jobTitles}
+                        onToggle={(value) =>
+                            set(
+                                "jobTitles",
+                                filters.jobTitles.includes(value)
+                                    ? filters.jobTitles.filter(
+                                          (j) => j !== value,
+                                      )
+                                    : [...filters.jobTitles, value],
+                            )
                         }
-                        className={cn(
-                            inputCls,
-                            "appearance-none pr-8 cursor-pointer",
-                        )}
-                    >
-                        <option value="">Any title</option>
-                        {JOB_TITLES.map((o) => (
-                            <option key={o.value} value={o.value}>
-                                {o.label}
-                            </option>
-                        ))}
-                        <option value="CUSTOM">Other / Custom</option>
-                    </select>
-                    {filters.jobTitle === "CUSTOM" && (
-                        <input
-                            type="text"
-                            value={filters.customJobTitle}
-                            onChange={(e) =>
-                                set("customJobTitle", e.target.value)
-                            }
-                            onKeyDown={(e) => {
-                                if (e.key === "Enter") applyNow();
-                            }}
-                            placeholder="Type the role, e.g. Robotics Intern"
-                            className={cn(inputCls, "mt-2")}
-                            autoFocus
-                        />
-                    )}
+                        customRoles={filters.customRoles}
+                        onAddCustomRole={(text) =>
+                            set(
+                                "customRoles",
+                                filters.customRoles.some(
+                                    (r) =>
+                                        r.toLowerCase() === text.toLowerCase(),
+                                )
+                                    ? filters.customRoles
+                                    : [...filters.customRoles, text],
+                            )
+                        }
+                        onRemoveCustomRole={(text) =>
+                            set(
+                                "customRoles",
+                                filters.customRoles.filter((r) => r !== text),
+                            )
+                        }
+                    />
                 </Field>
 
                 <Field
                     label="Skills"
                     hint={
-                        filters.jobTitle && filters.jobTitle !== "CUSTOM"
-                            ? "Suggested for the picked job title — type to add your own."
+                        firstPredefinedJobTitle(filters.jobTitles)
+                            ? "Suggested for the picked job titles — type to add your own."
                             : "Type to add, press Enter."
                     }
                 >
                     <TagsInput
                         value={filters.skills}
                         onChange={(v) => set("skills", v)}
-                        suggestions={skillSuggestions(filters.jobTitle || null)}
+                        suggestions={skillSuggestions(
+                            firstPredefinedJobTitle(filters.jobTitles),
+                        )}
                         placeholder="React, Figma…"
                     />
                 </Field>

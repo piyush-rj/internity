@@ -1,34 +1,60 @@
-import { SocialLinks } from "@/src/components/base/SocialLinks";
-import { cn } from "@/src/lib/utils";
+import {
+    Briefcase,
+    Building2,
+    GraduationCap,
+    Headphones,
+    ShieldCheck,
+    type LucideIcon,
+} from "lucide-react";
 import Image from "next/image";
+import { SocialLinks } from "@/src/components/base/SocialLinks";
+import { FooterSkyline } from "@/src/components/base/FooterSkyline";
 
 type FooterLink = { label: string; href: string };
+type FooterColumn = { heading: string; Icon: LucideIcon; links: FooterLink[] };
 
-export function Footer() {
-    const cols: Record<string, FooterLink[]> = {
-        "For students": [
+const COLUMNS: FooterColumn[] = [
+    {
+        heading: "For students",
+        Icon: GraduationCap,
+        links: [
             { label: "Internships", href: "/home/internships" },
             { label: "Interview questions", href: "/interview-questions" },
             { label: "Student FAQ's", href: "/faq" },
         ],
-        "For employers": [
+    },
+    {
+        heading: "For employers",
+        Icon: Briefcase,
+        links: [
             // Posting requires an account — middleware sends signed-out
             // visitors through the sign-in flow.
             { label: "Post an internship", href: "/home/manage-listings/new" },
             { label: "Hire interns for your company", href: "/for-employers" },
             { label: "Employer FAQ's", href: "/faq/employers" },
         ],
-        Company: [
+    },
+    {
+        heading: "Company",
+        Icon: Building2,
+        links: [
             { label: "About us", href: "/about" },
             { label: "Contact", href: "/contact" },
             { label: "Collaborate with us", href: "/collaborate" },
         ],
-        Help: [
+    },
+    {
+        heading: "Help",
+        Icon: Headphones,
+        links: [
             { label: "Privacy and policy", href: "/privacy" },
             { label: "Terms and conditions", href: "/terms" },
             { label: "Report a problem", href: "/contact" },
         ],
-    };
+    },
+];
+
+export function Footer() {
     return (
         <footer className="border-t border-black/6 pt-10 sm:pt-14 pb-6">
             <div className="mx-auto max-w-6xl px-4 sm:px-6">
@@ -54,10 +80,13 @@ export function Footer() {
                         </p>
                         <SocialLinks className="mt-4" />
                     </div>
-                    {Object.entries(cols).map(([heading, links]) => (
+                    {COLUMNS.map(({ heading, Icon, links }) => (
                         <div key={heading}>
-                            <div className="text-[12px] font-medium text-foreground mb-3">
-                                {heading}
+                            <div className="flex items-center gap-2 mb-3">
+                                <Icon className="h-4 w-4 text-orange-500" />
+                                <span className="text-[13px] font-semibold text-foreground">
+                                    {heading}
+                                </span>
                             </div>
                             <ul className="space-y-2">
                                 {links.map((l) => (
@@ -74,21 +103,16 @@ export function Footer() {
                         </div>
                     ))}
                 </div>
-                <div
-                    className={cn(
-                        "mt-10 sm:mt-12 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-0 -mx-4 sm:-mx-6 px-4 sm:px-6",
-                        "border-t border-black/6 pt-6",
-                        "text-[12px] text-muted-foreground",
-                    )}
-                >
-                    <div>© {new Date().getFullYear()} SpiderSkill</div>
-                    <div className="flex items-center gap-4">
-                        <a href="/privacy" className="hover:text-foreground">
-                            Privacy
-                        </a>
-                        <a href="/terms" className="hover:text-foreground">
-                            Terms
-                        </a>
+                <div className="mt-10 sm:mt-12 -mx-4 sm:-mx-6 px-4 sm:px-6 border-t border-black/6 pt-6">
+                    <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 text-[12px] text-muted-foreground">
+                            <ShieldCheck className="h-4 w-4 text-orange-500 shrink-0" />
+                            <span>
+                                © {new Date().getFullYear()} SpiderSkill. All
+                                rights reserved.
+                            </span>
+                        </div>
+                        <FooterSkyline className="hidden sm:block h-14 w-auto shrink-0" />
                     </div>
                 </div>
             </div>
