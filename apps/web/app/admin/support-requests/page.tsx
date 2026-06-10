@@ -98,17 +98,49 @@ function SupportRequestsView() {
         return () => document.removeEventListener("mousedown", onDocClick);
     }, []);
 
+    function injectConversation(convId: string, user: UserSearchResult) {
+        setConversations((prev) => {
+            if (prev.some((c) => c.id === convId)) return prev;
+            const synthetic: ConversationListItem = {
+                id: convId,
+                isAdminThread: true,
+                applicationId: null,
+                applicationStatus: null,
+                listingId: null,
+                listingTitle: null,
+                companyName: user.companyName,
+                otherRolesCount: 0,
+                peer: {
+                    id: user.id,
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                    isOnline: false,
+                    lastSeenAt: null,
+                    deletedAt: null,
+                },
+                lastMessageAt: new Date().toISOString(),
+                lastMessagePreview: null,
+                unreadCount: 0,
+                peerLastReadAt: null,
+                peerRole: user.role,
+            };
+            return [synthetic, ...prev];
+        });
+    }
+
     async function handleSelectUser(user: UserSearchResult) {
         setSearchOpen(false);
         setQuery("");
         if (user.conversationId) {
+            injectConversation(user.conversationId, user);
             setActiveId(user.conversationId);
             return;
         }
         setInitiating(true);
         try {
             const { id } = await chatApi.admin_initiate_conversation(user.id);
-            refresh();
+            injectConversation(id, user);
             setActiveId(id);
         } catch {
             // ignore
@@ -127,11 +159,6 @@ function SupportRequestsView() {
                     (c) => c.isAdminThread && c.lastMessagePreview !== null,
                 );
                 setConversations(adminRows);
-                setActiveId((curr) => {
-                    if (curr && adminRows.some((c) => c.id === curr))
-                        return curr;
-                    return null;
-                });
             })
             .catch((err) => {
                 setError(
@@ -147,12 +174,11 @@ function SupportRequestsView() {
         refresh();
     }, []);
 
-    // sync activeId on same-page navigation
+    // sync activeId on same-page navigation (no refresh — initial load covers it)
     useEffect(() => {
         if (requestedId) {
             // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveId(requestedId);
-            refresh();
         }
     }, [requestedId]);
 
@@ -284,6 +310,7 @@ function SupportRequestsView() {
                         }
                         socket={socket}
                         onBack={() => setActiveId(null)}
+                        isAdminView
                     />
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 text-center">
@@ -381,7 +408,7 @@ function AdminSearchBox({
             </label>
 
             {open && value.trim().length > 0 && (
-                <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-lg border border-border bg-white shadow-lg overflow-hidden">
+                <div className="absolute top-full mt-1 left-0 right-0 z-50 rounded-lg border border-border bg-white shadow-lg overflow-hidden max-h-72 overflow-y-auto">
                     {results.length === 0 ? (
                         <div className="px-4 py-3 text-[12.5px] text-muted-foreground">
                             No users found.
@@ -584,6 +611,11 @@ function SupportConversationRow({
                                 {formatRelative(item.lastMessageAt)}
                             </span>
                         </div>
+                        {!isDeleted && item.companyName && (
+                            <div className="text-[11.5px] text-muted-foreground truncate -mt-0.5">
+                                {item.companyName}
+                            </div>
+                        )}
                         <div className="mt-1 flex items-center gap-2">
                             {item.lastMessagePreview ? (
                                 <div

@@ -12,9 +12,11 @@ const ADMIN_PEER_ID = "SPIDERSKILL_ADMIN";
 export function ConversationHeader({
     peer,
     onBack,
+    contextSubtitle = null,
 }: {
     peer: ConversationPeer | null;
     onBack?: () => void;
+    contextSubtitle?: string | null;
 }) {
     const livePresence = usePresenceStore((s) =>
         peer ? s.presenceByUser[peer.id] : undefined,
@@ -39,7 +41,7 @@ export function ConversationHeader({
     const isDeleted = !!peer.deletedAt;
     const isAdminPeer = peer.id === ADMIN_PEER_ID;
     return (
-        <header className="h-15 px-4 flex items-center gap-3 border-b border-border bg-white shrink-0">
+        <header className="min-h-15 px-4 py-2 flex items-center gap-3 border-b border-border bg-white shrink-0">
             {onBack && <BackButton onClick={onBack} />}
             <ChatAvatar
                 name={isDeleted ? "?" : peer.name}
@@ -67,6 +69,11 @@ export function ConversationHeader({
                             : (peer.name ?? "Unknown")}
                     </div>
                 </div>
+                {!isDeleted && !isAdminPeer && contextSubtitle && (
+                    <div className="text-[11px] leading-tight text-muted-foreground truncate">
+                        {contextSubtitle}
+                    </div>
+                )}
                 {isDeleted ? (
                     <div className="text-[11px] leading-tight text-muted-foreground truncate">
                         This person deleted their account

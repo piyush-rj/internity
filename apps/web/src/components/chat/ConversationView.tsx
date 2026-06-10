@@ -28,11 +28,13 @@ export function ConversationView({
     conversation,
     socket,
     onBack,
+    isAdminView = false,
 }: {
     conversationId: string;
     conversation: ConversationListItem | null;
     socket: ChatSocket;
     onBack?: () => void;
+    isAdminView?: boolean;
 }) {
     const meId = useMeStore((s) => s.me?.id ?? null);
     const meRole = useMeStore((s) => s.me?.role ?? null);
@@ -212,9 +214,18 @@ export function ConversationView({
             ? `/student/${peer.id}`
             : null;
 
+    const headerContextSubtitle =
+        !isAdminView && meRole !== "ADMIN"
+            ? buildPeerSubtitle({
+                  listingTitle: conversation?.listingTitle ?? null,
+                  companyName: conversation?.companyName ?? null,
+                  otherRolesCount: conversation?.otherRolesCount ?? 0,
+              })
+            : null;
+
     return (
         <div className="flex flex-col h-full min-h-0 bg-neutral-50">
-            <ConversationHeader peer={peer} onBack={onBack} />
+            <ConversationHeader peer={peer} onBack={onBack} contextSubtitle={headerContextSubtitle} />
 
             <div ref={scrollRef} className="flex-1 overflow-y-auto">
                 <PeerProfileCard
@@ -225,6 +236,7 @@ export function ConversationView({
                         otherRolesCount: conversation?.otherRolesCount ?? 0,
                     })}
                     viewProfileHref={viewProfileHref}
+                    isAdminView={isAdminView || meRole === "ADMIN"}
                 />
 
                 <div className="px-5 pb-4">

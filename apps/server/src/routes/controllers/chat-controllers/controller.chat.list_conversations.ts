@@ -50,6 +50,10 @@ export default async function listConversations(
                     isOnline: true,
                     lastSeenAt: true,
                     deletedAt: true,
+                    companyMemberships: {
+                        take: 1,
+                        select: { company: { select: { name: true } } },
+                    },
                 },
             },
             recruiter: {
@@ -132,6 +136,10 @@ export default async function listConversations(
                           ?.lastReadAt ?? null)
                     : null;
 
+                const peerCompanyName = isAdmin
+                    ? (c.student.companyMemberships[0]?.company.name ?? null)
+                    : null;
+
                 return {
                     id: c.id,
                     isAdminThread: true,
@@ -139,7 +147,7 @@ export default async function listConversations(
                     applicationStatus: null,
                     listingId: null,
                     listingTitle: null,
-                    companyName: null,
+                    companyName: peerCompanyName,
                     otherRolesCount: 0,
                     peer,
                     peerRole: isAdmin ? (c.student.role as string) : null,

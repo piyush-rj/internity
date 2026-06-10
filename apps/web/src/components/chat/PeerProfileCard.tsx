@@ -10,10 +10,12 @@ export function PeerProfileCard({
     peer,
     subtitle,
     viewProfileHref,
+    isAdminView = false,
 }: {
     peer: ConversationPeer | null;
     subtitle: string | null;
     viewProfileHref: string | null;
+    isAdminView?: boolean;
 }) {
     if (!peer) return null;
     const isDeleted = !!peer.deletedAt;
@@ -40,6 +42,11 @@ export function PeerProfileCard({
             >
                 {isDeleted ? "Deleted account" : (peer.name ?? "Unknown")}
             </h2>
+            {isAdminView && !isDeleted && !isAdminPeer && peer.email && (
+                <p className="mt-0.5 text-[12px] text-muted-foreground">
+                    {peer.email}
+                </p>
+            )}
             {isDeleted ? (
                 <p className="mt-0.5 text-[12px] text-muted-foreground">
                     This person deleted their account. Their messages stay on
