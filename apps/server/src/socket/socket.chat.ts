@@ -185,13 +185,7 @@ export class ChatSocket {
             baseParticipants.includes(ws.user.id) ||
             (isAdmin && conv.isAdminThread);
 
-        const isParticipant =
-            isDirectParticipant ||
-            (!conv.isAdminThread &&
-                (await SocketDbService.isCompanyCoMember(
-                    ws.user.id,
-                    conv.recruiterId,
-                )));
+        const isParticipant = isDirectParticipant;
 
         if (!isParticipant) {
             ws.send({
@@ -271,14 +265,7 @@ export class ChatSocket {
 
         const isAdminEdit = ws.user.role === "ADMIN" && conv.isAdminThread;
         const editParticipants = this.participantIds(conv);
-        const canEdit =
-            editParticipants.includes(ws.user.id) ||
-            isAdminEdit ||
-            (!conv.isAdminThread &&
-                (await SocketDbService.isCompanyCoMember(
-                    ws.user.id,
-                    conv.recruiterId,
-                )));
+        const canEdit = editParticipants.includes(ws.user.id) || isAdminEdit;
         if (!canEdit) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
@@ -364,13 +351,7 @@ export class ChatSocket {
         const isAdminMarkRead = ws.user.role === "ADMIN" && conv.isAdminThread;
         const readParticipants = this.participantIds(conv);
         const canMarkRead =
-            readParticipants.includes(ws.user.id) ||
-            isAdminMarkRead ||
-            (!conv.isAdminThread &&
-                (await SocketDbService.isCompanyCoMember(
-                    ws.user.id,
-                    conv.recruiterId,
-                )));
+            readParticipants.includes(ws.user.id) || isAdminMarkRead;
         if (!canMarkRead) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,

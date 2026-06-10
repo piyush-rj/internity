@@ -32,18 +32,7 @@ export default async function markConversationRead(
     const isParticipant =
         conv.studentId === userId || conv.recruiterId === userId;
 
-    let canAccess = isParticipant || (isAdmin && conv.isAdminThread);
-    if (!canAccess && !conv.isAdminThread) {
-        const shared = await prisma.companyMember.findFirst({
-            where: {
-                userId,
-                company: {
-                    members: { some: { userId: conv.recruiterId } },
-                },
-            },
-        });
-        canAccess = !!shared;
-    }
+    const canAccess = isParticipant || (isAdmin && conv.isAdminThread);
     if (!canAccess) throw new Forbidden("Not a participant");
 
     const now = new Date();

@@ -21,13 +21,6 @@ export default async function listConversations(
     const userId = req.user!.id;
     const isAdmin = req.user!.role === "ADMIN";
 
-    // Company members can see all conversations belonging to their company's listings
-    const userCompanyIds = isAdmin
-        ? []
-        : await prisma.companyMember
-              .findMany({ where: { userId }, select: { companyId: true } })
-              .then((rows) => rows.map((r) => r.companyId));
-
     const conversations = await prisma.conversation.findMany({
         where: isAdmin
             ? // Admins see all admin threads plus any regular threads they're in
@@ -38,28 +31,11 @@ export default async function listConversations(
                       { recruiterId: userId },
                   ],
               }
-            : {
-                  OR: [
-                      { studentId: userId },
-                      { recruiterId: userId },
-                      // Co-members: conversations where the recruiter shares a company
-                      ...(userCompanyIds.length > 0
-                          ? [
-                                {
-                                    isAdminThread: false,
-                                    recruiter: {
-                                        companyMemberships: {
-                                            some: {
-                                                companyId: {
-                                                    in: userCompanyIds,
-                                                },
-                                            },
-                                        },
-                                    },
-                                },
-                            ]
-                          : []),
-                  ],
+            : // Everyone else only sees conversations they are a direct participant in.
+              // Co-member visibility via company membership is intentionally removed:
+              // each person has their own separate thread with a student.
+              {
+                  OR: [{ studentId: userId }, { recruiterId: userId }],
               },
         orderBy: { lastMessageAt: "desc" },
         select: {
@@ -100,20 +76,6 @@ export default async function listConversations(
                 take: 1,
                 orderBy: { createdAt: "desc" },
                 select: { body: true },
-            },
-            applications: {
-                orderBy: { appliedAt: "desc" },
-                select: {
-                    id: true,
-                    status: true,
-                    listing: {
-                        select: {
-                            id: true,
-                            title: true,
-                            company: { select: { name: true } },
-                        },
-                    },
-                },
             },
             reads: {
                 select: { userId: true, lastReadAt: true },
@@ -196,14 +158,40 @@ export default async function listConversations(
             const peerLastRead =
                 c.reads.find((r) => r.userId === peer.id)?.lastReadAt ?? null;
 
-            const primary = c.applications[0]?.listing ?? null;
-            const otherRolesCount = Math.max(0, c.applications.length - 1);
+            // Look up applications by (studentId + recruiter's company) so
+            // the listing info shows correctly regardless of which team member
+            // started the conversation (each person has their own thread).
+            const apps = await prisma.application.findMany({
+                where: {
+                    studentId: c.studentId,
+                    listing: {
+                        company: {
+                            members: { some: { userId: c.recruiterId } },
+                        },
+                    },
+                },
+                orderBy: { appliedAt: "desc" },
+                select: {
+                    id: true,
+                    status: true,
+                    listing: {
+                        select: {
+                            id: true,
+                            title: true,
+                            company: { select: { name: true } },
+                        },
+                    },
+                },
+            });
+
+            const primary = apps[0]?.listing ?? null;
+            const otherRolesCount = Math.max(0, apps.length - 1);
 
             return {
                 id: c.id,
                 isAdminThread: false,
-                applicationId: c.applications[0]?.id ?? null,
-                applicationStatus: c.applications[0]?.status ?? null,
+                applicationId: apps[0]?.id ?? null,
+                applicationStatus: apps[0]?.status ?? null,
                 listingId: primary?.id ?? null,
                 listingTitle: primary?.title ?? null,
                 companyName: primary?.company.name ?? null,

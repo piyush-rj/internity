@@ -29,19 +29,7 @@ export default async function listMessages(
         const isParticipant =
             conv.studentId === userId || conv.recruiterId === userId;
 
-        let canAccess = isParticipant || (isAdmin && conv.isAdminThread);
-        if (!canAccess && !conv.isAdminThread) {
-            // Allow company co-members of the recruiter (e.g. team members viewing applicant chats)
-            const shared = await prisma.companyMember.findFirst({
-                where: {
-                    userId,
-                    company: {
-                        members: { some: { userId: conv.recruiterId } },
-                    },
-                },
-            });
-            canAccess = !!shared;
-        }
+        const canAccess = isParticipant || (isAdmin && conv.isAdminThread);
         if (!canAccess) {
             throw new Forbidden("Not a participant in this conversation");
         }

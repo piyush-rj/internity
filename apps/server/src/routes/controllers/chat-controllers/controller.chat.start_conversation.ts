@@ -48,7 +48,10 @@ export default async function startConversation(
         }
 
         const studentId = application.studentId;
-        const recruiterId = application.listing.postedById;
+        // Each team member gets their own separate thread with the student.
+        // Using postedById here would collapse all team member chats into the
+        // original poster's thread and mix messages between people.
+        const recruiterId = req.user!.id;
 
         const conversation = await prisma.conversation.upsert({
             where: { studentId_recruiterId: { studentId, recruiterId } },

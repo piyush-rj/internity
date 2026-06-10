@@ -49,20 +49,6 @@ export class SocketDbService {
         return Array.from(ids);
     }
 
-    // Returns true if userId shares a company with recruiterId (team member access)
-    static async isCompanyCoMember(
-        userId: string,
-        recruiterId: string,
-    ): Promise<boolean> {
-        const shared = await prisma.companyMember.findFirst({
-            where: {
-                userId,
-                company: { members: { some: { userId: recruiterId } } },
-            },
-        });
-        return !!shared;
-    }
-
     static createMessage(
         conversationId: string,
         senderId: string,
