@@ -189,12 +189,18 @@ function NoMatches() {
     );
 }
 
-function isFreeListingExpired(expiresAt: string | null, used: boolean): boolean {
+function isFreeListingExpired(
+    expiresAt: string | null,
+    used: boolean,
+): boolean {
     if (used || !expiresAt) return false;
     return new Date(expiresAt).getTime() <= Date.now();
 }
 
-function getFreeListingExpiryLabel(expiresAt: string | null, used: boolean): string | null {
+function getFreeListingExpiryLabel(
+    expiresAt: string | null,
+    used: boolean,
+): string | null {
     if (used || !expiresAt) return null;
     const msLeft = new Date(expiresAt).getTime() - Date.now();
     if (msLeft <= 0) return null;
@@ -214,7 +220,10 @@ function FreeBanner({
     remainingGranted: number;
 }) {
     const expired = isFreeListingExpired(freeListingExpiresAt, freeListingUsed);
-    const expiryLabel = getFreeListingExpiryLabel(freeListingExpiresAt, freeListingUsed);
+    const expiryLabel = getFreeListingExpiryLabel(
+        freeListingExpiresAt,
+        freeListingUsed,
+    );
     const isRed = (freeListingUsed && remainingGranted === 0) || expired;
     return (
         <div
@@ -238,8 +247,8 @@ function FreeBanner({
                             Free listing offer expired
                         </p>
                         <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
-                            Your 3-day free listing window has passed.
-                            Subscribe to a plan to post.
+                            Your 3-day free listing window has passed. Subscribe
+                            to a plan to post.
                         </p>
                     </>
                 ) : freeListingUsed && remainingGranted === 0 ? (
@@ -259,9 +268,9 @@ function FreeBanner({
                             {remainingGranted !== 1 ? "s" : ""} available
                         </p>
                         <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
-                            Your company has been granted {remainingGranted} free
-                            listing{remainingGranted !== 1 ? "s" : ""} to use.
-                            Subscribe for unlimited posts.
+                            Your company has been granted {remainingGranted}{" "}
+                            free listing{remainingGranted !== 1 ? "s" : ""} to
+                            use. Subscribe for unlimited posts.
                         </p>
                     </>
                 ) : (
