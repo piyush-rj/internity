@@ -53,13 +53,29 @@ export function ListingsBoard({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
     const isPremium = company?.isPremium ?? false;
-    // Directly from DB — now accurate because the gate always consumes free
-    // slots first (even for premium companies) before using the paid plan.
     const freeListingUsed = company?.freeListingUsed ?? false;
+    const freeListingExpiresAt = company?.freeListingExpiresAt
+        ? new Date(company.freeListingExpiresAt)
+        : null;
     const remainingGranted = (company?.freePostingGrants ?? []).reduce(
         (sum, g) => sum + (g.grantedPostings - g.usedPostings),
         0,
     );
+
+    // Compute how many ms until the free listing offer expires (negative = already expired).
+    const freeListingMsLeft =
+        !freeListingUsed && freeListingExpiresAt
+            ? freeListingExpiresAt.getTime() - Date.now()
+            : null;
+    const freeListingExpired = freeListingMsLeft !== null && freeListingMsLeft <= 0;
+    const freeListingExpiryLabel: string | null = (() => {
+        if (freeListingMsLeft === null) return null;
+        if (freeListingExpired) return "Offer expired";
+        const hours = Math.ceil(freeListingMsLeft / (1000 * 60 * 60));
+        if (hours <= 24) return `Expires in ${hours}h`;
+        const days = Math.ceil(freeListingMsLeft / (1000 * 60 * 60 * 24));
+        return `Expires in ${days} day${days !== 1 ? "s" : ""}`;
+    })();
     const [filters, setFilters] = useState<MyListingsFilters>(
         emptyMyListingsFilters,
     );
@@ -84,7 +100,8 @@ export function ListingsBoard({
                 <div
                     className={cn(
                         "rounded-lg border px-4 py-3 flex items-start gap-3",
-                        freeListingUsed && remainingGranted === 0
+                        (freeListingUsed && remainingGranted === 0) ||
+                            freeListingExpired
                             ? "border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900"
                             : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900",
                     )}
@@ -92,13 +109,24 @@ export function ListingsBoard({
                     <Crown
                         className={cn(
                             "h-4 w-4 shrink-0 mt-0.5",
-                            freeListingUsed && remainingGranted === 0
+                            (freeListingUsed && remainingGranted === 0) ||
+                                freeListingExpired
                                 ? "text-rose-500"
                                 : "text-amber-500",
                         )}
                     />
                     <div className="flex-1 min-w-0">
-                        {freeListingUsed && remainingGranted === 0 ? (
+                        {freeListingExpired ? (
+                            <>
+                                <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
+                                    Free listing offer expired
+                                </p>
+                                <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
+                                    Your 3-day free listing window has passed.
+                                    Subscribe to a plan to post.
+                                </p>
+                            </>
+                        ) : freeListingUsed && remainingGranted === 0 ? (
                             <>
                                 <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
                                     Free listing used
@@ -128,6 +156,11 @@ export function ListingsBoard({
                                     {1 + remainingGranted} free listing
                                     {1 + remainingGranted !== 1 ? "s" : ""}{" "}
                                     available
+                                    {freeListingExpiryLabel && (
+                                        <span className="ml-2 font-normal text-[11px] opacity-70">
+                                            · {freeListingExpiryLabel}
+                                        </span>
+                                    )}
                                 </p>
                                 <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
                                     Your company gets one free listing to start.
@@ -139,7 +172,8 @@ export function ListingsBoard({
                             href="/home/explore-plans"
                             className={cn(
                                 "mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium hover:underline",
-                                freeListingUsed && remainingGranted === 0
+                                (freeListingUsed && remainingGranted === 0) ||
+                                    freeListingExpired
                                     ? "text-rose-700 dark:text-rose-300"
                                     : "text-amber-700 dark:text-amber-300",
                             )}

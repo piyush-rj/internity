@@ -21,6 +21,13 @@ export default async function listConversations(
     const userId = req.user!.id;
     const isAdmin = req.user!.role === "ADMIN";
 
+    // Company members can see all conversations belonging to their company's listings
+    const userCompanyIds = isAdmin
+        ? []
+        : await prisma.companyMember
+              .findMany({ where: { userId }, select: { companyId: true } })
+              .then((rows) => rows.map((r) => r.companyId));
+
     const conversations = await prisma.conversation.findMany({
         where: isAdmin
             ? // Admins see all admin threads plus any regular threads they're in
@@ -31,8 +38,29 @@ export default async function listConversations(
                       { recruiterId: userId },
                   ],
               }
-            : // Non-admins see their own threads (incl. their admin thread)
-              { OR: [{ studentId: userId }, { recruiterId: userId }] },
+            : {
+                  OR: [
+                      { studentId: userId },
+                      { recruiterId: userId },
+                      // Co-members: conversations where the recruiter shares a company
+                      ...(userCompanyIds.length > 0
+                          ? [
+                                {
+                                    isAdminThread: false,
+                                    recruiter: {
+                                        companyMemberships: {
+                                            some: {
+                                                companyId: {
+                                                    in: userCompanyIds,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            ]
+                          : []),
+                  ],
+              },
         orderBy: { lastMessageAt: "desc" },
         select: {
             id: true,

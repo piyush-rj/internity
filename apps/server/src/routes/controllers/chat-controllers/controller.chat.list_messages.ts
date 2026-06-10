@@ -24,12 +24,25 @@ export default async function listMessages(
         });
         if (!conv) throw new NotFound();
 
+        const userId = req.user!.id;
         const isAdmin = req.user!.role === "ADMIN";
         const isParticipant =
-            conv.studentId === req.user!.id ||
-            conv.recruiterId === req.user!.id;
+            conv.studentId === userId || conv.recruiterId === userId;
 
-        if (!isParticipant && !(isAdmin && conv.isAdminThread)) {
+        let canAccess = isParticipant || (isAdmin && conv.isAdminThread);
+        if (!canAccess && !conv.isAdminThread) {
+            // Allow company co-members of the recruiter (e.g. team members viewing applicant chats)
+            const shared = await prisma.companyMember.findFirst({
+                where: {
+                    userId,
+                    company: {
+                        members: { some: { userId: conv.recruiterId } },
+                    },
+                },
+            });
+            canAccess = !!shared;
+        }
+        if (!canAccess) {
             throw new Forbidden("Not a participant in this conversation");
         }
 

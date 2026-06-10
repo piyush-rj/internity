@@ -72,6 +72,9 @@ export default async function createCompany(
         }
 
         const now = new Date();
+        const freeListingExpiresAt = new Date(
+            now.getTime() + 3 * 24 * 60 * 60 * 1000,
+        );
         const result = await prisma.$transaction(async (tx) => {
             const c = await tx.company.create({
                 data: {
@@ -88,6 +91,7 @@ export default async function createCompany(
                     country: body.country,
                     organizationType: body.organizationType as OrganizationType,
                     submittedAt: now,
+                    freeListingExpiresAt,
                 },
             });
             await tx.companyMember.create({

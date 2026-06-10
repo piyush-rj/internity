@@ -93,7 +93,11 @@ export default async function createListing(
             }),
             prisma.company.findUnique({
                 where: { id: body.companyId },
-                select: { isPremium: true, freeListingUsed: true },
+                select: {
+                    isPremium: true,
+                    freeListingUsed: true,
+                    freeListingExpiresAt: true,
+                },
             }),
         ]);
 
@@ -104,11 +108,16 @@ export default async function createListing(
             );
         }
 
-        // Free slots are always consumed first — even for premium companies.
-        // Priority: admin-granted quota → default 1-free → paid subscription.
-        // This ensures freeListingUsed in the DB always reflects reality.
+        // Free slots priority: default 1-free → admin-granted quota → paid subscription.
+        // The default free listing is always consumed first; admin grants act as
+        // top-ups after the default is gone.
+        const now = new Date();
         const activeGrants = await prisma.freePostingGrant.findMany({
-            where: { companyId: body.companyId, isActive: true },
+            where: {
+                companyId: body.companyId,
+                isActive: true,
+                OR: [{ expiresAt: null }, { expiresAt: { gt: now } }],
+            },
             orderBy: { createdAt: "asc" },
             select: { id: true, grantedPostings: true, usedPostings: true },
         });
@@ -136,8 +145,27 @@ export default async function createListing(
             }
         }
 
-        if (grant) {
-            // Consume one admin-granted slot.
+        if (!company?.freeListingUsed) {
+            // Check if the default free listing offer has expired.
+            if (
+                company?.freeListingExpiresAt &&
+                company.freeListingExpiresAt < now
+            ) {
+                throw new Forbidden(
+                    "Your free listing offer has expired. Subscribe to a plan to post.",
+                );
+            }
+            // Consume the default one-time free listing every company gets.
+            await prisma.company.update({
+                where: { id: body.companyId },
+                data: { freeListingUsed: true },
+            });
+            await notifyFounder(
+                "Free listing used",
+                "Your company's one free listing has been posted. Subscribe to a plan to post more.",
+            );
+        } else if (grant) {
+            // Default free listing already used — consume one admin-granted slot.
             const updated = await prisma.freePostingGrant.update({
                 where: { id: grant.id },
                 data: { usedPostings: { increment: 1 } },
@@ -147,16 +175,6 @@ export default async function createListing(
             await notifyFounder(
                 "Free posting slot used",
                 `Your company used 1 admin-granted free posting. ${remaining} slot${remaining === 1 ? "" : "s"} remaining.`,
-            );
-        } else if (!company?.freeListingUsed) {
-            // Consume the default one-time free listing every company gets.
-            await prisma.company.update({
-                where: { id: body.companyId },
-                data: { freeListingUsed: true },
-            });
-            await notifyFounder(
-                "Free listing used",
-                "Your company's one free listing has been posted. Subscribe to a plan to post more.",
             );
         } else if (!company?.isPremium) {
             // No free slots left and no paid plan — block.

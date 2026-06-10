@@ -55,6 +55,7 @@ export default async function listFreePostingGrants(
                 : [];
         const revokedUserMap = new Map(revokedUsers.map((u) => [u.id, u]));
 
+        const now = new Date();
         api.ok({
             items: items.map((g) => ({
                 id: g.id,
@@ -66,6 +67,8 @@ export default async function listFreePostingGrants(
                 ),
                 note: g.note,
                 isActive: g.isActive,
+                isExpired: g.expiresAt !== null && g.expiresAt < now,
+                expiresAt: g.expiresAt?.toISOString() ?? null,
                 revokedAt: g.revokedAt?.toISOString() ?? null,
                 revokedBy: g.revokedById
                     ? (revokedUserMap.get(g.revokedById) ?? null)

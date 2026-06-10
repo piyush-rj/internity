@@ -181,9 +181,17 @@ export class ChatSocket {
 
         const isAdmin = ws.user.role === "ADMIN";
         const baseParticipants = this.participantIds(conv);
-        const isParticipant =
+        const isDirectParticipant =
             baseParticipants.includes(ws.user.id) ||
             (isAdmin && conv.isAdminThread);
+
+        const isParticipant =
+            isDirectParticipant ||
+            (!conv.isAdminThread &&
+                (await SocketDbService.isCompanyCoMember(
+                    ws.user.id,
+                    conv.recruiterId,
+                )));
 
         if (!isParticipant) {
             ws.send({
@@ -263,7 +271,15 @@ export class ChatSocket {
 
         const isAdminEdit = ws.user.role === "ADMIN" && conv.isAdminThread;
         const editParticipants = this.participantIds(conv);
-        if (!editParticipants.includes(ws.user.id) && !isAdminEdit) {
+        const canEdit =
+            editParticipants.includes(ws.user.id) ||
+            isAdminEdit ||
+            (!conv.isAdminThread &&
+                (await SocketDbService.isCompanyCoMember(
+                    ws.user.id,
+                    conv.recruiterId,
+                )));
+        if (!canEdit) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
                 code: SOCKET_ERROR_CODE.FORBIDDEN,
@@ -347,7 +363,15 @@ export class ChatSocket {
 
         const isAdminMarkRead = ws.user.role === "ADMIN" && conv.isAdminThread;
         const readParticipants = this.participantIds(conv);
-        if (!readParticipants.includes(ws.user.id) && !isAdminMarkRead) {
+        const canMarkRead =
+            readParticipants.includes(ws.user.id) ||
+            isAdminMarkRead ||
+            (!conv.isAdminThread &&
+                (await SocketDbService.isCompanyCoMember(
+                    ws.user.id,
+                    conv.recruiterId,
+                )));
+        if (!canMarkRead) {
             ws.send({
                 type: MESSAGE_TYPE.ERROR,
                 code: SOCKET_ERROR_CODE.FORBIDDEN,

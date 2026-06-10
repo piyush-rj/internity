@@ -8,6 +8,7 @@ const Body = z.object({
     companyId: z.string().min(1),
     grantedPostings: z.number().int().min(1).max(1000),
     note: z.string().max(500).optional(),
+    expiresAt: z.coerce.date().optional(),
 });
 
 export default async function createFreePostingGrant(
@@ -33,6 +34,7 @@ export default async function createFreePostingGrant(
                 companyId: body.companyId,
                 grantedPostings: body.grantedPostings,
                 note: body.note?.trim() ?? null,
+                expiresAt: body.expiresAt ?? null,
                 grantedById: adminId,
             },
         });
@@ -43,11 +45,14 @@ export default async function createFreePostingGrant(
             select: { userId: true },
         });
         if (founder) {
+            const expiryNote = grant.expiresAt
+                ? ` Valid until ${grant.expiresAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}.`
+                : "";
             await notify({
                 userId: founder.userId,
                 type: NotificationType.FREE_POSTING_GRANTED,
                 title: `${body.grantedPostings} free listing${body.grantedPostings === 1 ? "" : "s"} granted`,
-                body: `Your company "${company.name}" has been granted ${body.grantedPostings} free job posting${body.grantedPostings === 1 ? "" : "s"} by the SpiderSkill team.`,
+                body: `Your company "${company.name}" has been granted ${body.grantedPostings} free job posting${body.grantedPostings === 1 ? "" : "s"} by the SpiderSkill team.${expiryNote}`,
                 link: "/home/manage-listings",
             });
         }
@@ -56,6 +61,7 @@ export default async function createFreePostingGrant(
             grant: {
                 id: grant.id,
                 grantedPostings: grant.grantedPostings,
+                expiresAt: grant.expiresAt?.toISOString() ?? null,
                 companyName: company.name,
             },
         });

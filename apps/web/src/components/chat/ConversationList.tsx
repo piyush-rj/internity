@@ -126,6 +126,12 @@ function ConversationRow({
                                 {formatRelative(item.lastMessageAt)}
                             </span>
                         </div>
+                        {!isDeleted && !item.isAdminThread && item.listingTitle && (
+                            <div className="text-[11.5px] text-muted-foreground truncate -mt-0.5">
+                                {item.listingTitle}
+                                {item.companyName ? ` · ${item.companyName}` : ""}
+                            </div>
+                        )}
                         <div className="mt-1 flex items-center gap-2">
                             {item.lastMessagePreview ? (
                                 <div

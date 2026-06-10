@@ -209,9 +209,15 @@ export const adminApi = {
         companyId: string;
         grantedPostings: number;
         note?: string;
+        expiresAt?: string;
     }) =>
         api.post<{
-            grant: { id: string; grantedPostings: number; companyName: string };
+            grant: {
+                id: string;
+                grantedPostings: number;
+                expiresAt: string | null;
+                companyName: string;
+            };
         }>("/admin/allow-postings", input),
     revoke_free_posting_grant: (id: string) =>
         api.patch<{ ok: true }>(`/admin/allow-postings/${id}/revoke`, {}),
@@ -273,6 +279,8 @@ export type AdminFreePostingGrant = {
     remainingPostings: number;
     note: string | null;
     isActive: boolean;
+    isExpired: boolean;
+    expiresAt: string | null;
     revokedAt: string | null;
     revokedBy: AdminUser | null;
     createdAt: string;

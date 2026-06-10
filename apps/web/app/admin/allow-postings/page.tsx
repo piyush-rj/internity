@@ -171,6 +171,7 @@ function GrantForm({ onCreated }: { onCreated: () => void }) {
         useState<AdminCompanySearchResult | null>(null);
     const [postings, setPostings] = useState("");
     const [note, setNote] = useState("");
+    const [expiresAt, setExpiresAt] = useState("");
     const [saving, setSaving] = useState(false);
     const [err, setErr] = useState<string | null>(null);
     const [success, setSuccess] = useState<string | null>(null);
@@ -214,15 +215,20 @@ function GrantForm({ onCreated }: { onCreated: () => void }) {
                 companyId: selectedCompany.id,
                 grantedPostings: n,
                 note: note.trim() || undefined,
+                expiresAt: expiresAt || undefined,
             });
+            const expiryNote = res.grant.expiresAt
+                ? ` · expires ${formatDate(res.grant.expiresAt)}`
+                : "";
             setSuccess(
-                `Granted ${n} free posting${n === 1 ? "" : "s"} to ${res.grant.companyName}.`,
+                `Granted ${n} free posting${n === 1 ? "" : "s"} to ${res.grant.companyName}${expiryNote}.`,
             );
             setSearchInput("");
             setSelectedCompany(null);
             setResults([]);
             setPostings("");
             setNote("");
+            setExpiresAt("");
             onCreated();
         } catch (e) {
             setErr(
@@ -331,7 +337,7 @@ function GrantForm({ onCreated }: { onCreated: () => void }) {
                 )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="space-y-1">
                     <label className={labelCls}>
                         Number of free postings{" "}
@@ -359,6 +365,20 @@ function GrantForm({ onCreated }: { onCreated: () => void }) {
                         value={note}
                         onChange={(e) => setNote(e.target.value)}
                         placeholder="e.g. Partnership deal"
+                        className={fieldCls}
+                    />
+                </div>
+                <div className="space-y-1">
+                    <label className={labelCls}>
+                        Expires on{" "}
+                        <span className="text-muted-foreground font-normal">
+                            (optional)
+                        </span>
+                    </label>
+                    <input
+                        type="date"
+                        value={expiresAt}
+                        onChange={(e) => setExpiresAt(e.target.value)}
                         className={fieldCls}
                     />
                 </div>
@@ -393,6 +413,12 @@ function GrantRow({
     onClick: () => void;
 }) {
     const remaining = g.remainingPostings;
+    const statusLabel = !g.isActive ? "revoked" : g.isExpired ? "expired" : `${remaining} left`;
+    const statusColor = !g.isActive || g.isExpired
+        ? "text-muted-foreground"
+        : remaining > 0
+          ? "text-emerald-600"
+          : "text-muted-foreground";
     return (
         <button
             type="button"
@@ -407,28 +433,22 @@ function GrantRow({
                     <span className="text-[13px] font-semibold truncate">
                         {g.company.name}
                     </span>
-                    <StatusPill isActive={g.isActive} />
+                    <StatusPill isActive={g.isActive} isExpired={g.isExpired} />
                 </div>
                 <p className="text-[11.5px] text-muted-foreground">
                     By {g.grantedBy.name ?? g.grantedBy.email} ·{" "}
                     {formatDate(g.createdAt)}
+                    {g.expiresAt && (
+                        <> · expires {formatDate(g.expiresAt)}</>
+                    )}
                 </p>
             </div>
             <div className="shrink-0 text-right">
                 <p className="text-[13px] font-semibold tabular-nums">
                     {g.grantedPostings} posts
                 </p>
-                <p
-                    className={cn(
-                        "text-[11px] tabular-nums",
-                        !g.isActive
-                            ? "text-muted-foreground"
-                            : remaining > 0
-                              ? "text-emerald-600"
-                              : "text-muted-foreground",
-                    )}
-                >
-                    {g.isActive ? `${remaining} left` : "revoked"}
+                <p className={cn("text-[11px] tabular-nums", statusColor)}>
+                    {statusLabel}
                 </p>
             </div>
         </button>
@@ -465,13 +485,22 @@ function GrantPanel({
         {
             label: "Remaining",
             value: String(g.remainingPostings),
-            colored: g.remainingPostings > 0 ? "text-emerald-600" : undefined,
+            colored: g.remainingPostings > 0 && !g.isExpired ? "text-emerald-600" : undefined,
         },
         {
             label: "Granted by",
             value: `${g.grantedBy.name ?? "—"} (${g.grantedBy.email ?? "—"})`,
         },
         { label: "Granted on", value: formatDateFull(g.createdAt) },
+        ...(g.expiresAt
+            ? [
+                  {
+                      label: "Expires on",
+                      value: formatDateFull(g.expiresAt),
+                      colored: g.isExpired ? "text-amber-500" : undefined,
+                  },
+              ]
+            : []),
         ...(g.note ? [{ label: "Note", value: g.note }] : []),
         ...(g.revokedAt
             ? [
@@ -542,7 +571,7 @@ function GrantPanel({
                         </span>
                     </div>
                     <div className="mt-2">
-                        <StatusPill isActive={g.isActive} />
+                        <StatusPill isActive={g.isActive} isExpired={g.isExpired} />
                     </div>
                 </div>
 
@@ -585,12 +614,19 @@ function GrantPanel({
     );
 }
 
-function StatusPill({ isActive }: { isActive: boolean }) {
+function StatusPill({ isActive, isExpired }: { isActive: boolean; isExpired: boolean }) {
     if (!isActive)
         return (
             <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10.5px] font-medium text-rose-600 shrink-0">
                 <XCircle className="h-2.5 w-2.5" />
                 Revoked
+            </span>
+        );
+    if (isExpired)
+        return (
+            <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10.5px] font-medium text-amber-600 shrink-0">
+                <XCircle className="h-2.5 w-2.5" />
+                Expired
             </span>
         );
     return (
