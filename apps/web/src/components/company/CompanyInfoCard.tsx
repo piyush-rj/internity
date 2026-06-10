@@ -79,9 +79,7 @@ export function CompanyInfoCard({
 }
 
 function ReadView({ company }: { company: Company }) {
-    const location = [company.city, company.country]
-        .filter(Boolean)
-        .join(", ");
+    const location = [company.city, company.country].filter(Boolean).join(", ");
 
     const stats: { label: string; value: React.ReactNode }[] = [];
     if (company.organizationType) {

@@ -54,28 +54,11 @@ export function ListingsBoard({
     }, []);
     const isPremium = company?.isPremium ?? false;
     const freeListingUsed = company?.freeListingUsed ?? false;
-    const freeListingExpiresAt = company?.freeListingExpiresAt
-        ? new Date(company.freeListingExpiresAt)
-        : null;
     const remainingGranted = (company?.freePostingGrants ?? []).reduce(
         (sum, g) => sum + (g.grantedPostings - g.usedPostings),
         0,
     );
 
-    // Compute how many ms until the free listing offer expires (negative = already expired).
-    const freeListingMsLeft =
-        !freeListingUsed && freeListingExpiresAt
-            ? freeListingExpiresAt.getTime() - Date.now()
-            : null;
-    const freeListingExpired = freeListingMsLeft !== null && freeListingMsLeft <= 0;
-    const freeListingExpiryLabel: string | null = (() => {
-        if (freeListingMsLeft === null) return null;
-        if (freeListingExpired) return "Offer expired";
-        const hours = Math.ceil(freeListingMsLeft / (1000 * 60 * 60));
-        if (hours <= 24) return `Expires in ${hours}h`;
-        const days = Math.ceil(freeListingMsLeft / (1000 * 60 * 60 * 24));
-        return `Expires in ${days} day${days !== 1 ? "s" : ""}`;
-    })();
     const [filters, setFilters] = useState<MyListingsFilters>(
         emptyMyListingsFilters,
     );
@@ -97,91 +80,11 @@ export function ListingsBoard({
         <EmptySection title={title} description={description}>
             {/* Subscription status banner */}
             {!isPremium && (
-                <div
-                    className={cn(
-                        "rounded-lg border px-4 py-3 flex items-start gap-3",
-                        (freeListingUsed && remainingGranted === 0) ||
-                            freeListingExpired
-                            ? "border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900"
-                            : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900",
-                    )}
-                >
-                    <Crown
-                        className={cn(
-                            "h-4 w-4 shrink-0 mt-0.5",
-                            (freeListingUsed && remainingGranted === 0) ||
-                                freeListingExpired
-                                ? "text-rose-500"
-                                : "text-amber-500",
-                        )}
-                    />
-                    <div className="flex-1 min-w-0">
-                        {freeListingExpired ? (
-                            <>
-                                <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
-                                    Free listing offer expired
-                                </p>
-                                <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
-                                    Your 3-day free listing window has passed.
-                                    Subscribe to a plan to post.
-                                </p>
-                            </>
-                        ) : freeListingUsed && remainingGranted === 0 ? (
-                            <>
-                                <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
-                                    Free listing used
-                                </p>
-                                <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
-                                    Your company has used its one free listing.
-                                    Subscribe to a plan to post more.
-                                </p>
-                            </>
-                        ) : freeListingUsed && remainingGranted > 0 ? (
-                            <>
-                                <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
-                                    {remainingGranted} free listing
-                                    {remainingGranted !== 1 ? "s" : ""}{" "}
-                                    available
-                                </p>
-                                <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
-                                    Your company has been granted{" "}
-                                    {remainingGranted} free listing
-                                    {remainingGranted !== 1 ? "s" : ""} to use.
-                                    Subscribe for unlimited posts.
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
-                                    {1 + remainingGranted} free listing
-                                    {1 + remainingGranted !== 1 ? "s" : ""}{" "}
-                                    available
-                                    {freeListingExpiryLabel && (
-                                        <span className="ml-2 font-normal text-[11px] opacity-70">
-                                            · {freeListingExpiryLabel}
-                                        </span>
-                                    )}
-                                </p>
-                                <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
-                                    Your company gets one free listing to start.
-                                    Subscribe for unlimited posts.
-                                </p>
-                            </>
-                        )}
-                        <Link
-                            href="/home/explore-plans"
-                            className={cn(
-                                "mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium hover:underline",
-                                (freeListingUsed && remainingGranted === 0) ||
-                                    freeListingExpired
-                                    ? "text-rose-700 dark:text-rose-300"
-                                    : "text-amber-700 dark:text-amber-300",
-                            )}
-                        >
-                            View plans →
-                        </Link>
-                    </div>
-                </div>
+                <FreeBanner
+                    freeListingUsed={freeListingUsed}
+                    freeListingExpiresAt={company?.freeListingExpiresAt ?? null}
+                    remainingGranted={remainingGranted}
+                />
             )}
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-start">
@@ -282,6 +185,114 @@ function NoMatches() {
     return (
         <div className="rounded-lg border border-dashed border-stone-200 bg-stone-50 px-5 py-12 text-center text-[13px] text-muted-foreground">
             No listings match these filters.
+        </div>
+    );
+}
+
+function isFreeListingExpired(expiresAt: string | null, used: boolean): boolean {
+    if (used || !expiresAt) return false;
+    return new Date(expiresAt).getTime() <= Date.now();
+}
+
+function getFreeListingExpiryLabel(expiresAt: string | null, used: boolean): string | null {
+    if (used || !expiresAt) return null;
+    const msLeft = new Date(expiresAt).getTime() - Date.now();
+    if (msLeft <= 0) return null;
+    const hours = Math.ceil(msLeft / (1000 * 60 * 60));
+    if (hours <= 24) return `Expires in ${hours}h`;
+    const days = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
+    return `Expires in ${days} day${days !== 1 ? "s" : ""}`;
+}
+
+function FreeBanner({
+    freeListingUsed,
+    freeListingExpiresAt,
+    remainingGranted,
+}: {
+    freeListingUsed: boolean;
+    freeListingExpiresAt: string | null;
+    remainingGranted: number;
+}) {
+    const expired = isFreeListingExpired(freeListingExpiresAt, freeListingUsed);
+    const expiryLabel = getFreeListingExpiryLabel(freeListingExpiresAt, freeListingUsed);
+    const isRed = (freeListingUsed && remainingGranted === 0) || expired;
+    return (
+        <div
+            className={cn(
+                "rounded-lg border px-4 py-3 flex items-start gap-3",
+                isRed
+                    ? "border-rose-200 bg-rose-50 dark:bg-rose-950/20 dark:border-rose-900"
+                    : "border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-900",
+            )}
+        >
+            <Crown
+                className={cn(
+                    "h-4 w-4 shrink-0 mt-0.5",
+                    isRed ? "text-rose-500" : "text-amber-500",
+                )}
+            />
+            <div className="flex-1 min-w-0">
+                {expired ? (
+                    <>
+                        <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
+                            Free listing offer expired
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
+                            Your 3-day free listing window has passed.
+                            Subscribe to a plan to post.
+                        </p>
+                    </>
+                ) : freeListingUsed && remainingGranted === 0 ? (
+                    <>
+                        <p className="text-[13px] font-medium text-rose-800 dark:text-rose-300">
+                            Free listing used
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-rose-700/80 dark:text-rose-400/80">
+                            Your company has used its one free listing.
+                            Subscribe to a plan to post more.
+                        </p>
+                    </>
+                ) : freeListingUsed && remainingGranted > 0 ? (
+                    <>
+                        <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
+                            {remainingGranted} free listing
+                            {remainingGranted !== 1 ? "s" : ""} available
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
+                            Your company has been granted {remainingGranted} free
+                            listing{remainingGranted !== 1 ? "s" : ""} to use.
+                            Subscribe for unlimited posts.
+                        </p>
+                    </>
+                ) : (
+                    <>
+                        <p className="text-[13px] font-medium text-amber-800 dark:text-amber-300">
+                            {1 + remainingGranted} free listing
+                            {1 + remainingGranted !== 1 ? "s" : ""} available
+                            {expiryLabel && (
+                                <span className="ml-2 font-normal text-[11px] opacity-70">
+                                    · {expiryLabel}
+                                </span>
+                            )}
+                        </p>
+                        <p className="mt-0.5 text-[12px] text-amber-700/80 dark:text-amber-400/80">
+                            Your company gets one free listing to start.
+                            Subscribe for unlimited posts.
+                        </p>
+                    </>
+                )}
+                <Link
+                    href="/home/explore-plans"
+                    className={cn(
+                        "mt-1.5 inline-flex items-center gap-1 text-[12px] font-medium hover:underline",
+                        isRed
+                            ? "text-rose-700 dark:text-rose-300"
+                            : "text-amber-700 dark:text-amber-300",
+                    )}
+                >
+                    View plans →
+                </Link>
+            </div>
         </div>
     );
 }

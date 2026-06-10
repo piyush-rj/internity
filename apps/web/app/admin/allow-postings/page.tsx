@@ -413,12 +413,17 @@ function GrantRow({
     onClick: () => void;
 }) {
     const remaining = g.remainingPostings;
-    const statusLabel = !g.isActive ? "revoked" : g.isExpired ? "expired" : `${remaining} left`;
-    const statusColor = !g.isActive || g.isExpired
-        ? "text-muted-foreground"
-        : remaining > 0
-          ? "text-emerald-600"
-          : "text-muted-foreground";
+    const statusLabel = !g.isActive
+        ? "revoked"
+        : g.isExpired
+          ? "expired"
+          : `${remaining} left`;
+    const statusColor =
+        !g.isActive || g.isExpired
+            ? "text-muted-foreground"
+            : remaining > 0
+              ? "text-emerald-600"
+              : "text-muted-foreground";
     return (
         <button
             type="button"
@@ -438,9 +443,7 @@ function GrantRow({
                 <p className="text-[11.5px] text-muted-foreground">
                     By {g.grantedBy.name ?? g.grantedBy.email} ·{" "}
                     {formatDate(g.createdAt)}
-                    {g.expiresAt && (
-                        <> · expires {formatDate(g.expiresAt)}</>
-                    )}
+                    {g.expiresAt && <> · expires {formatDate(g.expiresAt)}</>}
                 </p>
             </div>
             <div className="shrink-0 text-right">
@@ -485,7 +488,10 @@ function GrantPanel({
         {
             label: "Remaining",
             value: String(g.remainingPostings),
-            colored: g.remainingPostings > 0 && !g.isExpired ? "text-emerald-600" : undefined,
+            colored:
+                g.remainingPostings > 0 && !g.isExpired
+                    ? "text-emerald-600"
+                    : undefined,
         },
         {
             label: "Granted by",
@@ -571,7 +577,10 @@ function GrantPanel({
                         </span>
                     </div>
                     <div className="mt-2">
-                        <StatusPill isActive={g.isActive} isExpired={g.isExpired} />
+                        <StatusPill
+                            isActive={g.isActive}
+                            isExpired={g.isExpired}
+                        />
                     </div>
                 </div>
 
@@ -614,7 +623,13 @@ function GrantPanel({
     );
 }
 
-function StatusPill({ isActive, isExpired }: { isActive: boolean; isExpired: boolean }) {
+function StatusPill({
+    isActive,
+    isExpired,
+}: {
+    isActive: boolean;
+    isExpired: boolean;
+}) {
     if (!isActive)
         return (
             <span className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2 py-0.5 text-[10.5px] font-medium text-rose-600 shrink-0">
