@@ -9,6 +9,7 @@ import {
     type EmployerProfile,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 
 export type EmployerMembership = CompanyMember & { company: Company };
 
@@ -108,11 +109,16 @@ export function useMyEmployer(): EmployerState {
     const error = useEmployerStore((s) => s.error);
     const init = useEmployerStore((s) => s.init);
     const refetch = useEmployerStore((s) => s.refetch);
+    const hasUser = useUserSessionStore((s) => !!s.session?.user);
 
     useEffect(() => {
-        // Fetch once on first mount; later mounts reuse the shared store.
-        init();
-    }, [init]);
+        // Wait for the auth session before the first fetch. Firing earlier
+        // sends an unauthenticated request that 404s, and the store latches
+        // `initialized: true` so it never retries — which hid the Company
+        // section on first login until a refresh. Gate on the session user,
+        // mirroring MeBootstrap, so the fetch is always authenticated.
+        if (hasUser) init();
+    }, [hasUser, init]);
 
     // Preserve the previous contract: report "loading" until the first fetch
     // resolves, so callers that gate skeletons on `loading` behave as before.

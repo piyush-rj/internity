@@ -21,7 +21,7 @@ export function Announcement() {
             <span className="text-foreground truncate">
                 <span className="sm:hidden">50,000 placements</span>
                 <span className="hidden sm:inline">
-                    Celebrating 50,000 placements on Spiderskill
+                    Celebrating 1000+ internships on Spiderskill
                 </span>
             </span>
             <span

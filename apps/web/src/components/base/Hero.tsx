@@ -43,7 +43,7 @@ export function Hero() {
                         <div className="max-w-xl text-left">
                             <Announcement />
                             <h1 className="mt-6 sm:mt-8 text-[34px] sm:text-[42px] lg:text-[45px] leading-[1.05] font-medium tracking-tight text-white">
-                                Turning caffeine into careers.
+                                Get your paid internships in 15 days
                             </h1>
                             <p className="mt-4 sm:mt-5 max-w-md text-[15px] sm:text-[17px] lg:text-[18px] tracking-[-0.25] font-medium leading-normal text-white/85">
                                 SpiderSkill is India&apos;s modern internship

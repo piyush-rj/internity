@@ -84,7 +84,7 @@ export function FinalCTA() {
                         <StatCard
                             label="Higher placements"
                             value="76%"
-                            caption="Hired within 90 days of joining"
+                            caption="Hired within 30 days of joining"
                             className="col-span-2"
                             big
                         />

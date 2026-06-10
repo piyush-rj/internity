@@ -4,13 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Pencil } from "lucide-react";
-import {
-    PiArrowSquareOut,
-    PiBuildings,
-    PiGlobe,
-    PiMapPin,
-    PiUsers,
-} from "react-icons/pi";
+import { PiArrowSquareOut } from "react-icons/pi";
 import { Button } from "@/src/components/ui/button";
 import { CompanyLogoUpload } from "@/src/components/company/CompanyLogoUpload";
 import { Field, inputCls } from "@/src/components/profile-wizard/utils";
@@ -18,10 +12,15 @@ import {
     companyApi,
     type Company,
     type CompanyUpdateInput,
+    type OrganizationType,
 } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
+import { COUNTRIES } from "@/src/lib/catalog/countries";
 import { INDUSTRIES } from "@/src/lib/catalog/industries";
+import { ORG_TYPES, organizationTypeLabel } from "@/src/lib/catalog/orgTypes";
 import { cn } from "@/src/lib/utils";
+
+const TEAM_SIZE_OPTIONS = ["1-10", "11-50", "51-200", "201-500", "500+"];
 
 export function CompanyInfoCard({
     company,
@@ -80,59 +79,95 @@ export function CompanyInfoCard({
 }
 
 function ReadView({ company }: { company: Company }) {
+    const location = [company.city, company.country]
+        .filter(Boolean)
+        .join(", ");
+
+    const stats: { label: string; value: React.ReactNode }[] = [];
+    if (company.organizationType) {
+        stats.push({
+            label: "Organization",
+            value: organizationTypeLabel(company.organizationType),
+        });
+    }
+    if (company.industry) {
+        stats.push({ label: "Industry", value: company.industry });
+    }
+    if (company.size) {
+        stats.push({ label: "Team size", value: `${company.size} people` });
+    }
+    if (company.foundingYear) {
+        stats.push({ label: "Founded", value: String(company.foundingYear) });
+    }
+    if (location) {
+        stats.push({ label: "Location", value: location });
+    }
+    if (company.website) {
+        stats.push({
+            label: "Website",
+            value: (
+                <a
+                    href={company.website}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-foreground hover:underline"
+                >
+                    {prettyUrl(company.website)}
+                </a>
+            ),
+        });
+    }
+    if (company.linkedinUrl) {
+        stats.push({
+            label: "LinkedIn",
+            value: (
+                <a
+                    href={company.linkedinUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-foreground hover:underline"
+                >
+                    View profile
+                </a>
+            ),
+        });
+    }
+
     return (
-        <div className="flex items-start gap-4">
-            <Logo name={company.name} logoUrl={company.logoUrl} />
-            <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="text-[16px] font-semibold tracking-tight truncate">
-                        {company.name}
-                    </h3>
-                    <span className="text-[11.5px] text-muted-foreground">
-                        /{company.slug}
-                    </span>
+        <div>
+            <div className="flex items-start gap-4">
+                <Logo name={company.name} logoUrl={company.logoUrl} />
+                <div className="flex-1 min-w-0 pt-0.5">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                        <h3 className="text-[17px] font-semibold tracking-tight truncate">
+                            {company.name}
+                        </h3>
+                        <span className="text-[12px] text-muted-foreground">
+                            /{company.slug}
+                        </span>
+                    </div>
+                    {company.about && (
+                        <p className="mt-1.5 text-[13px] text-muted-foreground leading-relaxed max-w-prose">
+                            {company.about}
+                        </p>
+                    )}
                 </div>
-                {company.about && (
-                    <p className="mt-1.5 text-[13px] text-muted-foreground leading-relaxed max-w-prose">
-                        {company.about}
-                    </p>
-                )}
-                <dl className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1.5 text-[12.5px]">
-                    {company.industry && (
-                        <Fact
-                            icon={<PiBuildings className="h-3.5 w-3.5" />}
-                            text={company.industry}
-                        />
-                    )}
-                    {company.size && (
-                        <Fact
-                            icon={<PiUsers className="h-3.5 w-3.5" />}
-                            text={`${company.size} people`}
-                        />
-                    )}
-                    {company.city && (
-                        <Fact
-                            icon={<PiMapPin className="h-3.5 w-3.5" />}
-                            text={company.city}
-                        />
-                    )}
-                    {company.website && (
-                        <Fact
-                            icon={<PiGlobe className="h-3.5 w-3.5" />}
-                            text={
-                                <a
-                                    href={company.website}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="hover:underline truncate"
-                                >
-                                    {prettyUrl(company.website)}
-                                </a>
-                            }
-                        />
-                    )}
-                </dl>
             </div>
+
+            {stats.length > 0 && (
+                <dl className="mt-5 grid grid-cols-2 sm:grid-cols-3 gap-x-8 gap-y-4 border-t border-border pt-5">
+                    {stats.map((s) => (
+                        <div key={s.label} className="min-w-0">
+                            <dt className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                                {s.label}
+                            </dt>
+                            <dd className="mt-1 text-[13px] font-medium text-foreground truncate">
+                                {s.value}
+                            </dd>
+                        </div>
+                    ))}
+                </dl>
+            )}
         </div>
     );
 }
@@ -155,6 +190,10 @@ function EditForm({
         industry: company.industry ?? "",
         size: company.size ?? "",
         city: company.city ?? "",
+        country: company.country ?? "",
+        organizationType: (company.organizationType ?? "") as
+            | OrganizationType
+            | "",
         logoUrl: company.logoUrl ?? "",
     });
     const [saving, setSaving] = useState(false);
@@ -180,6 +219,8 @@ function EditForm({
             return `Founding year must be between 1800 and ${currentYear}.`;
         }
         if (!form.size.trim()) return "Please add your team size.";
+        if (!form.organizationType)
+            return "Pick what best describes your organization.";
         if (!form.about.trim()) return "Please add a short blurb.";
         return null;
     }
@@ -201,6 +242,9 @@ function EditForm({
                 industry: form.industry.trim() || undefined,
                 size: form.size.trim(),
                 city: form.city.trim() || undefined,
+                country: form.country.trim() || undefined,
+                organizationType:
+                    (form.organizationType as OrganizationType) || undefined,
                 logoUrl: form.logoUrl.trim() || undefined,
             };
             await companyApi.update(company.id, input);
@@ -257,7 +301,7 @@ function EditForm({
                     />
                 </Field>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <Field label="Founding year" required>
                     <input
                         type="number"
@@ -283,13 +327,27 @@ function EditForm({
                         ))}
                     </select>
                 </Field>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                 <Field label="Team size" required>
-                    <input
-                        type="text"
+                    <select
                         value={form.size}
                         onChange={(e) => set("size", e.target.value)}
-                        className={inputCls()}
-                    />
+                        className={cn(inputCls(), "pr-8 appearance-none")}
+                    >
+                        <option value="" disabled>
+                            Pick one
+                        </option>
+                        {TEAM_SIZE_OPTIONS.map((s) => (
+                            <option key={s} value={s}>
+                                {s}
+                            </option>
+                        ))}
+                        {form.size &&
+                            !TEAM_SIZE_OPTIONS.includes(form.size) && (
+                                <option value={form.size}>{form.size}</option>
+                            )}
+                    </select>
                 </Field>
                 <Field label="City">
                     <input
@@ -299,11 +357,44 @@ function EditForm({
                         className={inputCls()}
                     />
                 </Field>
+                <Field label="Country">
+                    <select
+                        value={form.country}
+                        onChange={(e) => set("country", e.target.value)}
+                        className={cn(inputCls(), "pr-8 appearance-none")}
+                    >
+                        <option value="">Pick country</option>
+                        {COUNTRIES.map((c) => (
+                            <option key={c} value={c}>
+                                {c}
+                            </option>
+                        ))}
+                    </select>
+                </Field>
             </div>
+            <Field label="What best describes your organization?" required>
+                <select
+                    value={form.organizationType}
+                    onChange={(e) =>
+                        set(
+                            "organizationType",
+                            e.target.value as OrganizationType | "",
+                        )
+                    }
+                    className={cn(inputCls(), "pr-8 appearance-none")}
+                >
+                    <option value="">Pick one</option>
+                    {ORG_TYPES.map((o) => (
+                        <option key={o.value} value={o.value}>
+                            {o.label}
+                        </option>
+                    ))}
+                </select>
+            </Field>
             <Field
                 label="About"
                 required
-                hint="Add as much detail as possible — a richer, more detailed description attracts more candidates."
+                hint="Add as much detail as possible, a richer, more detailed description attracts more candidates."
             >
                 <textarea
                     value={form.about}
@@ -370,23 +461,6 @@ function Logo({ name, logoUrl }: { name: string; logoUrl: string | null }) {
         >
             {name.charAt(0).toUpperCase()}
         </span>
-    );
-}
-
-function Fact({
-    icon,
-    text,
-}: {
-    icon: React.ReactNode;
-    text: React.ReactNode;
-}) {
-    return (
-        <div className="flex items-center gap-1.5 text-foreground min-w-0">
-            <span className="text-muted-foreground inline-flex h-3.5 w-3.5 items-center justify-center">
-                {icon}
-            </span>
-            <span className="truncate">{text}</span>
-        </div>
     );
 }
 
