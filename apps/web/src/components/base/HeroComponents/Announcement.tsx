@@ -19,7 +19,7 @@ export function Announcement() {
                 className="-rotate-5 size-4 shrink-0 group-hover:-rotate-10 transition-all transform duration-200"
             />
             <span className="text-foreground truncate">
-                <span className="sm:hidden">50,000 placements</span>
+                <span className="sm:hidden">1,000 placements</span>
                 <span className="hidden sm:inline">
                     Celebrating 1000+ internships on Spiderskill
                 </span>

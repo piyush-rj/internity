@@ -35,21 +35,25 @@ export function Hero() {
                     />
                 </div>
 
-                {/* Content is anchored to the upper-left on mobile and centred
-                    vertically on larger screens; the narrow column keeps it
-                    clear of the subject on the right. */}
+                {/* On mobile the text/badge stay at the top while the search is
+                    pushed to the bottom (justify-between), with vertical padding
+                    so neither sticks to an edge. On larger screens it collapses
+                    back to a normal block, centred vertically; the narrow column
+                    keeps it clear of the subject on the right. */}
                 <div className="relative z-10 px-4 sm:px-8">
-                    <div className="flex min-h-140 items-start pt-12 sm:min-h-160 sm:items-center sm:pt-0 lg:min-h-175">
-                        <div className="max-w-xl text-left">
-                            <Announcement />
-                            <h1 className="mt-6 sm:mt-8 text-[34px] sm:text-[42px] lg:text-[45px] leading-[1.05] font-medium tracking-tight text-white">
-                                Land your paid internship in 15 days
-                            </h1>
-                            <p className="mt-4 sm:mt-5 max-w-md text-[15px] sm:text-[17px] lg:text-[18px] tracking-[-0.25] font-medium leading-normal text-white/85">
-                                SpiderSkill is India&apos;s modern internship
-                                platform — where students land real internships
-                                at vetted startups.
-                            </p>
+                    <div className="flex min-h-140 items-stretch py-12 sm:min-h-160 sm:items-center sm:py-0 lg:min-h-175">
+                        <div className="max-w-xl text-left flex flex-col justify-between sm:block">
+                            <div>
+                                <Announcement />
+                                <h1 className="mt-6 sm:mt-8 text-[34px] sm:text-[42px] lg:text-[45px] leading-[1.05] font-medium tracking-tight text-white">
+                                    Land your paid internship in 15 days
+                                </h1>
+                                <p className="mt-4 sm:mt-5 max-w-md text-[15px] sm:text-[17px] lg:text-[18px] tracking-[-0.25] font-medium leading-normal text-white/85">
+                                    SpiderSkill is India&apos;s modern internship
+                                    platform, where students land real
+                                    internships at vetted startups.
+                                </p>
+                            </div>
                             <HeroSearch />
                         </div>
                     </div>
