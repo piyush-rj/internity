@@ -72,6 +72,12 @@ export default async function listListings(
                         { expiresAt: { gt: new Date() } },
                     ],
                 },
+                {
+                    OR: [
+                        { applyBy: null },
+                        { applyBy: { gt: new Date() } },
+                    ],
+                },
             ],
         };
         if (q.mode) where.mode = q.mode as WorkMode;

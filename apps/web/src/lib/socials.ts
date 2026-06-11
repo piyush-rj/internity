@@ -17,7 +17,7 @@ export const SOCIAL_LINKS: SocialLink[] = [
     },
     {
         label: "SpiderSkill on Instagram",
-        href: "https://www.instagram.com/spiderskill_?igsh=MTB5Z3huOGZ2bjJtdQ==",
+        href: "https://www.instagram.com/spiderskill.internships/",
         Icon: FaInstagram,
     },
     {
