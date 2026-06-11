@@ -73,10 +73,7 @@ export default async function listListings(
                     ],
                 },
                 {
-                    OR: [
-                        { applyBy: null },
-                        { applyBy: { gt: new Date() } },
-                    ],
+                    OR: [{ applyBy: null }, { applyBy: { gt: new Date() } }],
                 },
             ],
         };
