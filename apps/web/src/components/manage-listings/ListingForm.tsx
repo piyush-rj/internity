@@ -395,7 +395,11 @@ export const ListingForm = forwardRef(function ListingForm(
                 return;
             }
         }
-        if (form.applyBy && form.applyBy < today) {
+        if (!form.applyBy) {
+            toast.error("'Apply by' date is required.");
+            return;
+        }
+        if (form.applyBy < today) {
             toast.error("'Apply by' can't be in the past.");
             return;
         }
@@ -473,9 +477,7 @@ export const ListingForm = forwardRef(function ListingForm(
                 form.startMode === "LATER" && form.startDateLatest
                     ? new Date(form.startDateLatest).toISOString()
                     : null,
-            applyBy: form.applyBy
-                ? new Date(form.applyBy).toISOString()
-                : undefined,
+            applyBy: new Date(form.applyBy).toISOString(),
             openings: numOr(form.openings),
             partTime: form.partTime || undefined,
             ppo: form.ppo,
@@ -751,11 +753,12 @@ export const ListingForm = forwardRef(function ListingForm(
                         onToChange={(v) => set("startDateLatest", v)}
                     />
                 </Field>
-                <Field label="Apply by">
+                <Field label="Apply by" required>
                     <input
                         type="date"
                         value={form.applyBy}
                         min={todayIso()}
+                        required
                         onChange={(e) => set("applyBy", e.target.value)}
                         className={cn(inputCls(), "max-w-xs")}
                     />

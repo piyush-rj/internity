@@ -58,7 +58,7 @@ const Body = z
         durationWeeks: z.number().int().min(0).nullable().optional(),
         startDate: z.coerce.date().nullable().optional(),
         startDateLatest: z.coerce.date().nullable().optional(),
-        applyBy: z.coerce.date().nullable().optional(),
+        applyBy: z.coerce.date(),
         openings: z.number().int().nullable().optional(),
         partTime: z.boolean().nullable().optional(),
         ppo: z.boolean().nullable().optional(),

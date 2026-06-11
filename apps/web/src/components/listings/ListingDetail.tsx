@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
     PiArrowSquareOut,
@@ -282,8 +283,9 @@ function Header({
 }) {
     const takenDown = !!listing.takenDownAt;
     const paused = !!listing.pausedAt;
+    const [now] = useState<number>(Date.now);
     const expired = listing.expiresAt
-        ? new Date(listing.expiresAt).getTime() <= Date.now()
+        ? new Date(listing.expiresAt).getTime() <= now
         : false;
     const durationLabel = formatDuration(
         listing.durationMonths,

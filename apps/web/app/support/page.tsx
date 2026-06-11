@@ -13,6 +13,7 @@ export default function SupportPage() {
     const me = useMeStore((s) => s.me);
     const meLoading = useMeStore((s) => s.loading);
     const meInitialized = useMeStore((s) => s.initialized);
+    const meError = useMeStore((s) => s.error);
     const bootstrapped = useRef(false);
     // The token lives in localStorage, which is unavailable during SSR. Gate
     // the first paint on this flag so the server and the initial client render
@@ -25,6 +26,9 @@ export default function SupportPage() {
     useEffect(() => {
         if (!mounted) return;
         if (!getSupportToken()) {
+            // Also clear any Supabase-populated me state so the login page
+            // starts fresh rather than inheriting the founder's identity.
+            useMeStore.getState().reset();
             router.replace("/support/login");
             return;
         }
@@ -44,6 +48,15 @@ export default function SupportPage() {
             router.replace("/support/login");
         }
     }, [meInitialized, meLoading, me, router]);
+
+    // /auth/me failed (expired or invalid token) — clear it and go to login.
+    useEffect(() => {
+        if (!meLoading && meError && !me) {
+            clearSupportToken();
+            useMeStore.getState().reset();
+            router.replace("/support/login");
+        }
+    }, [meLoading, meError, me, router]);
 
     function logout() {
         clearSupportToken();

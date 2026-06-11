@@ -99,7 +99,7 @@ export type ListingInput = {
     durationWeeks?: number;
     startDate?: string | null;
     startDateLatest?: string | null;
-    applyBy?: string;
+    applyBy: string;
     openings?: number;
     partTime?: boolean;
     ppo?: boolean;

@@ -6,10 +6,7 @@ import { Loader2, Lock, LifeBuoy } from "lucide-react";
 import { supportApi } from "@/src/lib/api";
 import { ApiClientError } from "@/src/lib/apiClient";
 import { useMeStore } from "@/src/store/useMeStore";
-import {
-    getSupportToken,
-    setSupportToken,
-} from "@/src/lib/supportAuth";
+import { getSupportToken, setSupportToken } from "@/src/lib/supportAuth";
 
 export default function SupportLoginPage() {
     const router = useRouter();

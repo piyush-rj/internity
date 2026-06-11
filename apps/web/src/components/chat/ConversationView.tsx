@@ -300,7 +300,7 @@ export function ConversationView({
                 </div>
             )}
 
-            {!peerDeleted && !editing && meRole && (
+            {!isAdminView && !peerDeleted && !editing && meRole && (
                 <SuggestedReplies
                     meRole={meRole}
                     isAdminThread={conversation?.isAdminThread ?? false}
@@ -309,18 +309,24 @@ export function ConversationView({
                 />
             )}
 
-            <Composer
-                draft={draft}
-                onDraftChange={setDraft}
-                onSend={handleSend}
-                canSend={canSend}
-                connecting={socket.status !== "open"}
-                disabledReason={
-                    peerDeleted ? "This person deleted their account" : null
-                }
-                editing={!!editing}
-                onCancelEdit={handleCancelEdit}
-            />
+            {isAdminView ? (
+                <div className="px-5 py-3 border-t border-neutral-200 bg-zinc-50 text-[12px] text-muted-foreground text-center">
+                    Read-only view — admins cannot send messages in support threads.
+                </div>
+            ) : (
+                <Composer
+                    draft={draft}
+                    onDraftChange={setDraft}
+                    onSend={handleSend}
+                    canSend={canSend}
+                    connecting={socket.status !== "open"}
+                    disabledReason={
+                        peerDeleted ? "This person deleted their account" : null
+                    }
+                    editing={!!editing}
+                    onCancelEdit={handleCancelEdit}
+                />
+            )}
         </div>
     );
 }

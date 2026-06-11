@@ -26,18 +26,31 @@ const client: AxiosInstance = axios.create({
 });
 
 client.interceptors.request.use(async (config) => {
-    // The support agent's bearer token takes precedence over any Supabase
-    // session so the dedicated /support console authenticates as that identity.
-    const supportToken = getSupportToken();
-    if (supportToken) {
-        config.headers.Authorization = `Bearer ${supportToken}`;
-        return config;
+    // On /support routes the support bearer token is authoritative regardless
+    // of any Supabase session, so the founder can stay logged in elsewhere in
+    // the same browser without the support console breaking (and vice-versa).
+    const onSupportRoute =
+        typeof window !== "undefined" &&
+        window.location.pathname.startsWith("/support");
+    if (onSupportRoute) {
+        const supportToken = getSupportToken();
+        if (supportToken) {
+            config.headers.Authorization = `Bearer ${supportToken}`;
+            return config;
+        }
     }
     const {
         data: { session },
     } = await supabase.auth.getSession();
     if (session?.access_token) {
         config.headers.Authorization = `Bearer ${session.access_token}`;
+        return config;
+    }
+    // Off /support but no Supabase session — still try the support token as a
+    // last resort (e.g. a support agent who never has a Supabase session).
+    const supportToken = getSupportToken();
+    if (supportToken) {
+        config.headers.Authorization = `Bearer ${supportToken}`;
     }
     return config;
 });

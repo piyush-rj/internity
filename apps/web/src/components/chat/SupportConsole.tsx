@@ -32,17 +32,29 @@ type UserSearchResult = {
 // Shared support-chat console. Used by both the admin panel
 // (/admin/support-requests) and the dedicated support-agent console (/support).
 // `basePath` is the route the active conversation id is reflected into.
-export function SupportConsole({ basePath }: { basePath: string }) {
+export function SupportConsole({
+    basePath,
+    readOnly = false,
+}: {
+    basePath: string;
+    readOnly?: boolean;
+}) {
     return (
         <Suspense fallback={null}>
-            <SupportConsoleView basePath={basePath} />
+            <SupportConsoleView basePath={basePath} readOnly={readOnly} />
         </Suspense>
     );
 }
 
 type RoleFilter = "all" | "STUDENT" | "EMPLOYER";
 
-function SupportConsoleView({ basePath }: { basePath: string }) {
+function SupportConsoleView({
+    basePath,
+    readOnly,
+}: {
+    basePath: string;
+    readOnly: boolean;
+}) {
     const socket = useWebSocket();
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -313,7 +325,7 @@ function SupportConsoleView({ basePath }: { basePath: string }) {
                         }
                         socket={socket}
                         onBack={() => setActiveId(null)}
-                        isAdminView
+                        isAdminView={readOnly}
                     />
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center gap-1 px-6 text-center">
