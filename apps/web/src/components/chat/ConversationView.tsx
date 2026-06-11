@@ -311,7 +311,8 @@ export function ConversationView({
 
             {isAdminView ? (
                 <div className="px-5 py-3 border-t border-neutral-200 bg-zinc-50 text-[12px] text-muted-foreground text-center">
-                    Read-only view — admins cannot send messages in support threads.
+                    Read-only view — admins cannot send messages in support
+                    threads.
                 </div>
             ) : (
                 <Composer

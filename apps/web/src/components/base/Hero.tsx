@@ -49,9 +49,9 @@ export function Hero() {
                                     Land your paid internship in 15 days
                                 </h1>
                                 <p className="mt-4 sm:mt-5 max-w-md text-[15px] sm:text-[17px] lg:text-[18px] tracking-[-0.25] font-medium leading-normal text-white/85">
-                                    SpiderSkill is India&apos;s modern internship
-                                    platform, where students land real
-                                    internships at vetted startups.
+                                    SpiderSkill is India&apos;s modern
+                                    internship platform, where students land
+                                    real internships at vetted startups.
                                 </p>
                             </div>
                             <HeroSearch />
