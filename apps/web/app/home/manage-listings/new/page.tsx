@@ -49,7 +49,7 @@ export default function NewListingPage() {
 
     return (
         <EmptySection
-            title="Post a new listing"
+            title="Post an internship"
             description="Share an internship with students across India."
         >
             {signedIn && (

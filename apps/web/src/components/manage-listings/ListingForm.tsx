@@ -805,8 +805,8 @@ function Section({
 }) {
     return (
         <section className="rounded-lg border border-border bg-card p-6 space-y-5">
-            <h3 className="text-[14px] font-semibold text-blue-600 border-b border-border pb-4 flex items-center gap-2">
-                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-blue-600 text-white text-[11px] font-bold shrink-0">
+            <h3 className="text-[14px] font-semibold text-[#008080] border-b border-border pb-4 flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-[#008080] text-white text-[11px] font-bold shrink-0">
                     {number}
                 </span>
                 {title}

@@ -143,7 +143,7 @@ export function Topbar() {
 
     const primaryCta =
         role === "EMPLOYER"
-            ? { label: "Post listing", href: "/home/manage-listings/new" }
+            ? { label: "Post an internship", href: "/home/manage-listings/new" }
             : null;
 
     return (
