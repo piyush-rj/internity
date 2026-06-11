@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import {
     PiBriefcase,
+    PiCalendarBlank,
     PiClock,
     PiCurrencyCircleDollar,
     PiMapPin,
@@ -214,11 +215,17 @@ export function MyListingCard({
                         </div>
                     )}
 
-                    <div className="mt-3 flex items-center gap-2 text-[11.5px] text-muted-foreground">
+                    <div className="mt-3 flex items-center gap-2 flex-wrap text-[11.5px] text-muted-foreground">
                         <span className="inline-flex items-center gap-1 rounded-md bg-sky-50 text-sky-700 border border-sky-200 px-1.5 py-0.5 font-medium">
                             <PiClock className="h-3 w-3" />
                             Posted {timeAgo(listing.createdAt)}
                         </span>
+                        {listing.applyBy && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 font-medium">
+                                <PiCalendarBlank className="h-3 w-3" />
+                                Apply by {formatApplyBy(listing.applyBy)}
+                            </span>
+                        )}
                     </div>
                 </div>
             </div>
@@ -432,7 +439,7 @@ function StatusBadge({
     if (takenDown) {
         return (
             <span className="rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
-                Removed by admin
+                Taken Down
             </span>
         );
     }
@@ -506,6 +513,18 @@ function ModeBadge({ mode }: { mode: MyListing["mode"] }) {
             {labels[mode]}
         </span>
     );
+}
+
+function formatApplyBy(iso: string): string {
+    try {
+        return new Date(iso).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+    } catch {
+        return "";
+    }
 }
 
 function timeAgo(iso: string): string {

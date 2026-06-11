@@ -8,6 +8,7 @@ import {
     PiBookmarkSimple,
     PiBookmarkSimpleFill,
     PiBriefcase,
+    PiCalendarBlank,
     PiCheckCircleFill,
     PiClock,
     PiCurrencyCircleDollar,
@@ -212,6 +213,12 @@ function ListingCard({
                                     Be an early applicant
                                 </span>
                             )}
+                            {listing.applyBy && !closed && (
+                                <span className="inline-flex items-center gap-1 rounded-md bg-rose-50 text-rose-700 border border-rose-200 px-1.5 py-0.5 font-medium">
+                                    <PiCalendarBlank className="h-3 w-3" />
+                                    Apply by {formatApplyBy(listing.applyBy)}
+                                </span>
+                            )}
                         </div>
                         <div className="self-stretch sm:self-auto flex items-center gap-2">
                             <ShareMenu
@@ -405,6 +412,18 @@ function CardSkeleton() {
             </div>
         </div>
     );
+}
+
+function formatApplyBy(iso: string): string {
+    try {
+        return new Date(iso).toLocaleDateString("en-IN", {
+            day: "numeric",
+            month: "short",
+            year: "numeric",
+        });
+    } catch {
+        return "";
+    }
 }
 
 function timeAgo(iso: string): string {

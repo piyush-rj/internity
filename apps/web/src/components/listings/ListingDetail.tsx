@@ -227,6 +227,52 @@ function FounderAvatar({
     );
 }
 
+function ListingStatusBadge({
+    closed,
+    takenDown,
+    paused,
+    expired,
+}: {
+    closed: boolean;
+    takenDown: boolean;
+    paused: boolean;
+    expired: boolean;
+}) {
+    if (takenDown) {
+        return (
+            <span className="rounded-md border border-red-200 bg-red-50 px-1.5 py-0.5 text-[10px] font-medium text-red-700">
+                Taken Down
+            </span>
+        );
+    }
+    if (expired) {
+        return (
+            <span className="rounded-md border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                Expired
+            </span>
+        );
+    }
+    if (paused) {
+        return (
+            <span className="rounded-md border border-sky-200 bg-sky-50 px-1.5 py-0.5 text-[10px] font-medium text-sky-700">
+                Paused
+            </span>
+        );
+    }
+    return (
+        <span
+            className={cn(
+                "rounded-md border px-1.5 py-0.5 text-[10px] font-medium",
+                closed
+                    ? "bg-zinc-100 text-zinc-700 border-zinc-200"
+                    : "bg-emerald-50 text-emerald-700 border-emerald-200",
+            )}
+        >
+            {closed ? "Closed" : "Open"}
+        </span>
+    );
+}
+
 function Header({
     listing,
     closed,
@@ -234,6 +280,11 @@ function Header({
     listing: ListingDetailType;
     closed: boolean;
 }) {
+    const takenDown = !!listing.takenDownAt;
+    const paused = !!listing.pausedAt;
+    const expired = listing.expiresAt
+        ? new Date(listing.expiresAt).getTime() <= Date.now()
+        : false;
     const durationLabel = formatDuration(
         listing.durationMonths,
         listing.durationWeeks,
@@ -251,11 +302,12 @@ function Header({
                             {formatListingTitle(listing.title)}
                         </h1>
                         <ModeBadge mode={listing.mode} />
-                        {closed && (
-                            <span className="rounded-md border border-border bg-secondary/40 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                Closed
-                            </span>
-                        )}
+                        <ListingStatusBadge
+                            closed={closed}
+                            takenDown={takenDown}
+                            paused={paused}
+                            expired={expired}
+                        />
                     </div>
                     <p className="mt-1 inline-flex items-center gap-1.5 text-[13.5px] text-muted-foreground">
                         <span>{listing.company.name}</span>
