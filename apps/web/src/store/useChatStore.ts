@@ -24,12 +24,15 @@ export const useChatStore = create<State & Actions>((set) => ({
             },
         })),
 
+    // Pin the count to 0 rather than deleting the key. Sidebars read
+    // `unreadByConv[id] ?? serverCount`, so a deleted key would fall back to
+    // the (now stale) server count and the badge would reappear after reading.
     clearUnread: (conversationId) =>
         set((s) => {
-            if (!s.unreadByConv[conversationId]) return s;
-            const next = { ...s.unreadByConv };
-            delete next[conversationId];
-            return { unreadByConv: next };
+            if (s.unreadByConv[conversationId] === 0) return s;
+            return {
+                unreadByConv: { ...s.unreadByConv, [conversationId]: 0 },
+            };
         }),
 
     reset: () => set({ unreadByConv: {} }),

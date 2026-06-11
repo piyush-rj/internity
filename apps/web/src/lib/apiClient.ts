@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosInstance } from "axios";
 import { createClient } from "@/src/lib/supabase/client";
 import { ENV } from "@/src/config/config.env";
+import { getSupportToken } from "@/src/lib/supportAuth";
 
 const supabase = createClient();
 
@@ -25,6 +26,13 @@ const client: AxiosInstance = axios.create({
 });
 
 client.interceptors.request.use(async (config) => {
+    // The support agent's bearer token takes precedence over any Supabase
+    // session so the dedicated /support console authenticates as that identity.
+    const supportToken = getSupportToken();
+    if (supportToken) {
+        config.headers.Authorization = `Bearer ${supportToken}`;
+        return config;
+    }
     const {
         data: { session },
     } = await supabase.auth.getSession();

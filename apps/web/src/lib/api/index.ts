@@ -56,6 +56,7 @@ export {
 } from "./notification";
 export { paymentApi, type CreateOrderResponse } from "./payment";
 export { chatApi, type ChatMessage, type ConversationListItem } from "./chat";
+export { supportApi, type SupportLoginResponse } from "./support";
 export {
     adminApi,
     type AdminPlatformStats,

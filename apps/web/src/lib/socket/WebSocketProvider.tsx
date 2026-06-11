@@ -10,6 +10,7 @@ import {
 } from "react";
 import { createClient } from "@/src/lib/supabase/client";
 import { ENV } from "@/src/config/config.env";
+import { getSupportToken } from "@/src/lib/supportAuth";
 import {
     WSClient,
     buildSocketUrl,
@@ -35,6 +36,9 @@ export function WebSocketProvider({ children }: { children: ReactNode }) {
         const client = new WSClient({
             url: buildSocketUrl(ENV.NEXT_PUBLIC_BACKEND_URL, "/api/v1/chat/ws"),
             getToken: async () => {
+                // Support agent's token wins over the Supabase session.
+                const supportToken = getSupportToken();
+                if (supportToken) return supportToken;
                 const {
                     data: { session },
                 } = await supabase.auth.getSession();

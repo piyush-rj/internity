@@ -209,6 +209,18 @@ export function ConversationView({
         [peerReadAt],
     );
 
+    // In an admin's view of a support thread there can be several admins
+    // sending into one shared thread (e.g. the main admin + the support
+    // agent). The thread has exactly one non-admin participant (the peer), so
+    // "ours" is anything the peer didn't send — otherwise another admin's
+    // replies would render as if the user sent them.
+    const isAdminThreadView =
+        (isAdminView || meRole === "ADMIN") &&
+        (conversation?.isAdminThread ?? false);
+    const peerUserId = peer?.id ?? null;
+    const ownForMessage = (senderId: string): boolean | undefined =>
+        isAdminThreadView && peerUserId ? senderId !== peerUserId : undefined;
+
     const viewProfileHref =
         meRole === "EMPLOYER" && peer && !peerDeleted
             ? `/student/${peer.id}`
@@ -267,6 +279,7 @@ export function ConversationView({
                                     key={m.clientId ?? m.id}
                                     message={m}
                                     ownId={meId}
+                                    isOwn={ownForMessage(m.senderId)}
                                     peerReadDate={peerReadDate}
                                     onStartEdit={
                                         peerDeleted

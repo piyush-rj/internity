@@ -10,21 +10,32 @@ import { formatTime, type Bubble } from "./chat-utils";
 export function MessageBubble({
     message,
     ownId,
+    isOwn,
     peerReadDate,
     onStartEdit,
 }: {
     message: Bubble;
     ownId: string | null;
+    // Overrides the default `senderId === ownId` side/styling. Used in admin
+    // support views where every admin's message (not just the current
+    // viewer's) should sit on the "ours" side of the thread.
+    isOwn?: boolean;
     peerReadDate: Date | null;
     onStartEdit?: (message: Bubble) => void;
 }) {
     const [now] = useState(() => Date.now());
-    const isMine = message.senderId === ownId;
+    const isMine = isOwn ?? message.senderId === ownId;
     const pending = !!message.clientId;
     const createdAt = new Date(message.createdAt);
     const edited = !pending && !!message.editedAt;
     const withinEditWindow = now - createdAt.getTime() <= 60 * 60 * 1000;
-    const canEdit = isMine && !pending && !!onStartEdit && withinEditWindow;
+    // Editing stays restricted to messages this viewer actually authored, even
+    // when another admin's messages are rendered as "ours".
+    const canEdit =
+        message.senderId === ownId &&
+        !pending &&
+        !!onStartEdit &&
+        withinEditWindow;
     const readByPeer =
         isMine &&
         !pending &&

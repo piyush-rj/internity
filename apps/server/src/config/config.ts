@@ -27,6 +27,12 @@ const schema = z.object({
 
     ADMIN_EMAILS: z.string().optional().default(""),
     ADMIN_EMAIL: z.string().optional().default(""),
+
+    // A single hardcoded support-agent identity that logs in with
+    // email + password (not via Supabase) and handles support chat only.
+    // Login is disabled unless both are set to non-empty values.
+    SUPPORT_AGENT_EMAIL: z.string().optional().default(""),
+    SUPPORT_AGENT_PASSWORD: z.string().optional().default(""),
 });
 
 const parsed = schema.safeParse(process.env);
@@ -55,3 +61,9 @@ export function isAdminUser(user: {
     if (!user.email) return false;
     return ADMIN_EMAIL_SET.has(user.email.toLowerCase());
 }
+
+// The support agent is the hardcoded email/password identity. It only works
+// when both env vars are present; otherwise the /support login is disabled.
+export const SUPPORT_AGENT_EMAIL = config.SUPPORT_AGENT_EMAIL.trim();
+export const isSupportAgentEnabled: boolean =
+    SUPPORT_AGENT_EMAIL.length > 0 && config.SUPPORT_AGENT_PASSWORD.length > 0;

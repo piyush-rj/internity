@@ -2,10 +2,11 @@ import express from "express";
 import "express-async-errors";
 import cors from "cors";
 import { createServer } from "node:http";
-import { config } from "./config/config.ts";
+import { config, isSupportAgentEnabled } from "./config/config.ts";
 import { prisma } from "./db.ts";
 import { ChatSocket } from "./socket/socket.chat.ts";
 import { errorHandler } from "./middleware/error.ts";
+import { ensureSupportAgentUser } from "./services/support-agent.ts";
 import v1 from "./routes/routes.ts";
 
 const app = express();
@@ -45,6 +46,14 @@ prisma.user
         data: { isOnline: false, lastSeenAt: new Date() },
     })
     .catch((err) => console.error("startup presence reset failed:", err));
+
+// Provision the hardcoded support-agent User row so its chat messages have a
+// valid sender and support threads route to it. No-op when not configured.
+if (isSupportAgentEnabled) {
+    ensureSupportAgentUser().catch((err) =>
+        console.error("support agent provisioning failed:", err),
+    );
+}
 
 server.listen(config.SERVER_PORT, "0.0.0.0", () => {
     console.log(`server listening on 0.0.0.0:${config.SERVER_PORT}`);

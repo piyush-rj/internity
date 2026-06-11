@@ -6,6 +6,8 @@ import {
     Unauthorized,
 } from "../utils/api-response.ts";
 import { verifyToken, type SupabaseClaims } from "../core/jwt.ts";
+import { verifySupportAgentToken } from "../core/support-token.ts";
+import { getSupportAgentById } from "../services/support-agent.ts";
 import { prisma, type UserRole } from "../db.ts";
 import { isAdminUser } from "../config/config.ts";
 
@@ -24,6 +26,10 @@ export type AuthUser = {
     name: string | null;
     email: string | null;
     role: UserRole;
+    // True for the hardcoded support-agent identity. It is role=ADMIN (so the
+    // chat admin features work) but is blocked from the rest of the admin panel
+    // via denySupportAgent().
+    isSupportAgent?: boolean;
 };
 
 declare global {
@@ -46,6 +52,23 @@ export async function requireAuth(
         if (!auth || !auth.startsWith("Bearer ")) throw new Unauthorized();
         const token = auth.slice("Bearer ".length).trim();
         if (!token) throw new Unauthorized();
+
+        // Support-agent tokens are minted by us, not Supabase. Resolve them
+        // first; they map directly to the support-agent DB row (role=ADMIN).
+        const support = await verifySupportAgentToken(token);
+        if (support) {
+            const agent = await getSupportAgentById(support.sub);
+            if (!agent) throw new Unauthorized();
+            req.user = {
+                id: agent.id,
+                name: agent.name,
+                email: agent.email,
+                role: "ADMIN" as UserRole,
+                isSupportAgent: true,
+            };
+            next();
+            return;
+        }
 
         const claims = await verifyToken(token);
         if (!claims?.sub) throw new Unauthorized();
@@ -175,6 +198,30 @@ export function requireAdmin(
         if (!req.user) throw new Unauthorized();
         if (!isAdminUser(req.user)) {
             throw new Forbidden("Admin access required");
+        }
+        next();
+    } catch (err) {
+        if (err instanceof ApiError) {
+            api.fail(err.status, err.code, err.message);
+            return;
+        }
+        console.error(err);
+        api.internalError();
+    }
+}
+
+// Blocks the support agent from full-admin endpoints. The support agent is
+// role=ADMIN so the chat admin features work, but it must not reach the rest of
+// the admin panel (bans, coupons, payments, etc.).
+export function denySupportAgent(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+): void {
+    const api = new ResponseWriter(res);
+    try {
+        if (req.user?.isSupportAgent) {
+            throw new Forbidden("Support accounts cannot access this resource");
         }
         next();
     } catch (err) {

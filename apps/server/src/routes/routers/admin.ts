@@ -1,5 +1,9 @@
 import { Router, type Router as RouterType } from "express";
-import { requireAdmin, requireAuth } from "../../middleware/auth.ts";
+import {
+    denySupportAgent,
+    requireAdmin,
+    requireAuth,
+} from "../../middleware/auth.ts";
 import getAdminStats from "../controllers/admin-controllers/controller.admin.get_stats.ts";
 import listPayments from "../controllers/admin-controllers/controller.admin.list_payments.ts";
 import setUserBan from "../controllers/admin-controllers/controller.admin.set_user_ban.ts";
@@ -20,6 +24,9 @@ import revokeOffer from "../controllers/admin-controllers/controller.admin.revok
 
 const router: RouterType = Router();
 router.use(requireAuth);
+// The support agent is role=ADMIN for chat, but the full admin panel is
+// off-limits to it.
+router.use(denySupportAgent);
 
 router.get("/stats", requireAdmin, getAdminStats);
 router.get("/payments", requireAdmin, listPayments);

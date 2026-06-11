@@ -1,5 +1,7 @@
 import type { WebSocket } from "ws";
 import { verifyToken } from "../core/jwt.ts";
+import { verifySupportAgentToken } from "../core/support-token.ts";
+import { getSupportAgentById } from "../services/support-agent.ts";
 import type { UserRole } from "../db.ts";
 import { isAdminUser } from "../config/config.ts";
 import { SocketDbService, type User } from "./socket.db_services.ts";
@@ -119,6 +121,29 @@ export class CustomWS {
                 "First message must be of type 'auth'.",
             );
             throw new AuthFailed("first message was not 'auth'");
+        }
+
+        // Support-agent tokens are minted by us, not Supabase. Resolve them
+        // first; they map directly to the support-agent DB row (role=ADMIN).
+        const support = await verifySupportAgentToken(parsed.token);
+        if (support) {
+            const agent = await getSupportAgentById(support.sub);
+            if (!agent) {
+                this.failHandshake(
+                    WS_CLOSE_UNAUTHORIZED,
+                    SOCKET_ERROR_CODE.UNAUTHORIZED,
+                    "No matching user.",
+                );
+                throw new AuthFailed("support agent not found");
+            }
+            this._user = {
+                id: agent.id,
+                name: agent.name,
+                email: agent.email,
+                role: "ADMIN" as UserRole,
+            };
+            this.send({ type: MESSAGE_TYPE.CONNECTED, userId: agent.id });
+            return this._user;
         }
 
         const claims = await verifyToken(parsed.token);
