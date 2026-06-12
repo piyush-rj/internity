@@ -46,7 +46,7 @@ export function SectionCard({
                 <div className="flex items-start gap-2">
                     <div>
                         <div className="flex items-center gap-2">
-                            <h2 className="text-[15px] font-semibold tracking-tight text-blue-600">
+                            <h2 className="text-[15px] font-semibold tracking-tight text-[#008080]">
                                 {title}
                             </h2>
                             {optional && (
