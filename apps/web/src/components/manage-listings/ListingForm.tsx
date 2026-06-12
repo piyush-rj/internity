@@ -192,24 +192,14 @@ export const ListingForm = forwardRef(function ListingForm(
         initialState,
         onSaveDraft,
     }: {
-        // Absent for the signed-out (requireAuth) preview, where no listing is
-        // actually created until after sign-up + company setup.
         companyId?: string;
         initial?: Listing | null;
         onCreated?: (id: string) => void | Promise<void>;
         onSaved?: (listing: Listing) => void | Promise<void>;
-        // When true, a valid submit doesn't hit the API — it saves the draft
-        // (if draftKey is set) and calls onAuthRequired so the caller can open
-        // the sign-up dialog.
         requireAuth?: boolean;
         onAuthRequired?: () => void;
-        // localStorage key for draft persistence (restore on mount, clear on
-        // successful create). Only applies in create mode.
         draftKey?: string;
-        // Seed the form from a saved DB draft (create mode only).
         initialState?: ListingFormState | null;
-        // When set, renders a "Save as draft" button that hands the current
-        // (possibly incomplete) form state back to the caller — no validation.
         onSaveDraft?: (state: ListingFormState) => void | Promise<void>;
     },
     ref: ForwardedRef<ListingFormHandle>,
@@ -235,9 +225,6 @@ export const ListingForm = forwardRef(function ListingForm(
         }
     }
 
-    // Restore a saved draft after mount (not in the initial state) so the
-    // server-rendered empty form and the first client render match — restoring
-    // in useState would cause a hydration mismatch on the input values.
     const draftRestored = useRef(false);
     useEffect(() => {
         if (isEdit || !draftKey || draftRestored.current) return;
@@ -256,22 +243,13 @@ export const ListingForm = forwardRef(function ListingForm(
         [form.jobTitle],
     );
 
-    // applyTemplate has two callers with different intents:
-    //  - The top-of-page TemplatePicker is a "seed me" affordance run once
-    //    at the start; it should never clobber typed content (overwrite=false).
-    //  - The inline "Autofill details" button next to the job-title select
-    //    is an explicit "give me this role's defaults"; if the founder
-    //    changes job titles and clicks it again they expect fresh defaults,
-    //    so it overwrites (overwrite=true).
-    function applyTemplate(t: ListingTemplate, overwrite = false) {
+   function applyTemplate(t: ListingTemplate, overwrite = false) {
         setForm((prev) => {
             const take = <T,>(prevHas: boolean, prevVal: T, fresh: T): T =>
                 overwrite || !prevHas ? fresh : prevVal;
             return {
                 ...prev,
                 mode: overwrite ? t.mode : prev.mode,
-                // Always honour the explicit job-title pick the founder
-                // already made — never overwrite it from the template.
                 jobTitle: prev.jobTitle || (t.jobTitle ?? ""),
                 title: take(prev.title.trim().length > 0, prev.title, t.title),
                 description: take(

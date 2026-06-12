@@ -31,7 +31,7 @@ export function ProfileCompletionPill() {
             aria-label={`Profile ${pct}% complete — click to continue`}
             className={cn(
                 "inline-flex items-center gap-2",
-                "h-8 pl-3.25 pr-1 rounded-full",
+                "h-8 pl-3.25 pr-1 mr-0.5 rounded-full",
                 "bg-brand",
                 "text-[12px] font-medium text-white",
                 "transition-colors cursor-pointer",

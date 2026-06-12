@@ -2,8 +2,9 @@
 import { memo, useCallback, useState, type ComponentType } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ArrowUpRight, MessageCircle } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 import { cn } from "@/src/lib/utils";
+import { MdOutlineSupportAgent } from "react-icons/md";
 import { SparklesIcon } from "@/src/components/dashboard/icons";
 import {
     PiBookmarkSimpleFill,
@@ -440,7 +441,7 @@ function ContactSupportButton({ onNavigate }: { onNavigate?: () => void }) {
                     "disabled:opacity-50 cursor-pointer",
                 )}
             >
-                <MessageCircle className="h-4 w-4 shrink-0 text-orange-500" />
+                <MdOutlineSupportAgent className="h-4.5 w-4.5 shrink-0" />
                 <span className="truncate">Contact SpiderSkill</span>
             </button>
         </div>

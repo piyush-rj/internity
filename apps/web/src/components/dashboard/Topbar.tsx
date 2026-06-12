@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Menu } from "lucide-react";
+import { MdOutlineSupportAgent } from "react-icons/md";
 import { PlusIcon, SearchIcon } from "@/src/components/dashboard/icons";
 import { NotificationPanel } from "@/src/components/dashboard/NotificationPanel";
 import { MobileNavDrawer } from "@/src/components/dashboard/MobileNavDrawer";
@@ -18,6 +19,7 @@ import { useMeStore } from "@/src/store/useMeStore";
 import { useUserSessionStore } from "@/src/store/useUserSessionStore";
 import { useAuthDialog } from "@/src/store/useAuthDialog";
 import { useMyEmployer } from "@/src/hooks/useMyEmployer";
+import { chatApi } from "@/src/lib/api";
 
 type Crumb = {
     label: string;
@@ -362,7 +364,7 @@ export function Topbar() {
                                 href={primaryCta.href}
                                 aria-label={primaryCta.label}
                                 className={cn(
-                                    "inline-flex shrink-0 items-center gap-1.5 h-8.5 px-2.5",
+                                    "inline-flex shrink-0 items-center h-8.5 px-2.5",
                                     "rounded-md bg-neutral-900",
                                     "text-[12px] font-medium text-white",
                                     "transition-colors",
@@ -374,6 +376,7 @@ export function Topbar() {
                             </Link>
                         )}
                         <ProfileCompletionPill />
+                        {role !== "ADMIN" && <SupportButton />}
                         <NotificationPanel />
                         <div className="ml-1">
                             <UserMenu />
@@ -388,6 +391,46 @@ export function Topbar() {
                 <SidebarBody onNavigate={() => setDrawerOpen(false)} />
             </MobileNavDrawer>
         </header>
+    );
+}
+
+// Quick access to admin support from the topbar — mirrors the sidebar's
+// "Contact SpiderSkill" button: starts (or resumes) the admin conversation
+// and routes to the messages thread, falling back to the messages list.
+function SupportButton() {
+    const router = useRouter();
+    const [loading, setLoading] = useState(false);
+
+    async function handleClick() {
+        if (loading) return;
+        setLoading(true);
+        try {
+            const { id } = await chatApi.start_admin_conversation();
+            router.push(`/home/messages?cid=${encodeURIComponent(id)}`);
+        } catch {
+            // silently fall back to the messages page
+            router.push("/home/messages");
+        } finally {
+            setLoading(false);
+        }
+    }
+
+    return (
+        <button
+            type="button"
+            aria-label="Contact support"
+            title="Contact support"
+            onClick={handleClick}
+            disabled={loading}
+            className={cn(
+                "relative h-8 w-8 inline-flex items-center justify-center",
+                "rounded-md cursor-pointer",
+                "text-muted-foreground hover:bg-secondary hover:text-foreground",
+                "transition-colors disabled:opacity-50",
+            )}
+        >
+            <MdOutlineSupportAgent className="h-4.75 w-4.75 pb-px" />
+        </button>
     );
 }
 
