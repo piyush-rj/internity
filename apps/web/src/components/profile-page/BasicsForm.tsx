@@ -3,10 +3,8 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
-    BookOpen,
     Calendar,
     Check,
-    GraduationCap,
     Globe,
     Info,
     MapPin,
@@ -248,34 +246,6 @@ export function BasicsForm({
                             Prefer not to say
                         </option>
                     </select>
-                </Field>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field
-                    label="College"
-                    icon={<GraduationCap className="h-3.5 w-3.5" />}
-                    hint="Used by founders to filter applicants."
-                >
-                    <input
-                        type="text"
-                        value={form.college}
-                        onChange={(e) => set("college", e.target.value)}
-                        placeholder="IIT Bombay"
-                        className={inputCls()}
-                    />
-                </Field>
-                <Field
-                    label="Branch"
-                    icon={<BookOpen className="h-3.5 w-3.5" />}
-                >
-                    <input
-                        type="text"
-                        value={form.branch}
-                        onChange={(e) => set("branch", e.target.value)}
-                        placeholder="Computer Science"
-                        className={inputCls()}
-                    />
                 </Field>
             </div>
 

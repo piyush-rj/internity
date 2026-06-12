@@ -26,6 +26,9 @@ const JOB_TITLE_VALUES = [
     "CUSTOM",
 ] as const;
 
+// "HH:MM" 24-hour, e.g. 09:00 or 17:30.
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const Body = z.object({
     firstName: z.string().min(1).optional(),
     lastName: z.string().nullable().optional(),
@@ -49,6 +52,17 @@ const Body = z.object({
         .optional(),
     college: z.string().nullable().optional(),
     branch: z.string().nullable().optional(),
+    // Interview availability — a daily "HH:MM" 24h window.
+    interviewStartTime: z
+        .string()
+        .regex(TIME_RE, "Enter a valid time")
+        .nullable()
+        .optional(),
+    interviewEndTime: z
+        .string()
+        .regex(TIME_RE, "Enter a valid time")
+        .nullable()
+        .optional(),
     // Roles the student wants to be matched against. Dedup at write time so
     // the column doesn't drift into a multiset.
     interestedJobTitles: z.array(z.enum(JOB_TITLE_VALUES)).optional(),
@@ -90,6 +104,12 @@ export default async function updateMyProfile(
                 }),
                 ...(body.college !== undefined && { college: body.college }),
                 ...(body.branch !== undefined && { branch: body.branch }),
+                ...(body.interviewStartTime !== undefined && {
+                    interviewStartTime: body.interviewStartTime,
+                }),
+                ...(body.interviewEndTime !== undefined && {
+                    interviewEndTime: body.interviewEndTime,
+                }),
                 ...(body.interestedJobTitles !== undefined && {
                     interestedJobTitles: Array.from(
                         new Set(body.interestedJobTitles),

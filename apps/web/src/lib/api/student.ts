@@ -29,6 +29,9 @@ export type StudentProfileInput = {
     portfolioUrl?: string;
     college?: string;
     branch?: string;
+    // Interview availability — a daily "HH:MM" time window.
+    interviewStartTime?: string | null;
+    interviewEndTime?: string | null;
     // Roles the student is looking for. Server dedupes and stores as a
     // JobTitle[] on StudentProfile.
     interestedJobTitles?: JobTitle[];

@@ -5,6 +5,8 @@ import { Plus, Trash2 } from "lucide-react";
 import {
     PiBriefcase,
     PiBriefcaseFill,
+    PiClock,
+    PiClockFill,
     PiFolder,
     PiFolderFill,
     PiGraduationCap,
@@ -32,7 +34,8 @@ export type StepKey =
     | "projects"
     | "skills"
     | "certifications"
-    | "languages";
+    | "languages"
+    | "interviewPrefs";
 
 type IconComp = ComponentType<{ className?: string }>;
 
@@ -96,6 +99,14 @@ export const stepsConfig: StepConfig[] = [
         iconFilled: PiGlobeHemisphereWestFill,
     },
     {
+        key: "interviewPrefs",
+        label: "Interview Preferences",
+        description:
+            "Let companies know when you're available for interview calls — pick the days and a time window that work for you.",
+        icon: PiClock,
+        iconFilled: PiClockFill,
+    },
+    {
         key: "experience",
         label: "Experience",
         description:
@@ -146,6 +157,9 @@ export function computeCompletion(profile: StudentProfile | null) {
         skills: (profile?.skills.length ?? 0) > 0,
         certifications: (profile?.certifications.length ?? 0) > 0,
         languages: (profile?.languages.length ?? 0) > 0,
+        interviewPrefs:
+            Boolean(profile?.interviewStartTime) &&
+            Boolean(profile?.interviewEndTime),
     };
     const count = completionSteps.filter((k) => done[k]).length;
     const pct = Math.round((count / completionSteps.length) * 100);

@@ -104,6 +104,14 @@ model StudentProfile {
   college String?
   branch  String?
 
+  // Interview availability: the daily time-of-day window the student can take
+  // interview calls. Times are "HH:MM" 24h strings. Surfaced to employers when
+  // scheduling. (interviewDays is retained but no longer written — availability
+  // is now a single daily window, not per-weekday.)
+  interviewDays      String[] @default([])
+  interviewStartTime String?
+  interviewEndTime   String?
+
   isVerified Boolean @default(false)
 
   educations     Education[]

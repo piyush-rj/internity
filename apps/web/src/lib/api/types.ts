@@ -164,6 +164,9 @@ export type StudentProfile = {
     portfolioUrl: string | null;
     college: string | null;
     branch: string | null;
+    interviewDays: string[];
+    interviewStartTime: string | null;
+    interviewEndTime: string | null;
     isVerified: boolean;
     interestedJobTitles: JobTitle[];
     lastCoverLetter: string | null;

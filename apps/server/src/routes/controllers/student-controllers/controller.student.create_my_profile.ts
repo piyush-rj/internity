@@ -22,6 +22,9 @@ const JOB_TITLE_VALUES = [
     "CUSTOM",
 ] as const;
 
+// "HH:MM" 24-hour, e.g. 09:00 or 17:30.
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
 const Body = z.object({
     firstName: z.string().min(1),
     lastName: z.string().nullable().optional(),
@@ -45,6 +48,16 @@ const Body = z.object({
         .optional(),
     college: z.string().nullable().optional(),
     branch: z.string().nullable().optional(),
+    interviewStartTime: z
+        .string()
+        .regex(TIME_RE, "Enter a valid time")
+        .nullable()
+        .optional(),
+    interviewEndTime: z
+        .string()
+        .regex(TIME_RE, "Enter a valid time")
+        .nullable()
+        .optional(),
     interestedJobTitles: z.array(z.enum(JOB_TITLE_VALUES)).optional(),
 });
 
@@ -69,6 +82,8 @@ export default async function createMyProfile(
                 portfolioUrl: body.portfolioUrl ?? null,
                 college: body.college ?? null,
                 branch: body.branch ?? null,
+                interviewStartTime: body.interviewStartTime ?? null,
+                interviewEndTime: body.interviewEndTime ?? null,
                 interestedJobTitles: body.interestedJobTitles
                     ? (Array.from(
                           new Set(body.interestedJobTitles),

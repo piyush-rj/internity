@@ -5,6 +5,7 @@ import { CertificationsSection } from "@/src/components/profile-page/Certificati
 import { EducationSection } from "@/src/components/profile-page/EducationSection";
 import { EmployerProfileEditor } from "@/src/components/profile-page/EmployerProfileEditor";
 import { ExperienceSection } from "@/src/components/profile-page/ExperienceSection";
+import { InterviewPreferencesSection } from "@/src/components/profile-page/InterviewPreferencesSection";
 import { LanguagesSection } from "@/src/components/profile-page/LanguagesSection";
 import { ProfileHeaderCard } from "@/src/components/profile-page/ProfileHeaderCard";
 import { ProjectsSection } from "@/src/components/profile-page/ProjectsSection";
@@ -83,6 +84,10 @@ function StudentProfile() {
                                 onSaved={handleSaved}
                             />
                             <LanguagesSection
+                                profile={profile}
+                                onSaved={handleSaved}
+                            />
+                            <InterviewPreferencesSection
                                 profile={profile}
                                 onSaved={handleSaved}
                             />
