@@ -10,18 +10,25 @@ import { MESSAGE_TYPE } from "types";
 // onboarding. Tweak the wording here.
 const WELCOME_BODY: Record<"STUDENT" | "EMPLOYER", string> = {
     STUDENT: [
-        "Welcome to SpiderSkill! We're glad to have you.",
+        "👋 Welcome to SpiderSkill!",
         "",
-        "This is the support team, you can reply right here anytime you need help applying to internships, building your profile, or anything else.",
+        "A few quick tips:",
+        "✅ Complete your profile to 100% before applying, complete profiles are more likely to receive interview opportunities.",
+        "✅ Apply to multiple internships that match your interests and skills.",
+        "✅ Keep your profile and resume updated.",
+        "✅ Enable Auto-Apply button",
         "",
-        "To get started, complete your profile so recruiters can find you and you get better matches. Good luck!",
+        "💬 Have a question or need help? Just reply to this chat and we will assist you.",
     ].join("\n"),
     EMPLOYER: [
-        "Welcome to SpiderSkill! Great to have your team on board.",
+        "👋 Welcome to SpiderSkill!",
         "",
-        "This is the support team, reach out on this thread anytime you need a hand.",
+        "A few quick tips:",
+        "✅ You have 1 free internship post available (expires in 3 days).",
+        "✅ Complete your company profile with as much detail as possible to attract more students.",
+        "✅ Add clear role descriptions, responsibilities, and requirements to improve application quality.",
         "",
-        "To start hiring, set up your company profile and post your first internship. Once our admins verify your company, your listings show the Verified badge.",
+        "💬 Have a question or need help? Just reply to this chat and we will assist you.",
     ].join("\n"),
 };
 
